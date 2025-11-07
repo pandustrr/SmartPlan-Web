@@ -43,11 +43,14 @@ const Navbar = ({ isDarkMode, toggleDarkMode }) => {
                         to="/login"
                         className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors"
                     >
-                        Masuk
+                        Login
                     </Link>
                     <Link
                         to="/register"
-                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                        className="bg-green-600 text-white px-6 py-2 rounded-lg 
+                                hover:bg-green-700 transform hover:-translate-y-0.5 
+                                transition duration-200 ease-in-out 
+                                font-medium shadow-lg hover:shadow-xl"
                     >
                         Mulai Gratis
                     </Link>

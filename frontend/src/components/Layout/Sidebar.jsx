@@ -95,17 +95,15 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, onToggle, onClose, i
                             <button
                                 key={item.id}
                                 onClick={() => handleMenuClick(item.id)}
-                                className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${
-                                    isActive 
-                                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800' 
+                                className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${isActive
+                                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
                                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                                }`}
+                                    }`}
                             >
                                 <Icon
                                     size={20}
-                                    className={`shrink-0 ${
-                                        isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
-                                    }`}
+                                    className={`shrink-0 ${isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
+                                        }`}
                                 />
 
                                 {/* Menu Text */}
@@ -147,8 +145,8 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, onToggle, onClose, i
                 <div className="p-4 border-t border-gray-100 dark:border-gray-700">
                     {/* User Info */}
                     <div className={`flex items-center mb-4 ${!isOpen && 'lg:justify-center'}`}>
-                        <div 
-                            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                        <div
+                            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 shadow-sm"
                             style={{ background: 'linear-gradient(to bottom right, #22c55e, #16a34a)' }}
                         >
                             <User size={18} className="text-white" />
@@ -168,15 +166,14 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, onToggle, onClose, i
                     {/* Logout Button */}
                     <button
                         onClick={handleLogout}
-                        className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 ${
-                            !isOpen && 'lg:justify-center'
-                        }`}
+                        className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 ${!isOpen && 'lg:justify-center'
+                            }`}
                     >
                         <LogOut
                             size={20}
                             className="shrink-0"
                         />
-                        
+
                         {/* Logout Text */}
                         <span className={`
                             font-medium text-left ml-3 

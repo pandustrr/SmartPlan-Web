@@ -32,7 +32,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
         setIsLoading(true)
         
         const result = await register(formData)
-        
+            
         if (result.success) {
             if (result.needsVerification) {
                 // Redirect to verification notice dengan email user
@@ -75,7 +75,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
         : ''
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-screen from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
             <div className="max-w-md w-full space-y-8">
                 {/* Header Section */}
                 <div className="text-center relative">
@@ -307,7 +307,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                 required
                                 checked={formData.acceptTerms}
                                 onChange={handleChange}
-                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-600 rounded mt-1 flex-shrink-0"
+                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-600 rounded mt-1"
                             />
                             <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Saya menyetujui{' '}
