@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -52,9 +53,8 @@ class AuthController extends Controller
                 'verificationUrl' => $verificationUrl
             ], function ($message) use ($user) {
                 $message->to($user->email)
-                        ->subject('Verifikasi Email Anda - PlanWeb');
+                    ->subject('Verifikasi Email Anda - PlanWeb');
             });
-
         } catch (\Exception $e) {
             Log::error('Email verification failed: ' . $e->getMessage());
         }
@@ -89,8 +89,8 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)
-                    ->where('verification_token', $request->token)
-                    ->first();
+            ->where('verification_token', $request->token)
+            ->first();
 
         if (!$user) {
             return response()->json([
@@ -161,7 +161,7 @@ class AuthController extends Controller
                 'verificationUrl' => $verificationUrl
             ], function ($message) use ($user) {
                 $message->to($user->email)
-                        ->subject('Verifikasi Email Anda - PlanWeb');
+                    ->subject('Verifikasi Email Anda - PlanWeb');
             });
 
             return response()->json([
@@ -182,7 +182,7 @@ class AuthController extends Controller
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'login' => 'required|string', 
+            'login' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -242,6 +242,56 @@ class AuthController extends Controller
                 'access_token' => $token,
                 'token_type' => 'Bearer',
             ]
+        ]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => 'Link reset password telah dikirim ke email Anda.'
+            ], 200);
+        }
+
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
+        ]);
+    }
+
+    /**
+     * Reset password setelah user membuka link yang dikirim ke email
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        if ($status == Password::PASSWORD_RESET) {
+            return response()->json(['message' => 'Password berhasil direset.'], 200);
+        }
+
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
         ]);
     }
 

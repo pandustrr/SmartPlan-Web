@@ -8,6 +8,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -20,7 +22,7 @@ Route::get('/test-email/{email?}', function ($email = null) {
     try {
         Mail::raw('Test email from PlanWeb - Email Verification System', function ($message) use ($testEmail) {
             $message->to($testEmail)
-                    ->subject('Test Email Verification - PlanWeb');
+                ->subject('Test Email Verification - PlanWeb');
         });
 
         return response()->json([
