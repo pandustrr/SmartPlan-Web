@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MarketAnalysisController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 
@@ -45,4 +46,13 @@ Route::prefix('business')->group(function () {
     Route::get('/{id}', [BusinessController::class, 'show']);   // Read single
     Route::put('/{id}', [BusinessController::class, 'update']); // Update
     Route::delete('/{id}', [BusinessController::class, 'destroy']); // Delete
+});
+
+// Market Analysis
+Route::prefix('market-analysis')->group(function () {
+    Route::get('/', [MarketAnalysisController::class, 'index']); // optional: ?user_id=1 or ?business_background_id=2
+    Route::get('/{id}', [MarketAnalysisController::class, 'show']);
+    Route::post('/', [MarketAnalysisController::class, 'store']);
+    Route::put('/{id}', [MarketAnalysisController::class, 'update']);
+    Route::delete('/{id}', [MarketAnalysisController::class, 'destroy']);
 });

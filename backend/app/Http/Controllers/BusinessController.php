@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BusinessBackground;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -42,6 +43,7 @@ class BusinessController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',
@@ -50,7 +52,7 @@ class BusinessController extends Controller
             'location' => 'nullable|string|max:255',
             'business_type' => 'nullable|string|max:50',
             'start_date' => 'nullable|date',
-            'core_values' => 'nullable|string',
+            'values' => 'nullable|string',
             'vision' => 'nullable|string',
             'mission' => 'nullable|string',
             'contact' => 'nullable|string|max:255',
@@ -69,6 +71,7 @@ class BusinessController extends Controller
         }
 
         $business = BusinessBackground::create([
+            'user_id' => $request->user_id,
             'logo' => $logoPath,
             'name' => $request->name,
             'category' => $request->category,
@@ -77,7 +80,7 @@ class BusinessController extends Controller
             'location' => $request->location,
             'business_type' => $request->business_type,
             'start_date' => $request->start_date,
-            'core_values' => $request->core_values,
+            'values' => $request->values,
             'vision' => $request->vision,
             'mission' => $request->mission,
             'contact' => $request->contact,
@@ -100,6 +103,14 @@ class BusinessController extends Controller
             ], 404);
         }
 
+        // Cek apakah user_id cocok dengan pemilik data
+        if ($request->user_id != $business->user_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized: You cannot update this data'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'name' => 'sometimes|required|string|max:255',
@@ -109,7 +120,7 @@ class BusinessController extends Controller
             'location' => 'sometimes|required|string|max:255',
             'business_type' => 'sometimes|required|string|max:50',
             'start_date' => 'sometimes|required|date',
-            'core_values' => 'nullable|string',
+            'values' => 'nullable|string',
             'vision' => 'nullable|string',
             'mission' => 'nullable|string',
             'contact' => 'nullable|string',
