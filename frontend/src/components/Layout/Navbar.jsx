@@ -76,7 +76,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
             Sign In
           </Link>
           <Link
-            to="/signup"
+            to="/register"
             className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-all font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
           >
             Mulai Gratis

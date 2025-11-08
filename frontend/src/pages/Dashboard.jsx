@@ -4,11 +4,13 @@ import Header from '../components/Layout/Header'
 import StatCards from '../components/Dashboard/StatCards'
 import RecentPlans from '../components/Dashboard/RecentPlans'
 import QuickActions from '../components/Dashboard/QuickActions'
+import RencanaBisnis from './RencanaBisnis'
 import { FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
     const [activeSection, setActiveSection] = useState('dashboard')
+    const [activeSubSection, setActiveSubSection] = useState('') // Untuk sub menu
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
 
@@ -29,7 +31,7 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
         if (isMobile) {
             setIsSidebarOpen(false)
         }
-    }, [activeSection, isMobile])
+    }, [activeSection, activeSubSection, isMobile])
 
     useEffect(() => {
         if (!isMobile) {
@@ -52,6 +54,17 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
     }
 
     const renderContent = () => {
+        // Jika ada sub section aktif, tampilkan RencanaBisnis dengan sub section
+        if (activeSubSection) {
+            return (
+                <RencanaBisnis 
+                    activeSubSection={activeSubSection}
+                    setActiveSubSection={setActiveSubSection}
+                />
+            )
+        }
+
+        // Main section
         switch (activeSection) {
             case 'dashboard':
                 return (
@@ -73,20 +86,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
 
             case 'business-plan':
                 return (
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                            Rencana Bisnis
-                        </h1>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-                            <FileText size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                Modul Rencana Bisnis
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400 mb-4">
-                                Fitur ini sedang dalam pengembangan
-                            </p>
-                        </div>
-                    </div>
+                    <RencanaBisnis 
+                        activeSubSection={activeSubSection}
+                        setActiveSubSection={setActiveSubSection}
+                    />
                 )
 
             case 'financial':
@@ -184,6 +187,8 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
             <Sidebar
                 activeSection={activeSection}
                 setActiveSection={setActiveSection}
+                activeSubSection={activeSubSection}
+                setActiveSubSection={setActiveSubSection}
                 isOpen={isSidebarOpen}
                 onToggle={toggleSidebar}
                 onClose={closeSidebar}
