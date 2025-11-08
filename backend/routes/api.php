@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\MarketAnalysisController;
+use App\Http\Controllers\BusinessPlan\BusinessController;
+use App\Http\Controllers\BusinessPlan\MarketAnalysisController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 
@@ -39,8 +39,13 @@ Route::get('/test-email/{email?}', function ($email = null) {
     }
 });
 
+
+
+
+
+
 // Business Background
-Route::prefix('business')->group(function () {
+Route::prefix('business-background')->group(function () {
     Route::post('/', [BusinessController::class, 'store']);     // Create
     Route::get('/', [BusinessController::class, 'index']);      // Read all
     Route::get('/{id}', [BusinessController::class, 'show']);   // Read single

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BusinessPlan;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class MarketAnalysisController extends Controller
 {
-    // INDEX - dengan optional filter by user_id atau business_background_id
     public function index(Request $request)
     {
         $query = MarketAnalysis::query();

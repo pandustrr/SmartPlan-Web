@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BusinessPlan;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\BusinessBackground;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+
+use App\Models\BusinessBackground;
+use App\Models\MarketAnalysis;
+use Illuminate\Support\Facades\Log;
 
 class BusinessController extends Controller
 {
+    // BusinessBackground
     public function index()
     {
         $businesses = BusinessBackground::all();
@@ -21,7 +23,6 @@ class BusinessController extends Controller
         ], 200);
     }
 
-    // Tampilkan satu bisnis berdasarkan ID
     public function show($id)
     {
         $business = BusinessBackground::find($id);
@@ -39,7 +40,6 @@ class BusinessController extends Controller
         ], 200);
     }
 
-    // Simpan data latar belakang usaha
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -59,37 +59,51 @@ class BusinessController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::warning('Validasi gagal pada storeBusinessBackground', [
+                'errors' => $validator->errors()
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        $logoPath = null;
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
+        try {
+
+            $logoPath = null;
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('logos', 'public');
+            }
+
+            // Simpan data ke database
+            $business = BusinessBackground::create([
+                'user_id' => $request->user_id,
+                'logo' => $logoPath,
+                'name' => $request->name,
+                'category' => $request->category,
+                'description' => $request->description,
+                'purpose' => $request->purpose,
+                'location' => $request->location,
+                'business_type' => $request->business_type,
+                'start_date' => $request->start_date,
+                'values' => $request->values,
+                'vision' => $request->vision,
+                'mission' => $request->mission,
+                'contact' => $request->contact,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data latar belakang usaha berhasil disimpan.',
+                'data' => $business
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menyimpan data.'
+            ], 500);
         }
-
-        $business = BusinessBackground::create([
-            'user_id' => $request->user_id,
-            'logo' => $logoPath,
-            'name' => $request->name,
-            'category' => $request->category,
-            'description' => $request->description,
-            'purpose' => $request->purpose,
-            'location' => $request->location,
-            'business_type' => $request->business_type,
-            'start_date' => $request->start_date,
-            'values' => $request->values,
-            'vision' => $request->vision,
-            'mission' => $request->mission,
-            'contact' => $request->contact,
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $business
-        ], 201);
     }
 
     public function update(Request $request, $id)
