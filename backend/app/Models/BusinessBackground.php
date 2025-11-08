@@ -25,6 +25,12 @@ class BusinessBackground extends Model
         'contact',
     ];
 
+    // Relasi ke market analyses
+    public function marketAnalyses()
+    {
+        return $this->hasMany(MarketAnalysis::class, 'business_background_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

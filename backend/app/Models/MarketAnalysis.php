@@ -21,14 +21,14 @@ class MarketAnalysis extends Model
         'competitive_advantage',
     ];
 
-    // Relasi
+    // Relasi - pastikan nama model dan foreign key benar
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function businessBackground()
     {
-        return $this->belongsTo(\App\Models\BusinessBackground::class);
+        return $this->belongsTo(BusinessBackground::class, 'business_background_id', 'id');
     }
 }

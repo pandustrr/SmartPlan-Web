@@ -4,6 +4,7 @@ import MarketAnalysisCreate from './MarketAnalysis-Create';
 import MarketAnalysisEdit from './MarketAnalysis-Edit';
 import MarketAnalysisView from './MarketAnalysis-View';
 import { marketAnalysisApi } from '../../../services/businessPlan';
+import { toast } from 'react-toastify';
 
 const MarketAnalysis = () => {
     const [analyses, setAnalyses] = useState([]);
@@ -12,22 +13,17 @@ const MarketAnalysis = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch semua market analyses dengan include business background
+    // Fetch semua market analyses
     const fetchAnalyses = async () => {
         try {
             setIsLoading(true);
             setError(null);
 
-            console.log('Fetching market analyses using API...');
             const user = JSON.parse(localStorage.getItem('user'));
             
-            // Fetch dengan parameter untuk include business background
             const response = await marketAnalysisApi.getAll({ 
-                user_id: user?.id,
-                include: 'businessBackground' // Include business background data
+                user_id: user?.id
             });
-
-            console.log('API Response:', response.data);
 
             if (response.data.status === 'success') {
                 setAnalyses(response.data.data || []);
@@ -35,8 +31,6 @@ const MarketAnalysis = () => {
                 throw new Error(response.data.message || 'Failed to fetch market analyses');
             }
         } catch (error) {
-            console.error('Error fetching market analyses:', error);
-
             let errorMessage = 'Gagal memuat data analisis pasar';
             if (error.response) {
                 errorMessage = error.response.data?.message || `Server error: ${error.response.status}`;
@@ -47,6 +41,7 @@ const MarketAnalysis = () => {
             }
 
             setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -79,20 +74,18 @@ const MarketAnalysis = () => {
             const response = await marketAnalysisApi.delete(analysisId, user?.id);
 
             if (response.data.status === 'success') {
+                toast.success('Analisis pasar berhasil dihapus!');
                 fetchAnalyses();
                 setView('list');
             } else {
                 throw new Error(response.data.message || 'Failed to delete market analysis');
             }
         } catch (error) {
-            console.error('Error deleting market analysis:', error);
             let errorMessage = 'Terjadi kesalahan saat menghapus data analisis pasar';
-
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             }
-
-            alert(errorMessage); 
+            toast.error(errorMessage);
         }
     };
 

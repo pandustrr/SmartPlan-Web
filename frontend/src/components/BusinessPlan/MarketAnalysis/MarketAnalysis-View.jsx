@@ -9,6 +9,20 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
         );
     }
 
+    // Helper function untuk mengakses business background
+    const getBusinessInfo = () => {
+        if (!analysis.businessBackground) {
+            console.warn('Business background not found in view:', analysis);
+            return { name: 'Bisnis Tidak Ditemukan', category: 'Tidak ada kategori' };
+        }
+        return {
+            name: analysis.businessBackground.name || 'Bisnis Tidak Ditemukan',
+            category: analysis.businessBackground.category || 'Tidak ada kategori'
+        };
+    };
+
+    const businessInfo = getBusinessInfo();
+
     return (
         <div className="space-y-6">
             {/* Header Section dengan tombol back di atas */}
@@ -49,7 +63,7 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
                     </div>
                     <div className="flex-1">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            {analysis.businessBackground?.name || 'Bisnis Tidak Ditemukan'}
+                            {businessInfo.name}
                         </h2>
                         <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                             <span className="bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 px-3 py-1 rounded-full flex items-center gap-1">
@@ -58,7 +72,7 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
                             </span>
                             <span className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 px-3 py-1 rounded-full flex items-center gap-1">
                                 <Building size={14} />
-                                {analysis.businessBackground?.category || 'Tidak ada kategori'}
+                                {businessInfo.category}
                             </span>
                             <span className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full flex items-center gap-1">
                                 <Calendar size={14} />

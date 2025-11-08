@@ -5,46 +5,98 @@ namespace App\Http\Controllers\BusinessPlan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\MarketAnalysis;
+use App\Models\BusinessBackground;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class MarketAnalysisController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MarketAnalysis::query();
+        try {
+            Log::info('Fetching market analyses with business background', [
+                'user_id' => $request->user_id,
+                'request_all' => $request->all()
+            ]);
 
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->user_id);
+            // Gunakan eager loading dengan cara yang lebih eksplisit
+            $query = MarketAnalysis::with(['businessBackground']);
+
+            if ($request->has('user_id')) {
+                $query->where('user_id', $request->user_id);
+            }
+
+            $analyses = $query->get();
+
+            // DEBUG: Manual load business background jika eager loading gagal
+            foreach ($analyses as $analysis) {
+                if (!$analysis->relationLoaded('businessBackground')) {
+                    Log::warning('Business background not loaded for analysis: ' . $analysis->id);
+                    $analysis->load('businessBackground');
+                }
+
+                // Debug setiap analysis
+                Log::info('Analysis debug', [
+                    'id' => $analysis->id,
+                    'business_background_id' => $analysis->business_background_id,
+                    'has_business_background' => !is_null($analysis->businessBackground),
+                    'business_background_data' => $analysis->businessBackground ? [
+                        'id' => $analysis->businessBackground->id,
+                        'name' => $analysis->businessBackground->name,
+                        'category' => $analysis->businessBackground->category
+                    ] : null
+                ]);
+            }
+
+            Log::info('Final analyses data', [
+                'total' => $analyses->count(),
+                'with_business_background' => $analyses->where('businessBackground', '!=', null)->count()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $analyses
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching market analyses: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch market analyses: ' . $e->getMessage()
+            ], 500);
         }
-
-        if ($request->has('business_background_id')) {
-            $query->where('business_background_id', $request->business_background_id);
-        }
-
-        $analyses = $query->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $analyses
-        ], 200);
     }
 
     // SHOW
     public function show($id)
     {
-        $analysis = MarketAnalysis::find($id);
+        try {
+            $analysis = MarketAnalysis::with(['businessBackground'])->find($id);
 
-        if (!$analysis) {
+            if (!$analysis) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Market analysis not found'
+                ], 404);
+            }
+
+            // Manual load jika masih gagal
+            if (!$analysis->relationLoaded('businessBackground')) {
+                $analysis->load('businessBackground');
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $analysis
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching market analysis: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Market analysis not found'
-            ], 404);
+                'message' => 'Failed to fetch market analysis'
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $analysis
-        ], 200);
     }
 
     // STORE
@@ -52,7 +104,7 @@ class MarketAnalysisController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
-            'business_background_id' => 'nullable|exists:business_backgrounds,id',
+            'business_background_id' => 'required|exists:business_backgrounds,id',
             'target_market' => 'nullable|string',
             'market_size' => 'nullable|string|max:255',
             'market_trends' => 'nullable|string',
@@ -69,25 +121,43 @@ class MarketAnalysisController extends Controller
             ], 422);
         }
 
-        $analysis = MarketAnalysis::create([
-            'user_id' => $request->user_id,
-            'business_background_id' => $request->business_background_id,
-            'target_market' => $request->target_market,
-            'market_size' => $request->market_size,
-            'market_trends' => $request->market_trends,
-            'main_competitors' => $request->main_competitors,
-            'competitor_strengths' => $request->competitor_strengths,
-            'competitor_weaknesses' => $request->competitor_weaknesses,
-            'competitive_advantage' => $request->competitive_advantage,
-        ]);
+        try {
+            $analysis = MarketAnalysis::create([
+                'user_id' => $request->user_id,
+                'business_background_id' => $request->business_background_id,
+                'target_market' => $request->target_market,
+                'market_size' => $request->market_size,
+                'market_trends' => $request->market_trends,
+                'main_competitors' => $request->main_competitors,
+                'competitor_strengths' => $request->competitor_strengths,
+                'competitor_weaknesses' => $request->competitor_weaknesses,
+                'competitive_advantage' => $request->competitive_advantage,
+            ]);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $analysis
-        ], 201);
+            // Load business background dengan fresh query
+            $analysis->load('businessBackground');
+
+            Log::info('Market analysis created successfully', [
+                'id' => $analysis->id,
+                'business_background_id' => $analysis->business_background_id,
+                'business_background_name' => $analysis->businessBackground ? $analysis->businessBackground->name : 'NOT FOUND'
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $analysis
+            ], 201);
+
+        } catch (\Exception $e) {
+            Log::error('Error creating market analysis: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create market analysis'
+            ], 500);
+        }
     }
 
-    // UPDATE (cek ownership via user_id yang dikirim)
+    // UPDATE - tetap sama
     public function update(Request $request, $id)
     {
         $analysis = MarketAnalysis::find($id);
@@ -99,7 +169,6 @@ class MarketAnalysisController extends Controller
             ], 404);
         }
 
-        // Pastikan user yang mengupdate sesuai dengan owner (user_id dikirim dari frontend)
         if (!$request->has('user_id') || $request->user_id != $analysis->user_id) {
             return response()->json([
                 'status' => 'error',
@@ -107,7 +176,8 @@ class MarketAnalysisController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
+            'business_background_id' => 'required|exists:business_backgrounds,id',
             'target_market' => 'nullable|string',
             'market_size' => 'nullable|string|max:255',
             'market_trends' => 'nullable|string',
@@ -117,16 +187,43 @@ class MarketAnalysisController extends Controller
             'competitive_advantage' => 'nullable|string',
         ]);
 
-        $analysis->update($validated);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Market analysis updated successfully',
-            'data' => $analysis
-        ], 200);
+        try {
+            $analysis->update([
+                'business_background_id' => $request->business_background_id,
+                'target_market' => $request->target_market,
+                'market_size' => $request->market_size,
+                'market_trends' => $request->market_trends,
+                'main_competitors' => $request->main_competitors,
+                'competitor_strengths' => $request->competitor_strengths,
+                'competitor_weaknesses' => $request->competitor_weaknesses,
+                'competitive_advantage' => $request->competitive_advantage,
+            ]);
+
+            $analysis->load('businessBackground');
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Market analysis updated successfully',
+                'data' => $analysis
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating market analysis: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update market analysis'
+            ], 500);
+        }
     }
 
-    // DESTROY (cek ownership)
+    // DESTROY - tetap sama
     public function destroy(Request $request, $id)
     {
         $analysis = MarketAnalysis::find($id);
@@ -145,11 +242,20 @@ class MarketAnalysisController extends Controller
             ], 403);
         }
 
-        $analysis->delete();
+        try {
+            $analysis->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Market analysis deleted successfully'
-        ], 200);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Market analysis deleted successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting market analysis: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete market analysis'
+            ], 500);
+        }
     }
 }

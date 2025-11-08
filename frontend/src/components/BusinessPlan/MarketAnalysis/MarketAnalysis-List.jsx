@@ -30,7 +30,6 @@ const MarketAnalysisList = ({
             await onDelete(analysisToDelete.id);
             toast.success('Data analisis pasar berhasil dihapus!');
         } catch (error) {
-            console.error('Error in MarketAnalysisList delete:', error);
             toast.error('Gagal menghapus data analisis pasar!');
         } finally {
             setIsDeleting(false);
@@ -47,11 +46,15 @@ const MarketAnalysisList = ({
     // Get unique businesses for filter
     const getUniqueBusinesses = () => {
         const businesses = analyses
-            .filter(analysis => analysis.businessBackground)
+            .filter(analysis => {
+                return analysis.business_background && 
+                       analysis.business_background.id && 
+                       analysis.business_background.name;
+            })
             .map(analysis => ({
-                id: analysis.businessBackground.id,
-                name: analysis.businessBackground.name,
-                category: analysis.businessBackground.category
+                id: analysis.business_background.id,
+                name: analysis.business_background.name,
+                category: analysis.business_background.category || 'Tidak ada kategori'
             }));
         
         // Remove duplicates
@@ -63,10 +66,25 @@ const MarketAnalysisList = ({
     const filteredAnalyses = selectedBusiness === 'all' 
         ? analyses 
         : analyses.filter(analysis => 
-            analysis.businessBackground?.id === selectedBusiness
+            analysis.business_background?.id === selectedBusiness
         );
 
     const uniqueBusinesses = getUniqueBusinesses();
+
+    // Helper function untuk mengakses business background
+    const getBusinessInfo = (analysis) => {
+        if (!analysis.business_background) {
+            return { 
+                name: `Bisnis (ID: ${analysis.business_background_id})`, 
+                category: 'Tidak ada kategori' 
+            };
+        }
+        
+        return {
+            name: analysis.business_background.name || `Bisnis (ID: ${analysis.business_background_id})`,
+            category: analysis.business_background.category || 'Tidak ada kategori'
+        };
+    };
 
     if (isLoading) {
         return (
@@ -194,7 +212,7 @@ const MarketAnalysisList = ({
             </div>
 
             {/* FILTER BUTTONS - Horizontal */}
-            {analyses.length > 0 && (
+            {analyses.length > 0 && uniqueBusinesses.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
@@ -253,7 +271,7 @@ const MarketAnalysisList = ({
                                         ? 'bg-blue-600 text-white' 
                                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
                                 }`}>
-                                    {analyses.filter(a => a.businessBackground?.id === business.id).length}
+                                    {analyses.filter(a => a.business_background?.id === business.id).length}
                                 </span>
                             </button>
                         ))}
@@ -305,81 +323,85 @@ const MarketAnalysisList = ({
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                    {filteredAnalyses.map((analysis) => (
-                        <div key={analysis.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center border border-purple-200 dark:border-purple-800">
-                                        <BarChart3 className="text-purple-600 dark:text-purple-400" size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
-                                            {analysis.businessBackground?.name || 'Bisnis Tidak Ditemukan'}
-                                        </h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
-                                                {analysis.businessBackground?.category || 'Tidak ada kategori'}
-                                            </span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                {new Date(analysis.created_at).toLocaleDateString('id-ID')}
-                                            </span>
+                    {filteredAnalyses.map((analysis) => {
+                        const businessInfo = getBusinessInfo(analysis);
+                        
+                        return (
+                            <div key={analysis.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center border border-purple-200 dark:border-purple-800">
+                                            <BarChart3 className="text-purple-600 dark:text-purple-400" size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
+                                                {businessInfo.name}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
+                                                    {businessInfo.category}
+                                                </span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {new Date(analysis.created_at).toLocaleDateString('id-ID')}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                {analysis.target_market && (
-                                    <div className="flex items-start gap-2">
-                                        <Target size={16} className="mt-0.5 flex-shrink-0" />
-                                        <span className="line-clamp-2">{analysis.target_market}</span>
-                                    </div>
-                                )}
-                                {analysis.market_size && (
-                                    <div className="flex items-start gap-2">
-                                        <TrendingUp size={16} className="mt-0.5 flex-shrink-0" />
-                                        <span className="line-clamp-2">{analysis.market_size}</span>
-                                    </div>
-                                )}
-                                {analysis.main_competitors && (
-                                    <div className="flex items-start gap-2">
-                                        <Users size={16} className="mt-0.5 flex-shrink-0" />
-                                        <span className="line-clamp-2">{analysis.main_competitors}</span>
-                                    </div>
-                                )}
-                            </div>
+                                
+                                <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    {analysis.target_market && (
+                                        <div className="flex items-start gap-2">
+                                            <Target size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{analysis.target_market}</span>
+                                        </div>
+                                    )}
+                                    {analysis.market_size && (
+                                        <div className="flex items-start gap-2">
+                                            <TrendingUp size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{analysis.market_size}</span>
+                                        </div>
+                                    )}
+                                    {analysis.main_competitors && (
+                                        <div className="flex items-start gap-2">
+                                            <Users size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{analysis.main_competitors}</span>
+                                        </div>
+                                    )}
+                                </div>
 
-                            {analysis.competitive_advantage && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 min-h-[40px]">
-                                    <strong>Keunggulan:</strong> {analysis.competitive_advantage}
-                                </p>
-                            )}
+                                {analysis.competitive_advantage && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 min-h-[40px]">
+                                        <strong>Keunggulan:</strong> {analysis.competitive_advantage}
+                                    </p>
+                                )}
 
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => onView(analysis)}
-                                    className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                                >
-                                    <Eye size={16} />
-                                    Lihat
-                                </button>
-                                <button
-                                    onClick={() => onEdit(analysis)}
-                                    className="flex-1 bg-yellow-600 text-white py-2 px-3 rounded text-sm hover:bg-yellow-700 transition-colors flex items-center justify-center gap-1"
-                                >
-                                    <Edit3 size={16} />
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteClick(analysis.id, analysis.businessBackground?.name || 'Analisis Pasar')}
-                                    className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
-                                >
-                                    <Trash2 size={16} />
-                                    Delete
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => onView(analysis)}
+                                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                    >
+                                        <Eye size={16} />
+                                        Lihat
+                                    </button>
+                                    <button
+                                        onClick={() => onEdit(analysis)}
+                                        className="flex-1 bg-yellow-600 text-white py-2 px-3 rounded text-sm hover:bg-yellow-700 transition-colors flex items-center justify-center gap-1"
+                                    >
+                                        <Edit3 size={16} />
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteClick(analysis.id, businessInfo.name)}
+                                        className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
+                                    >
+                                        <Trash2 size={16} />
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
