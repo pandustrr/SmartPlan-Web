@@ -102,7 +102,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           <div className="text-center">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-medium mb-6">
               <Zap className="w-4 h-4 mr-2" />
-              Platform Manajemen Bisnis All-in-One
+              Platform Manajemen Bisni
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">

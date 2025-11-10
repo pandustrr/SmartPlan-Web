@@ -28,6 +28,11 @@ export const marketAnalysisApi = {
             data: { user_id: userId } 
         });
     },
+    
+    // REVISI: Tambahan method untuk kalkulasi market size
+    calculateMarketSize: (calculatorData) => {
+        return api.post("/market-analysis/calculate-market-size", calculatorData);
+    },
 };
 
 export default marketAnalysisApi;

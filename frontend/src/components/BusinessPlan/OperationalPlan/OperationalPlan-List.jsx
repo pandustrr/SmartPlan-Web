@@ -1,89 +1,103 @@
-import { BarChart3, Target, Users, TrendingUp, Plus, Eye, Edit3, Trash2, Loader, RefreshCw, X, Building } from 'lucide-react';
+import { Workflow, Building, Calendar, Plus, Eye, Edit3, Trash2, Loader, RefreshCw, X, MapPin, Clock, Users, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
-const MarketAnalysisList = ({ 
-    analyses, 
-    onView, 
-    onEdit, 
-    onDelete, 
+const OperationalPlanList = ({
+    plans,
+    onView,
+    onEdit,
+    onDelete,
     onCreateNew,
     isLoading,
     error,
     onRetry
 }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [analysisToDelete, setAnalysisToDelete] = useState(null);
+    const [planToDelete, setPlanToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedBusiness, setSelectedBusiness] = useState('all');
 
-    const handleDeleteClick = (analysisId, analysisTitle) => {
-        setAnalysisToDelete({ id: analysisId, title: analysisTitle });
+    const handleDeleteClick = (planId, planTitle) => {
+        setPlanToDelete({ id: planId, title: planTitle });
         setShowDeleteModal(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (!analysisToDelete) return;
+        if (!planToDelete) return;
 
         setIsDeleting(true);
         try {
-            await onDelete(analysisToDelete.id);
-            toast.success('Data analisis pasar berhasil dihapus!');
+            await onDelete(planToDelete.id);
+            // Hapus toast sukses di sini biar gak duplikat
         } catch (error) {
-            toast.error('Gagal menghapus data analisis pasar!');
+            toast.error('Gagal menghapus rencana operasional!');
         } finally {
             setIsDeleting(false);
             setShowDeleteModal(false);
-            setAnalysisToDelete(null);
+            setPlanToDelete(null);
         }
     };
 
     const handleCancelDelete = () => {
         setShowDeleteModal(false);
-        setAnalysisToDelete(null);
+        setPlanToDelete(null);
     };
 
     // Get unique businesses for filter
     const getUniqueBusinesses = () => {
-        const businesses = analyses
-            .filter(analysis => {
-                return analysis.business_background && 
-                       analysis.business_background.id && 
-                       analysis.business_background.name;
+        const businesses = plans
+            .filter(plan => {
+                return plan.business_background &&
+                    plan.business_background.id &&
+                    plan.business_background.name;
             })
-            .map(analysis => ({
-                id: analysis.business_background.id,
-                name: analysis.business_background.name,
-                category: analysis.business_background.category || 'Tidak ada kategori'
+            .map(plan => ({
+                id: plan.business_background.id,
+                name: plan.business_background.name,
+                category: plan.business_background.category || 'Tidak ada kategori'
             }));
-        
+
         // Remove duplicates
-        return businesses.filter((business, index, self) => 
+        return businesses.filter((business, index, self) =>
             index === self.findIndex(b => b.id === business.id)
         );
     };
 
-    const filteredAnalyses = selectedBusiness === 'all' 
-        ? analyses 
-        : analyses.filter(analysis => 
-            analysis.business_background?.id === selectedBusiness
+    const filteredPlans = selectedBusiness === 'all'
+        ? plans
+        : plans.filter(plan =>
+            plan.business_background?.id === selectedBusiness
         );
 
     const uniqueBusinesses = getUniqueBusinesses();
 
     // Helper function untuk mengakses business background
-    const getBusinessInfo = (analysis) => {
-        if (!analysis.business_background) {
-            return { 
-                name: `Bisnis (ID: ${analysis.business_background_id})`, 
-                category: 'Tidak ada kategori' 
+    const getBusinessInfo = (plan) => {
+        if (!plan.business_background) {
+            return {
+                name: `Bisnis (ID: ${plan.business_background_id})`,
+                category: 'Tidak ada kategori'
             };
         }
-        
+
         return {
-            name: analysis.business_background.name || `Bisnis (ID: ${analysis.business_background_id})`,
-            category: analysis.business_background.category || 'Tidak ada kategori'
+            name: plan.business_background.name || `Bisnis (ID: ${plan.business_background_id})`,
+            category: plan.business_background.category || 'Tidak ada kategori'
         };
+    };
+
+    const getStatusBadge = (status) => {
+        const statusConfig = {
+            draft: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300', label: 'Draft' },
+            completed: { color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300', label: 'Selesai' }
+        };
+
+        const config = statusConfig[status] || statusConfig.draft;
+        return (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+                {config.label}
+            </span>
+        );
     };
 
     if (isLoading) {
@@ -91,8 +105,8 @@ const MarketAnalysisList = ({
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analisis Pasar</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Kelola analisis pasar dan kompetitor bisnis Anda</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Rencana Operasional</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Kelola rencana operasional bisnis Anda</p>
                     </div>
                 </div>
                 <div className="flex justify-center items-center h-64">
@@ -110,8 +124,8 @@ const MarketAnalysisList = ({
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analisis Pasar</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Kelola analisis pasar dan kompetitor bisnis Anda</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Rencana Operasional</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Kelola rencana operasional bisnis Anda</p>
                     </div>
                 </div>
                 <div className="text-center py-12">
@@ -159,10 +173,10 @@ const MarketAnalysisList = ({
                                 <Trash2 className="w-6 h-6 text-red-600" />
                             </div>
                             <p className="text-gray-600 dark:text-gray-400 mb-2">
-                                Apakah Anda yakin ingin menghapus analisis pasar ini?
+                                Apakah Anda yakin ingin menghapus rencana operasional ini?
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                <strong>"{analysisToDelete?.title}"</strong>
+                                <strong>"{planToDelete?.title}"</strong>
                             </p>
                         </div>
 
@@ -199,20 +213,20 @@ const MarketAnalysisList = ({
             {/* HEADER */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analisis Pasar</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Kelola analisis pasar dan kompetitor bisnis Anda</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Rencana Operasional</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Kelola rencana operasional bisnis Anda</p>
                 </div>
                 <button
                     onClick={onCreateNew}
                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                     <Plus size={20} />
-                    Tambah Analisis
+                    Tambah Rencana
                 </button>
             </div>
 
             {/* FILTER BUTTONS - Horizontal */}
-            {analyses.length > 0 && uniqueBusinesses.length > 0 && (
+            {plans.length > 0 && uniqueBusinesses.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
@@ -222,56 +236,52 @@ const MarketAnalysisList = ({
                         {selectedBusiness !== 'all' && (
                             <button
                                 onClick={() => setSelectedBusiness('all')}
-                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 w-full sm:w-auto text-left sm:text-center"
+                                className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 w-full sm:w-auto text-left sm:text-center"
                             >
                                 Reset Filter
                             </button>
                         )}
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-2">
-                        {/* Tombol Semua Bisnis */}
+                        {/* Tombol Semua Bisnis - SELALU HIJAU ketika aktif */}
                         <button
                             onClick={() => setSelectedBusiness('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedBusiness === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === 'all'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <Building size={14} />
                             <span>Semua Bisnis</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedBusiness === 'all' 
-                                    ? 'bg-green-600 text-white' 
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === 'all'
+                                    ? 'bg-green-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
-                                {analyses.length}
+                                }`}>
+                                {plans.length}
                             </span>
                         </button>
 
-                        {/* Tombol untuk setiap bisnis */}
+                        {/* Tombol untuk setiap bisnis - BIRU ketika aktif */}
                         {uniqueBusinesses.map(business => (
                             <button
                                 key={business.id}
                                 onClick={() => setSelectedBusiness(business.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                    selectedBusiness === business.id
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === business.id
                                         ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                         : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                }`}
+                                    }`}
                             >
                                 <Building size={14} />
                                 <div className="text-left">
                                     <div className="font-medium">{business.name}</div>
                                     <div className="text-xs opacity-80 hidden sm:block">{business.category}</div>
                                 </div>
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                    selectedBusiness === business.id 
-                                        ? 'bg-blue-600 text-white' 
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === business.id
+                                        ? 'bg-blue-600 text-white'
                                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}>
-                                    {analyses.filter(a => a.business_background?.id === business.id).length}
+                                    }`}>
+                                    {plans.filter(p => p.business_background?.id === business.id).length}
                                 </span>
                             </button>
                         ))}
@@ -284,7 +294,7 @@ const MarketAnalysisList = ({
                                 <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 text-sm">
                                     <Building size={16} />
                                     <span>
-                                        Menampilkan {filteredAnalyses.length} dari {analyses.length} analisis untuk{' '}
+                                        Menampilkan {filteredPlans.length} dari {plans.length} rencana untuk{' '}
                                         <strong>
                                             {uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}
                                         </strong>
@@ -296,43 +306,46 @@ const MarketAnalysisList = ({
                 </div>
             )}
 
-            {/* LIST ANALISIS */}
-            {analyses.length === 0 ? (
+            {/* CARD VIEW */}
+            {plans.length === 0 ? (
                 <div className="text-center py-12">
-                    <BarChart3 size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum ada data analisis pasar</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">Mulai dengan menambahkan analisis pasar pertama Anda</p>
+                    <Workflow size={64} className="mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum ada rencana operasional</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Mulai dengan menambahkan rencana operasional pertama Anda</p>
                     <button
                         onClick={onCreateNew}
                         className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors w-full sm:w-auto"
                     >
-                        Tambah Analisis Pertama
+                        Tambah Rencana Pertama
                     </button>
                 </div>
-            ) : filteredAnalyses.length === 0 ? (
+            ) : filteredPlans.length === 0 ? (
                 <div className="text-center py-12">
                     <Building size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada analisis untuk bisnis ini</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ditemukan analisis pasar untuk bisnis yang dipilih</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada rencana untuk bisnis ini</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ditemukan rencana operasional untuk bisnis yang dipilih</p>
                     <button
                         onClick={() => setSelectedBusiness('all')}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
+                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors w-full sm:w-auto"
                     >
-                        Lihat Semua Analisis
+                        Lihat Semua Rencana
                     </button>
                 </div>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {filteredAnalyses.map((analysis) => {
-                            const businessInfo = getBusinessInfo(analysis);
-                            
+                        {filteredPlans.map((plan) => {
+                            const businessInfo = getBusinessInfo(plan);
+                            const totalEmployees = plan.employees ? plan.employees.reduce((sum, emp) => sum + (emp.quantity || 0), 0) : 0;
+                            const operationalDays = plan.operational_hours ? plan.operational_hours.length : 0;
+                            const totalSuppliers = plan.suppliers ? plan.suppliers.length : 0;
+
                             return (
-                                <div key={analysis.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+                                <div key={plan.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center border border-purple-200 dark:border-purple-800">
-                                                <BarChart3 className="text-purple-600 dark:text-purple-400" size={24} />
+                                            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center border border-green-200 dark:border-green-800">
+                                                <Workflow className="text-green-600 dark:text-green-400" size={24} />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
@@ -343,43 +356,50 @@ const MarketAnalysisList = ({
                                                         {businessInfo.category}
                                                     </span>
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        {new Date(analysis.created_at).toLocaleDateString('id-ID')}
+                                                        {new Date(plan.created_at).toLocaleDateString('id-ID')}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                        {analysis.target_market && (
+                                        <div className="flex items-start gap-2">
+                                            <MapPin size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{plan.business_location}</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <Users size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span>{totalEmployees} karyawan • {plan.employees ? plan.employees.length : 0} posisi</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <Clock size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span>Operasional {operationalDays} hari</span>
+                                        </div>
+                                        {totalSuppliers > 0 && (
                                             <div className="flex items-start gap-2">
-                                                <Target size={16} className="mt-0.5 flex-shrink-0" />
-                                                <span className="line-clamp-2">{analysis.target_market}</span>
-                                            </div>
-                                        )}
-                                        {analysis.market_size && (
-                                            <div className="flex items-start gap-2">
-                                                <TrendingUp size={16} className="mt-0.5 flex-shrink-0" />
-                                                <span className="line-clamp-2">{analysis.market_size}</span>
-                                            </div>
-                                        )}
-                                        {analysis.main_competitors && (
-                                            <div className="flex items-start gap-2">
-                                                <Users size={16} className="mt-0.5 flex-shrink-0" />
-                                                <span className="line-clamp-2">{analysis.main_competitors}</span>
+                                                <Truck size={16} className="mt-0.5 flex-shrink-0" />
+                                                <span>{totalSuppliers} supplier</span>
                                             </div>
                                         )}
                                     </div>
 
-                                    {analysis.competitive_advantage && (
+                                    {plan.daily_workflow && (
                                         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 min-h-[40px]">
-                                            <strong>Keunggulan:</strong> {analysis.competitive_advantage}
+                                            <strong>Alur Kerja:</strong> {plan.daily_workflow.substring(0, 100)}...
                                         </p>
                                     )}
 
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                                            Tipe: {plan.location_type}
+                                        </div>
+                                        {getStatusBadge(plan.status)}
+                                    </div>
+
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => onView(analysis)}
+                                            onClick={() => onView(plan)}
                                             className="flex-1 bg-blue-600 text-white py-2 px-2 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                                             title="Lihat Detail"
                                         >
@@ -387,7 +407,7 @@ const MarketAnalysisList = ({
                                             <span className="hidden xs:inline">Lihat</span>
                                         </button>
                                         <button
-                                            onClick={() => onEdit(analysis)}
+                                            onClick={() => onEdit(plan)}
                                             className="flex-1 bg-yellow-600 text-white py-2 px-2 rounded text-sm hover:bg-yellow-700 transition-colors flex items-center justify-center gap-1"
                                             title="Edit"
                                         >
@@ -395,7 +415,7 @@ const MarketAnalysisList = ({
                                             <span className="hidden xs:inline">Edit</span>
                                         </button>
                                         <button
-                                            onClick={() => handleDeleteClick(analysis.id, businessInfo.name)}
+                                            onClick={() => handleDeleteClick(plan.id, businessInfo.name)}
                                             className="flex-1 bg-red-600 text-white py-2 px-2 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
                                             title="Hapus"
                                         >
@@ -410,7 +430,7 @@ const MarketAnalysisList = ({
 
                     {/* Info Jumlah Data */}
                     <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                        Menampilkan {filteredAnalyses.length} dari {analyses.length} analisis pasar
+                        Menampilkan {filteredPlans.length} dari {plans.length} rencana operasional
                         {selectedBusiness !== 'all' && (
                             <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
                         )}
@@ -421,4 +441,4 @@ const MarketAnalysisList = ({
     );
 };
 
-export default MarketAnalysisList;
+export default OperationalPlanList;

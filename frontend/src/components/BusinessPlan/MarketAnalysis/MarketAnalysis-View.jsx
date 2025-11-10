@@ -1,4 +1,4 @@
-import { Edit3, Target, TrendingUp, Users, BarChart3, Shield, Building, Calendar } from 'lucide-react';
+import { Edit3, Target, TrendingUp, Users, BarChart3, Shield, Building, Calendar, Calculator, Zap, CheckCircle, AlertCircle, DollarSign, MapPin, Code } from 'lucide-react';
 
 const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
     if (!analysis) {
@@ -9,9 +9,8 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
         );
     }
 
-    // Helper function untuk mengakses business background - PERBAIKI AKSES DATA
+    // Helper function untuk mengakses business background
     const getBusinessInfo = () => {
-        // PERBAIKI: Gunakan business_background (dengan underscore)
         if (!analysis.business_background) {
             return { name: 'Bisnis Tidak Ditemukan', category: 'Tidak ada kategori' };
         }
@@ -22,6 +21,21 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
     };
 
     const businessInfo = getBusinessInfo();
+
+    const formatCurrency = (value) => {
+        if (!value) return '-';
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+
+    const formatPercentage = (value) => {
+        if (!value) return '-';
+        return `${value}%`;
+    };
 
     return (
         <div className="space-y-6">
@@ -82,6 +96,116 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
                     </div>
                 </div>
 
+                {/* 🔥 REVISI: TAM, SAM, SOM Section */}
+                {(analysis.tam_total || analysis.sam_total || analysis.som_total) && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Calculator size={20} />
+                            Market Size Analysis
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* TAM */}
+                            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <Target className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                                <h4 className="font-semibold text-gray-900 dark:text-white">TAM</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Addressable Market</p>
+                                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                    {formatCurrency(analysis.tam_total)}
+                                </p>
+                            </div>
+                            
+                            {/* SAM */}
+                            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
+                                <h4 className="font-semibold text-gray-900 dark:text-white">SAM</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Serviceable Available Market</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                    {formatPercentage(analysis.sam_percentage)}
+                                </p>
+                                <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                    {formatCurrency(analysis.sam_total)}
+                                </p>
+                            </div>
+                            
+                            {/* SOM */}
+                            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                <Zap className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
+                                <h4 className="font-semibold text-gray-900 dark:text-white">SOM</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Serviceable Obtainable Market</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                    {formatPercentage(analysis.som_percentage)}
+                                </p>
+                                <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                                    {formatCurrency(analysis.som_total)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 🔥 REVISI: SWOT Analysis */}
+                {(analysis.strengths || analysis.weaknesses || analysis.opportunities || analysis.threats) && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Shield size={20} />
+                            SWOT Analysis
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Internal Factors */}
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                    <CheckCircle className="text-green-600 dark:text-green-400" size={16} />
+                                    Internal Factors
+                                </h4>
+                                
+                                {analysis.strengths && (
+                                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                                        <h5 className="font-semibold text-green-800 dark:text-green-300 mb-2">Strengths (Kekuatan)</h5>
+                                        <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                            {analysis.strengths}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {analysis.weaknesses && (
+                                    <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+                                        <h5 className="font-semibold text-red-800 dark:text-red-300 mb-2">Weaknesses (Kelemahan)</h5>
+                                        <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                            {analysis.weaknesses}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* External Factors */}
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                    <AlertCircle className="text-blue-600 dark:text-blue-400" size={16} />
+                                    External Factors
+                                </h4>
+                                
+                                {analysis.opportunities && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                                        <h5 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">Opportunities (Peluang)</h5>
+                                        <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                            {analysis.opportunities}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {analysis.threats && (
+                                    <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                                        <h5 className="font-semibold text-orange-800 dark:text-orange-300 mb-2">Threats (Ancaman)</h5>
+                                        <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                            {analysis.threats}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Target Pasar */}
                 {analysis.target_market && (
                     <div className="space-y-4">
@@ -127,46 +251,129 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
                     </div>
                 )}
 
-                {/* Kompetitor */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Kompetitor Utama */}
-                    {analysis.main_competitors && (
+                {/* 🔥 REVISI: Daftar Kompetitor Detail */}
+                {analysis.competitors && analysis.competitors.length > 0 && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Users size={20} />
+                            Daftar Kompetitor Detail
+                        </h3>
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                <Users size={20} />
-                                Kompetitor Utama
-                            </h3>
-                            <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                                <p className="text-gray-900 dark:text-white whitespace-pre-line">
-                                    {analysis.main_competitors}
-                                </p>
-                            </div>
+                            {analysis.competitors.map((competitor, index) => (
+                                <div key={competitor.id || index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                                            {competitor.competitor_name}
+                                        </h4>
+                                        <span className={`px-2 py-1 rounded-full text-xs ${
+                                            competitor.type === 'ownshop' 
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'
+                                        }`}>
+                                            {competitor.type === 'ownshop' ? 'Own Shop' : 'Kompetitor'}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        {competitor.code && (
+                                            <div className="flex items-center gap-2">
+                                                <Code size={14} className="text-gray-400" />
+                                                <span className="text-gray-600 dark:text-gray-400">Kode:</span>
+                                                <span className="text-gray-900 dark:text-white">{competitor.code}</span>
+                                            </div>
+                                        )}
+                                        
+                                        {competitor.address && (
+                                            <div className="flex items-center gap-2">
+                                                <MapPin size={14} className="text-gray-400" />
+                                                <span className="text-gray-600 dark:text-gray-400">Alamat:</span>
+                                                <span className="text-gray-900 dark:text-white">{competitor.address}</span>
+                                            </div>
+                                        )}
+                                        
+                                        {competitor.annual_sales_estimate && (
+                                            <div className="flex items-center gap-2">
+                                                <DollarSign size={14} className="text-gray-400" />
+                                                <span className="text-gray-600 dark:text-gray-400">Estimasi Penjualan Tahunan:</span>
+                                                <span className="text-gray-900 dark:text-white font-medium">
+                                                    {formatCurrency(competitor.annual_sales_estimate)}
+                                                </span>
+                                            </div>
+                                        )}
+                                        
+                                        {competitor.selling_price && (
+                                            <div className="flex items-center gap-2">
+                                                <DollarSign size={14} className="text-gray-400" />
+                                                <span className="text-gray-600 dark:text-gray-400">Harga Jual:</span>
+                                                <span className="text-gray-900 dark:text-white font-medium">
+                                                    {formatCurrency(competitor.selling_price)}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                                        {competitor.strengths && (
+                                            <div>
+                                                <h5 className="font-medium text-green-700 dark:text-green-300 mb-1">Kelebihan</h5>
+                                                <p className="text-sm text-gray-900 dark:text-white whitespace-pre-line">
+                                                    {competitor.strengths}
+                                                </p>
+                                            </div>
+                                        )}
+                                        
+                                        {competitor.weaknesses && (
+                                            <div>
+                                                <h5 className="font-medium text-red-700 dark:text-red-300 mb-1">Kekurangan</h5>
+                                                <p className="text-sm text-gray-900 dark:text-white whitespace-pre-line">
+                                                    {competitor.weaknesses}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {/* Keunggulan Kompetitif */}
-                    {analysis.competitive_advantage && (
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                <Shield size={20} />
-                                Keunggulan Kompetitif
-                            </h3>
-                            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-                                <p className="text-gray-900 dark:text-white whitespace-pre-line">
-                                    {analysis.competitive_advantage}
-                                </p>
-                            </div>
+                {/* Kompetitor Utama (Ringkasan) */}
+                {analysis.main_competitors && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Users size={20} />
+                            Kompetitor Utama (Ringkasan)
+                        </h3>
+                        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                            <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                {analysis.main_competitors}
+                            </p>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
-                {/* Analisis Kompetitor */}
+                {/* Keunggulan Kompetitif */}
+                {analysis.competitive_advantage && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Shield size={20} />
+                            Keunggulan Kompetitif
+                        </h3>
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                            <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                {analysis.competitive_advantage}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Analisis Kompetitor (Ringkasan) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Kelebihan Kompetitor */}
                     {analysis.competitor_strengths && (
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Kelebihan Kompetitor
+                                Kelebihan Kompetitor (Ringkasan)
                             </h3>
                             <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                                 <p className="text-gray-900 dark:text-white whitespace-pre-line">
@@ -180,7 +387,7 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
                     {analysis.competitor_weaknesses && (
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Kekurangan Kompetitor
+                                Kekurangan Kompetitor (Ringkasan)
                             </h3>
                             <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
                                 <p className="text-gray-900 dark:text-white whitespace-pre-line">

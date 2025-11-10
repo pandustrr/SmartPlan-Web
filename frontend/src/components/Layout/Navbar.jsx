@@ -24,7 +24,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           to="/"
           className="text-2xl font-bold text-gray-900 dark:text-white"
         >
-          <span className="text-green-600 dark:text-green-400">Plan</span>Web
+          <span className="text-green-600 dark:text-green-400">Smart</span>Plan
         </Link>
 
         {/* ========== DESKTOP MENU ========== */}

@@ -38,11 +38,13 @@ api.interceptors.response.use(
 
 export const authAPI = {
   register: (userData) => api.post("/register", userData),
+  verifyOtp: (data) => api.post("/verify-otp", data),
+  resendOtp: (phone) => api.post("/resend-otp", { phone }),
   login: (credentials) => api.post("/login", credentials),
   logout: () => api.post("/logout"),
   getMe: () => api.get("/me"),
-  resendVerification: (email) => api.post("/resend-verification", { email }),
-  forgotPassword: (email) => api.post("/forgot-password", { email }),
+  forgotPassword: (phone) => api.post("/forgot-password", { phone }),
+  verifyResetOtp: (data) => api.post("/verify-reset-otp", data),
   resetPassword: (data) => api.post("/reset-password", data),
 };
 

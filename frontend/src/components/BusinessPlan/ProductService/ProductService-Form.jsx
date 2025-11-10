@@ -1,4 +1,4 @@
-import { Upload, X, Building, Loader, Package, DollarSign, Star, TrendingUp, Image, Box, Settings } from 'lucide-react';
+import { Upload, X, Building, Loader, Package, DollarSign, Star, TrendingUp, Image } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
@@ -72,7 +72,6 @@ const ProductServiceForm = ({
         }
     };
 
-
     const handleRemoveImage = () => {
         setLocalPreviewImage(null);
         setImageError(false);
@@ -105,27 +104,17 @@ const ProductServiceForm = ({
         setLocalPreviewImage(null);
     };
 
-    // Tipe options dengan icon dan deskripsi
+    // Tipe options tanpa icon - desain lebih simple
     const typeOptions = [
         {
             value: 'product',
-            label: 'Produk Fisik',
-            description: 'Barang fisik yang dapat dijual',
-            icon: Box,
-            color: 'from-blue-500 to-blue-600',
-            bgColor: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20',
-            borderColor: 'border-blue-200 dark:border-blue-700',
-            textColor: 'text-blue-700 dark:text-blue-300'
+            label: 'Produk',
+            description: 'Barang fisik yang dijual'
         },
         {
             value: 'service',
             label: 'Layanan',
-            description: 'Jasa atau layanan yang ditawarkan',
-            icon: Settings,
-            color: 'from-purple-500 to-purple-600',
-            bgColor: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20',
-            borderColor: 'border-purple-200 dark:border-purple-700',
-            textColor: 'text-purple-700 dark:text-purple-300'
+            description: 'Jasa yang ditawarkan'
         }
     ];
 
@@ -135,22 +124,19 @@ const ProductServiceForm = ({
             value: 'draft',
             label: 'Draft',
             color: 'bg-gray-500',
-            description: 'Masih dalam perencanaan',
-            badgeColor: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+            description: 'Masih dalam perencanaan'
         },
         {
             value: 'in_development',
             label: 'Dalam Pengembangan',
             color: 'bg-yellow-500',
-            description: 'Sedang dikembangkan',
-            badgeColor: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-300'
+            description: 'Sedang dikembangkan'
         },
         {
             value: 'launched',
             label: 'Diluncurkan',
             color: 'bg-green-500',
-            description: 'Sudah diluncurkan',
-            badgeColor: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300'
+            description: 'Sudah diluncurkan'
         }
     ];
 
@@ -273,20 +259,19 @@ const ProductServiceForm = ({
                         </p>
                     </div>
 
-                    {/* Tipe Produk/Layanan */}
+                    {/* Tipe Produk/Layanan - Desain Simple Modern */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                             Tipe Produk/Layanan *
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {typeOptions.map((option) => {
-                                const Icon = option.icon;
                                 const isSelected = formData.type === option.value;
 
                                 return (
                                     <label
                                         key={option.value}
-                                        className={`relative cursor-pointer group ${isSelected ? 'ring-2 ring-offset-2 ring-blue-500 rounded-xl' : ''
+                                        className={`relative cursor-pointer group ${isSelected ? 'ring-2 ring-green-500 rounded-lg' : ''
                                             }`}
                                     >
                                         <input
@@ -297,36 +282,27 @@ const ProductServiceForm = ({
                                             onChange={onInputChange}
                                             className="sr-only"
                                         />
-                                        <div className={`border-2 rounded-xl p-4 transition-all duration-200 ${isSelected
-                                            ? `${option.borderColor} bg-gradient-to-br ${option.bgColor} shadow-md scale-[1.02]`
-                                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                        <div className={`border rounded-lg p-4 transition-all duration-200 h-full ${isSelected
+                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-sm'
+                                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-700'
                                             }`}>
-                                            <div className="flex items-start gap-3">
-                                                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${option.color} flex items-center justify-center flex-shrink-0`}>
-                                                    <Icon className="w-6 h-6 text-white" />
+                                            <div className="text-center">
+                                                <div className="mb-2">
+                                                    <span className={`text-base font-semibold ${isSelected 
+                                                        ? 'text-green-700 dark:text-green-300' 
+                                                        : 'text-gray-700 dark:text-gray-300'
+                                                        }`}>
+                                                        {option.label}
+                                                    </span>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className={`font-semibold ${isSelected ? option.textColor : 'text-gray-900 dark:text-white'
-                                                            }`}>
-                                                            {option.label}
-                                                        </span>
-                                                        {isSelected && (
-                                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                                                        {option.description}
-                                                    </p>
-                                                </div>
+                                                <p className={`text-xs ${isSelected 
+                                                    ? 'text-green-600 dark:text-green-400' 
+                                                    : 'text-gray-500 dark:text-gray-400'
+                                                    }`}>
+                                                    {option.description}
+                                                </p>
                                             </div>
                                         </div>
-
-                                        {/* Hover effect */}
-                                        <div className={`absolute inset-0 rounded-xl border-2 pointer-events-none transition-all duration-200 ${isSelected
-                                            ? 'border-blue-500'
-                                            : 'border-transparent group-hover:border-gray-300 dark:group-hover:border-gray-500'
-                                            }`}></div>
                                     </label>
                                 );
                             })}
@@ -338,11 +314,11 @@ const ProductServiceForm = ({
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                             Status Produk/Layanan
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                             {statusOptions.map((status) => (
                                 <label
                                     key={status.value}
-                                    className={`relative cursor-pointer group ${formData.status === status.value ? 'ring-2 ring-offset-2 ring-blue-500 rounded-lg' : ''
+                                    className={`relative cursor-pointer group ${formData.status === status.value ? 'ring-2 ring-blue-500 rounded-lg' : ''
                                         }`}
                                 >
                                     <input
@@ -354,11 +330,11 @@ const ProductServiceForm = ({
                                         className="sr-only"
                                     />
                                     <div className={`border rounded-lg p-3 transition-all duration-200 ${formData.status === status.value
-                                        ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
-                                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-700'
                                         }`}>
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-3 h-3 rounded-full ${status.color} ${formData.status === status.value ? 'ring-2 ring-offset-2 ring-blue-300' : ''
+                                            <div className={`w-2 h-2 rounded-full ${status.color} ${formData.status === status.value ? 'ring-2 ring-blue-300' : ''
                                                 }`}></div>
                                             <div className="flex-1 min-w-0">
                                                 <span className={`text-sm font-medium ${formData.status === status.value

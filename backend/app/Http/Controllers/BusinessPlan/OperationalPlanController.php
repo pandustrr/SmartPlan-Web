@@ -6,60 +6,77 @@ use App\Http\Controllers\Controller;
 use App\Models\OperationalPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class OperationalPlanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = OperationalPlan::query();
+        try {
+            $query = OperationalPlan::with(['user', 'businessBackground']);
 
-        if ($request->user_id) {
-            $query->where('user_id', $request->user_id);
+            if ($request->user_id) {
+                $query->where('user_id', $request->user_id);
+            }
+
+            if ($request->business_background_id) {
+                $query->where('business_background_id', $request->business_background_id);
+            }
+
+            $data = $query->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching operational plans: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil data.'
+            ], 500);
         }
-
-        if ($request->business_background_id) {
-            $query->where('business_background_id', $request->business_background_id);
-        }
-
-        $data = $query->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $data
-        ]);
     }
 
     public function show($id)
     {
-        $plan = OperationalPlan::find($id);
+        try {
+            $plan = OperationalPlan::with(['user', 'businessBackground'])->find($id);
 
-        if (!$plan) {
+            if (!$plan) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Operational plan not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $plan
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching operational plan: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Operational plan not found'
-            ], 404);
+                'message' => 'Terjadi kesalahan saat mengambil data.'
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $plan
-        ]);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
-            'business_background_id' => 'nullable|exists:business_backgrounds,id',
+            'business_background_id' => 'required|exists:business_backgrounds,id',
             'business_location' => 'required|string|max:255',
             'location_description' => 'nullable|string',
-            'location_type' => 'nullable|string|max:50',
-            'location_size' => 'nullable|numeric',
-            'rent_cost' => 'nullable|numeric',
+            'location_type' => 'required|string|max:50',
+            'location_size' => 'nullable|numeric|min:0',
+            'rent_cost' => 'nullable|numeric|min:0',
             'employees' => 'nullable|array',
             'operational_hours' => 'nullable|array',
             'suppliers' => 'nullable|array',
-            'daily_workflow' => 'nullable|string',
+            'daily_workflow' => 'required|string',
             'equipment_needs' => 'nullable|string',
             'technology_stack' => 'nullable|string',
             'status' => 'nullable|in:draft,completed'
@@ -72,12 +89,21 @@ class OperationalPlanController extends Controller
             ], 422);
         }
 
-        $plan = OperationalPlan::create($request->all());
+        try {
+            $plan = OperationalPlan::create($request->all());
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $plan
-        ], 201);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Rencana operasional berhasil dibuat.',
+                'data' => $plan
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Error creating operational plan: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menyimpan data.'
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
@@ -91,6 +117,7 @@ class OperationalPlanController extends Controller
             ], 404);
         }
 
+        // Cek apakah user_id cocok dengan pemilik data
         if ($request->user_id != $plan->user_id) {
             return response()->json([
                 'status' => 'error',
@@ -98,27 +125,43 @@ class OperationalPlanController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'business_location' => 'sometimes|required|string|max:255',
             'location_description' => 'nullable|string',
-            'location_type' => 'nullable|string|max:50',
-            'location_size' => 'nullable|numeric',
-            'rent_cost' => 'nullable|numeric',
+            'location_type' => 'sometimes|required|string|max:50',
+            'location_size' => 'nullable|numeric|min:0',
+            'rent_cost' => 'nullable|numeric|min:0',
             'employees' => 'nullable|array',
             'operational_hours' => 'nullable|array',
             'suppliers' => 'nullable|array',
-            'daily_workflow' => 'nullable|string',
+            'daily_workflow' => 'sometimes|required|string',
             'equipment_needs' => 'nullable|string',
             'technology_stack' => 'nullable|string',
-            'status' => 'nullable|in:draft,active'
+            'status' => 'nullable|in:draft,completed'
         ]);
 
-        $plan->update($validated);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Operational plan updated successfully',
-        ]);
+        try {
+            $plan->update($request->all());
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Rencana operasional berhasil diperbarui.',
+                'data' => $plan
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating operational plan: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat memperbarui data.'
+            ], 500);
+        }
     }
 
     public function destroy(Request $request, $id)
@@ -139,11 +182,19 @@ class OperationalPlanController extends Controller
             ], 403);
         }
 
-        $plan->delete();
+        try {
+            $plan->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Operational plan deleted successfully'
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Rencana operasional berhasil dihapus.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting operational plan: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menghapus data.'
+            ], 500);
+        }
     }
 }

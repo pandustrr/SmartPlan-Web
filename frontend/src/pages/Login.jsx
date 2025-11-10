@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Sun, Moon, ArrowLeft, LogIn } from "lucide-react";
+import { Eye, EyeOff, Sun, Moon, ArrowLeft, LogIn, Phone } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 const Login = ({ isDarkMode, toggleDarkMode }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    login: "", // bisa email atau username
+    login: "", // bisa phone atau username
     password: "",
   });
   const [error, setError] = useState("");
@@ -14,6 +14,11 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Helper function to check if input looks like a phone number
+  const isPhoneInput = (value) => {
+    return /^[\d+]/.test(value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,9 +31,12 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
       navigate("/dashboard");
     } else {
       if (result.needsVerification) {
-        // Redirect to verification notice dengan email
-        navigate("/verification-notice", {
-          state: { email: result.email },
+        // Redirect to OTP verification dengan phone
+        navigate("/verify-otp", {
+          state: { 
+            phone: result.phone,
+            message: 'Silakan verifikasi nomor WhatsApp Anda untuk melanjutkan login.'
+          },
         });
       } else {
         setError(result.message);
@@ -39,15 +47,34 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Format nomor telepon saat input (jika input phone)
+    let processedValue = value;
+    if (name === 'login' && isPhoneInput(value)) {
+      processedValue = value.replace(/[^\d+]/g, '');
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: processedValue,
     });
     setError(""); // Clear error when user types
   };
 
+  // Determine input type for better UX
+  const getInputType = () => {
+    return isPhoneInput(formData.login) ? "tel" : "text";
+  };
+
+  const getPlaceholder = () => {
+    return isPhoneInput(formData.login) 
+      ? "081234567890" 
+      : "username atau nomor WhatsApp";
+  };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header Section */}
         <div className="text-center relative">
@@ -87,7 +114,7 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
           <div className="mx-auto">
             <Link to="/" className="inline-block">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                <span className="text-green-600 dark:text-green-400">Plan</span>
+                <span className="text-green-600 dark:text-green-400">Smart</span>
                 Web
               </h1>
             </Link>
@@ -126,21 +153,31 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                 htmlFor="login"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Email atau Username
+                Username atau Nomor WhatsApp
               </label>
               <div className="relative">
+                {isPhoneInput(formData.login) && (
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                  </div>
+                )}
                 <input
                   id="login"
                   name="login"
-                  type="text"
+                  type={getInputType()}
                   autoComplete="username"
                   required
                   value={formData.login}
                   onChange={handleChange}
-                  className="w-full px-3 py-3 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors"
-                  placeholder="email@example.com atau username"
+                  className={`w-full py-3 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
+                    isPhoneInput(formData.login) ? 'pl-10 pr-3' : 'px-3'
+                  }`}
+                  placeholder={getPlaceholder()}
                 />
               </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Gunakan username atau nomor WhatsApp Anda
+              </p>
             </div>
 
             <div>
@@ -219,6 +256,18 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
               </button>
             </div>
           </form>
+
+          {/* Info WhatsApp Verification */}
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start">
+              <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 mr-2 flex-shrink-0" />
+              <div>
+                <p className="text-xs text-blue-800 dark:text-blue-300">
+                  <strong>Verifikasi WhatsApp:</strong> Jika nomor WhatsApp belum terverifikasi, Anda akan diminta untuk verifikasi OTP setelah login.
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Register Link */}
           <div className="mt-6 text-center">

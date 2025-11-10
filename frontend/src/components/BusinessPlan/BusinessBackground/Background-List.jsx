@@ -249,21 +249,21 @@ const BackgroundList = ({
                                     className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Eye size={16} />
-                                    Lihat
+                                    
                                 </button>
                                 <button
                                     onClick={() => onEdit(business)}
                                     className="flex-1 bg-yellow-600 text-white py-2 px-3 rounded text-sm hover:bg-yellow-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Edit3 size={16} />
-                                    Edit
+                                    
                                 </button>
                                 <button
                                     onClick={() => handleDeleteClick(business.id, business.name)}
                                     className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Trash2 size={16} />
-                                    Delete
+                                
                                 </button>
                             </div>
                         </div>

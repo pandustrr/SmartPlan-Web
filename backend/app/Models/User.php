@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Auth\Notifications\ResetPassword;
-use App\Notifications\CustomResetPassword;
 
 class User extends Authenticatable
 {
@@ -15,48 +13,90 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'email',
         'username',
+        'phone',
         'password',
-        'verification_token',
+        'otp_code',
+        'otp_expires_at',
+        'reset_otp_code',
+        'reset_otp_expires_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
-        'verification_token',
+        'otp_code',
+        'reset_otp_code',
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
+            'reset_otp_expires_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    public function generateVerificationToken()
+    // Generate OTP untuk verifikasi
+    public function generateOtp()
     {
-        $this->verification_token = bin2hex(random_bytes(32));
+        $otp = rand(100000, 999999);
+        $this->otp_code = $otp;
+        $this->otp_expires_at = now()->addMinutes(10);
         $this->save();
 
-        return $this->verification_token;
+        return $otp;
     }
 
-    public function markEmailAsVerified()
+    // Generate OTP untuk reset password
+    public function generateResetOtp()
     {
-        $this->email_verified_at = now();
-        $this->verification_token = null;
+        $otp = rand(100000, 999999);
+        $this->reset_otp_code = $otp;
+        $this->reset_otp_expires_at = now()->addMinutes(10);
+        $this->save();
+
+        return $otp;
+    }
+
+    // Validasi OTP
+    public function validateOtp($otp)
+    {
+        return $this->otp_code === $otp &&
+               $this->otp_expires_at &&
+               $this->otp_expires_at->isFuture();
+    }
+
+    // Validasi Reset OTP
+    public function validateResetOtp($otp)
+    {
+        return $this->reset_otp_code === $otp &&
+               $this->reset_otp_expires_at &&
+               $this->reset_otp_expires_at->isFuture();
+    }
+
+    // Cek apakah nomor sudah diverifikasi
+    public function hasVerifiedPhone()
+    {
+        return !is_null($this->phone_verified_at);
+    }
+
+    // Tandai nomor WA sudah diverifikasi
+    public function markPhoneAsVerified()
+    {
+        $this->phone_verified_at = now();
+        $this->otp_code = null;
+        $this->otp_expires_at = null;
         $this->save();
     }
 
-    public function hasVerifiedEmail()
+    // Clear reset OTP setelah berhasil reset password
+    public function clearResetOtp()
     {
-        return !is_null($this->email_verified_at);
-    }
-
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new CustomResetPassword($token));
+        $this->reset_otp_code = null;
+        $this->reset_otp_expires_at = null;
+        $this->save();
     }
 }

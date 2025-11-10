@@ -10,9 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
-import VerificationNotice from "./pages/VerificationNotice";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import OtpVerification from "./pages/OtpVerification"; 
 
 // 🔔 Import react-toastify
 import { ToastContainer } from "react-toastify";
@@ -46,6 +46,21 @@ const PublicRoute = ({ children }) => {
   }
 
   return !isAuthenticated ? children : <Navigate to="/dashboard" />;
+};
+
+// 🔐 Verification Route Component (bisa diakses baik authenticated maupun tidak)
+const VerificationRoute = ({ children }) => {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return children;
 };
 
 function AppContent() {
@@ -117,15 +132,16 @@ function AppContent() {
             }
           />
 
+          {/* 🔔 OTP Verification Route */}
           <Route
-            path="/verification-notice"
+            path="/verify-otp"
             element={
-              <PublicRoute>
-                <VerificationNotice
+              <VerificationRoute>
+                <OtpVerification
                   isDarkMode={isDarkMode}
                   toggleDarkMode={toggleDarkMode}
                 />
-              </PublicRoute>
+              </VerificationRoute>
             }
           />
 
@@ -142,7 +158,7 @@ function AppContent() {
           />
 
           <Route
-            path="/reset-password/:token"
+            path="/reset-password"
             element={
               <PublicRoute>
                 <ResetPassword
@@ -190,7 +206,7 @@ function App() {
         draggable
         pauseOnHover
         theme="colored"
-        style={{ zIndex: 9999 }} // biar gak ketiban modal
+        style={{ zIndex: 9999 }}
       />
     </AuthProvider>
   );

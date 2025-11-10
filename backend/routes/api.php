@@ -8,16 +8,18 @@ use App\Http\Controllers\BusinessPlan\ProductServiceController;
 use App\Http\Controllers\BusinessPlan\OperationalPlanController;
 use App\Http\Controllers\BusinessPlan\TeamStructureController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
+// Public routes
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/verify-email', [AuthController::class, 'verifyEmail']);
-Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
+Route::post('/verify-reset-otp', [AuthController::class, 'verifyResetOtp']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
+// Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -46,6 +48,9 @@ Route::prefix('market-analysis')->group(function () {
     Route::post('/', [MarketAnalysisController::class, 'store']);
     Route::put('/{id}', [MarketAnalysisController::class, 'update']);
     Route::delete('/{id}', [MarketAnalysisController::class, 'destroy']);
+
+    // REVISI: Route baru untuk kalkulasi market size
+    Route::post('/calculate-market-size', [MarketAnalysisController::class, 'calculateMarketSize']);
 });
 
 // Product Service Routes
@@ -82,6 +87,18 @@ Route::prefix('team-structure')->group(function () {
     Route::post('/', [TeamStructureController::class, 'store']);
     Route::put('/{id}', [TeamStructureController::class, 'update']);
     Route::delete('/{id}', [TeamStructureController::class, 'destroy']);
+});
+
+
+Route::get('/test-wa', function () {
+    $response = Http::withHeaders([
+        'Authorization' => env('FONNTE_API_KEY'),
+    ])->post(env('FONNTE_API_URL'), [
+        'target' => '6281237867242', // ganti ke nomor kamu
+        'message' => 'Halo Pandu! Tes kirim pesan dari Laravel 🚀',
+    ]);
+
+    return response()->json($response->json()); // <- penting! biar tampil hasilnya
 });
 
 // Route::get('/test-email/{email?}', function ($email = null) {

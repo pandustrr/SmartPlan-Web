@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // 'whatsapp' => [
+    //     'api_url' => env('WHATSAPP_API_URL'),
+    //     'api_key' => env('WHATSAPP_API_KEY'),
+    // ],
+
+    'fonnte' => [
+        'api_url' => env('FONNTE_API_URL', 'https://api.fonnte.com'),
+        'api_key' => env('FONNTE_API_KEY'),
+    ],
+
 ];

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('rent_cost', 15, 2)->nullable();
 
             // Karyawan
-            $table->json('employees')->nullable(); 
+            $table->json('employees')->nullable();
 
             // Jam Operasional
             $table->json('operational_hours')->nullable();

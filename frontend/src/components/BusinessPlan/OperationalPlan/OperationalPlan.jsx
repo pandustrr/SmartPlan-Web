@@ -1,37 +1,37 @@
 import { useState, useEffect } from 'react';
-import MarketAnalysisList from './MarketAnalysis-List';
-import MarketAnalysisCreate from './MarketAnalysis-Create';
-import MarketAnalysisEdit from './MarketAnalysis-Edit';
-import MarketAnalysisView from './MarketAnalysis-View';
-import { marketAnalysisApi } from '../../../services/businessPlan';
+import OperationalPlanList from './OperationalPlan-List';
+import OperationalPlanCreate from './OperationalPlan-Create';
+import OperationalPlanEdit from './OperationalPlan-Edit';
+import OperationalPlanView from './OperationalPlan-View';
+import { operationalPlanApi } from '../../../services/businessPlan';
 import { toast } from 'react-toastify';
 
-const MarketAnalysis = () => {
-    const [analyses, setAnalyses] = useState([]);
-    const [currentAnalysis, setCurrentAnalysis] = useState(null);
+const OperationalPlan = () => {
+    const [plans, setPlans] = useState([]);
+    const [currentPlan, setCurrentPlan] = useState(null);
     const [view, setView] = useState('list');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch semua market analyses
-    const fetchAnalyses = async () => {
+    // Fetch semua operational plans
+    const fetchPlans = async () => {
         try {
             setIsLoading(true);
             setError(null);
 
             const user = JSON.parse(localStorage.getItem('user'));
             
-            const response = await marketAnalysisApi.getAll({ 
+            const response = await operationalPlanApi.getAll({ 
                 user_id: user?.id
             });
 
             if (response.data.status === 'success') {
-                setAnalyses(response.data.data || []);
+                setPlans(response.data.data || []);
             } else {
-                throw new Error(response.data.message || 'Failed to fetch market analyses');
+                throw new Error(response.data.message || 'Failed to fetch operational plans');
             }
         } catch (error) {
-            let errorMessage = 'Gagal memuat data analisis pasar';
+            let errorMessage = 'Gagal memuat data rencana operasional';
             if (error.response) {
                 errorMessage = error.response.data?.message || `Server error: ${error.response.status}`;
             } else if (error.request) {
@@ -48,40 +48,40 @@ const MarketAnalysis = () => {
     };
 
     useEffect(() => {
-        fetchAnalyses();
+        fetchPlans();
     }, []);
 
     // Handler functions
     const handleCreateNew = () => {
-        setCurrentAnalysis(null);
+        setCurrentPlan(null);
         setView('create');
     };
 
-    const handleView = (analysis) => {
-        setCurrentAnalysis(analysis);
+    const handleView = (plan) => {
+        setCurrentPlan(plan);
         setView('view');
     };
 
-    const handleEdit = (analysis) => {
-        setCurrentAnalysis(analysis);
+    const handleEdit = (plan) => {
+        setCurrentPlan(plan);
         setView('edit');
     };
 
-    const handleDelete = async (analysisId) => {
+    const handleDelete = async (planId) => {
         try {
             setError(null);
             const user = JSON.parse(localStorage.getItem('user'));
-            const response = await marketAnalysisApi.delete(analysisId, user?.id);
+            const response = await operationalPlanApi.delete(planId, user?.id);
 
             if (response.data.status === 'success') {
-                toast.success('Analisis pasar berhasil dihapus!');
-                fetchAnalyses();
+                toast.success('Rencana operasional berhasil dihapus!');
+                fetchPlans();
                 setView('list');
             } else {
-                throw new Error(response.data.message || 'Failed to delete market analysis');
+                throw new Error(response.data.message || 'Failed to delete operational plan');
             }
         } catch (error) {
-            let errorMessage = 'Terjadi kesalahan saat menghapus data analisis pasar';
+            let errorMessage = 'Terjadi kesalahan saat menghapus data rencana operasional';
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             }
@@ -91,22 +91,22 @@ const MarketAnalysis = () => {
 
     const handleBackToList = () => {
         setView('list');
-        setCurrentAnalysis(null);
+        setCurrentPlan(null);
         setError(null);
     };
 
     const handleCreateSuccess = () => {
-        fetchAnalyses();
+        fetchPlans();
         setView('list');
     };
 
     const handleUpdateSuccess = () => {
-        fetchAnalyses();
+        fetchPlans();
         setView('list');
     };
 
     const handleRetry = () => {
-        fetchAnalyses();
+        fetchPlans();
     };
 
     // Render loading state
@@ -116,8 +116,8 @@ const MarketAnalysis = () => {
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-center items-center h-64">
                         <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                            <p className="text-gray-600 dark:text-gray-400">Memuat data analisis pasar...</p>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                            <p className="text-gray-600 dark:text-gray-400">Memuat data rencana operasional...</p>
                         </div>
                     </div>
                 </div>
@@ -143,7 +143,7 @@ const MarketAnalysis = () => {
                         <div className="flex gap-4 justify-center">
                             <button
                                 onClick={handleRetry}
-                                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 Coba Lagi
                             </button>
@@ -165,8 +165,8 @@ const MarketAnalysis = () => {
         switch (view) {
             case 'list':
                 return (
-                    <MarketAnalysisList
-                        analyses={analyses}
+                    <OperationalPlanList
+                        plans={plans}
                         onView={handleView}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
@@ -178,31 +178,31 @@ const MarketAnalysis = () => {
                 );
             case 'create':
                 return (
-                    <MarketAnalysisCreate
+                    <OperationalPlanCreate
                         onBack={handleBackToList}
                         onSuccess={handleCreateSuccess}
                     />
                 );
             case 'edit':
                 return (
-                    <MarketAnalysisEdit
-                        analysis={currentAnalysis}
+                    <OperationalPlanEdit
+                        plan={currentPlan}
                         onBack={handleBackToList}
                         onSuccess={handleUpdateSuccess}
                     />
                 );
             case 'view':
                 return (
-                    <MarketAnalysisView
-                        analysis={currentAnalysis}
+                    <OperationalPlanView
+                        plan={currentPlan}
                         onBack={handleBackToList}
                         onEdit={handleEdit}
                     />
                 );
             default:
                 return (
-                    <MarketAnalysisList
-                        analyses={analyses}
+                    <OperationalPlanList
+                        plans={plans}
                         onView={handleView}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
@@ -217,11 +217,11 @@ const MarketAnalysis = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {renderView()}
             </div>
         </div>
     );
 };
 
-export default MarketAnalysis;
+export default OperationalPlan;

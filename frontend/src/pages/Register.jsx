@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Sun, Moon, ArrowLeft, CheckCircle, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, Sun, Moon, ArrowLeft, CheckCircle, UserPlus, Phone } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const Register = ({ isDarkMode, toggleDarkMode }) => {
@@ -8,7 +8,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
+        phone: '',
         username: '',
         password: '',
         password_confirmation: '',
@@ -29,15 +29,25 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
             return
         }
 
+        // Validasi format nomor telepon
+        const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,9}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            setErrors({ phone: 'Format nomor WhatsApp tidak valid. Contoh: 081234567890' })
+            return
+        }
+
         setIsLoading(true)
         
         const result = await register(formData)
             
         if (result.success) {
             if (result.needsVerification) {
-                // Redirect to verification notice dengan email user
-                navigate('/verification-notice', { 
-                    state: { email: formData.email } 
+                // Redirect to OTP verification dengan phone user
+                navigate('/verify-otp', { 
+                    state: { 
+                        phone: formData.phone,
+                        message: 'Registrasi berhasil! Silakan verifikasi nomor WhatsApp Anda.' 
+                    } 
                 })
             } else {
                 navigate('/dashboard')
@@ -55,9 +65,17 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
+        
+        // Format nomor telepon saat input
+        let processedValue = value;
+        if (name === 'phone') {
+            // Hanya allow angka dan +
+            processedValue = value.replace(/[^\d+]/g, '');
+        }
+        
         setFormData({
             ...formData,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: type === 'checkbox' ? checked : processedValue
         })
         
         // Clear error when user types
@@ -67,6 +85,10 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
         if (errors.general) {
             setErrors(prev => ({ ...prev, general: '' }))
         }
+    }
+
+    const formatPhoneExample = () => {
+        return 'Contoh: 081234567890, 6281234567890, atau +6281234567890';
     }
 
     const passwordStrength = formData.password.length > 0 ? 
@@ -115,7 +137,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                     <div className="mx-auto">
                         <Link to="/" className="inline-block">
                             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                                <span className="text-green-600 dark:text-green-400">Plan</span>Web
+                                <span className="text-green-600 dark:text-green-400">Smart</span>Web
                             </h1>
                         </Link>
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Business Management</p>
@@ -169,27 +191,33 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Alamat Email
+                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Nomor WhatsApp
                             </label>
                             <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Phone className="h-4 w-4 text-gray-400" />
+                                </div>
                                 <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
+                                    id="phone"
+                                    name="phone"
+                                    type="tel"
+                                    autoComplete="tel"
                                     required
-                                    value={formData.email}
+                                    value={formData.phone}
                                     onChange={handleChange}
-                                    className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
-                                        errors.email ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                                    className={`w-full pl-10 pr-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
+                                        errors.phone ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
                                     }`}
-                                    placeholder="email@example.com"
+                                    placeholder="081234567890"
                                 />
                             </div>
-                            {errors.email && (
-                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email[0]}</p>
+                            {errors.phone && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>
                             )}
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {formatPhoneExample()}
+                            </p>
                         </div>
 
                         <div>
@@ -344,6 +372,18 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                             </button>
                         </div>
                     </form>
+
+                    {/* Info WhatsApp Verification */}
+                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-start">
+                            <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 mr-2 flex-shrink-0" />
+                            <div>
+                                <p className="text-xs text-blue-800 dark:text-blue-300">
+                                    <strong>Verifikasi via WhatsApp:</strong> Setelah registrasi, kami akan mengirim kode OTP ke nomor WhatsApp Anda untuk verifikasi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Login Link */}
                     <div className="mt-6 text-center">

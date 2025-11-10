@@ -13,6 +13,7 @@ import Background from "../components/BusinessPlan/BusinessBackground/Background
 import MarketAnalysis from "../components/BusinessPlan/MarketAnalysis/MarketAnalysis";
 import ProductService from "../components/BusinessPlan/ProductService/ProductService";
 import MarketingStrategies from "../components/BusinessPlan/MarketingStrategies/MarketingStrategies";
+import OperationalPlan from '../components/BusinessPlan/OperationalPlan/OperationalPlan';
 
 const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
   const [view, setView] = useState("main");
@@ -30,6 +31,11 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
     setActiveSubSection(subSectionId);
     setView(subSectionId);
   };
+  
+  const handleBackToMain = () => {
+      setActiveSubSection('');
+      setView('main');
+  };
 
   const renderMainView = () => (
     <div className="space-y-6">
@@ -41,7 +47,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           Kelola semua aspek rencana bisnis Anda di satu tempat
         </p>
       </div>
-
+    
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Latar Belakang Bisnis Card */}
         <div
@@ -235,20 +241,22 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
     </div>
   );
 
-  const renderSubSection = () => {
-    switch (view) {
-      case "business-background":
-        return <Background />;
-      case "market-analysis":
-        return <MarketAnalysis />;
-      case "product-service":
-        return <ProductService />;
-      case "marketing-strategies":
-        return <MarketingStrategies />;
-      default:
-        return renderMainView();
-    }
-  };
+    const renderSubSection = () => {
+        switch (view) {
+            case 'business-background':
+                return <Background onBack={handleBackToMain} />;
+            case 'market-analysis':
+                return <MarketAnalysis onBack={handleBackToMain} />;
+            case 'product-service':
+                return <ProductService onBack={handleBackToMain} />;
+            case 'operational-plan':
+                return <OperationalPlan onBack={handleBackToMain} />;
+            case 'marketing-strategies':
+                return <MarketingStrategies onBack={handleBackToMain}/>    
+            default:
+                return renderMainView();
+        }
+    };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">

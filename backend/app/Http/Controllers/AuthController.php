@@ -6,22 +6,42 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
+use App\Services\WhatsAppService;
 
 class AuthController extends Controller
 {
+    protected $whatsappService;
+
+    public function __construct(WhatsAppService $whatsappService)
+    {
+        $this->whatsappService = $whatsappService;
+    }
+
     public function register(Request $request)
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
             'username' => 'required|string|max:255|unique:users',
+            'phone' => [
+                'required',
+                'string',
+                'unique:users',
+                function ($attribute, $value, $fail) {
+                    // Validasi format nomor Indonesia
+                    $cleanPhone = preg_replace('/[^0-9]/', '', $value);
+
+                    if (strlen($cleanPhone) < 10 || strlen($cleanPhone) > 15) {
+                        $fail('Format nomor WhatsApp tidak valid.');
+                    }
+                },
+            ],
             'password' => 'required|string|min:8|confirmed',
+        ], [
+            'phone.unique' => 'Nomor WhatsApp sudah terdaftar.',
         ]);
 
         if ($validator->fails()) {
@@ -35,107 +55,56 @@ class AuthController extends Controller
         // Buat user baru
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
             'username' => $request->username,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
-        // Generate verification token
-        $token = $user->generateVerificationToken();
+        // Generate dan kirim OTP
+        $otp = $user->generateOtp();
 
-        // Send verification email
-        $verificationUrl = url("/api/verify-email?token={$token}&email=" . urlencode($user->email));
+        $whatsappSent = $this->whatsappService->sendOtp($user->phone, $otp);
 
-        try {
-            // Simple email sending
-            Mail::send('emails.verification', [
-                'user' => $user,
-                'verificationUrl' => $verificationUrl
-            ], function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('Verifikasi Email Anda - PlanWeb');
-            });
-        } catch (\Exception $e) {
-            Log::error('Email verification failed: ' . $e->getMessage());
+        if (!$whatsappSent) {
+            // Jika gagal kirim OTP, hapus user yang baru dibuat
+            $user->delete();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim OTP ke WhatsApp. Pastikan nomor WhatsApp aktif dan coba lagi.'
+            ], 500);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi.',
+            'message' => 'Registrasi berhasil! Silakan cek WhatsApp Anda untuk kode verifikasi.',
             'data' => [
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
-                    'email' => $user->email,
                     'username' => $user->username,
-                    'email_verified' => false,
+                    'phone' => $user->phone,
+                    'phone_verified' => false,
                 ]
             ]
         ], 201);
     }
 
-    public function verifyEmail(Request $request)
+    public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'token' => 'required|string',
-            'email' => 'required|email',
+            'phone' => 'required|string',
+            'otp' => 'required|string|size:6',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Token atau email tidak valid'
+                'message' => 'Data tidak valid'
             ], 422);
         }
 
-        $user = User::where('email', $request->email)
-            ->where('verification_token', $request->token)
-            ->first();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Token verifikasi tidak valid atau sudah kedaluwarsa'
-            ], 400);
-        }
-
-        if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email sudah terverifikasi sebelumnya'
-            ], 400);
-        }
-
-        $user->markEmailAsVerified();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Email berhasil diverifikasi! Sekarang Anda dapat login.',
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'email_verified' => true,
-                ]
-            ]
-        ]);
-    }
-
-    public function resendVerificationEmail(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email tidak valid'
-            ], 422);
-        }
-
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('phone', $request->phone)->first();
 
         if (!$user) {
             return response()->json([
@@ -144,38 +113,89 @@ class AuthController extends Controller
             ], 404);
         }
 
-        if ($user->hasVerifiedEmail()) {
+        if ($user->hasVerifiedPhone()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email sudah terverifikasi'
+                'message' => 'Nomor WhatsApp sudah terverifikasi sebelumnya'
             ], 400);
         }
 
-        // Generate new verification token
-        $token = $user->generateVerificationToken();
-        $verificationUrl = url("/api/verify-email?token={$token}&email=" . urlencode($user->email));
-
-        try {
-            Mail::send('emails.verification', [
-                'user' => $user,
-                'verificationUrl' => $verificationUrl
-            ], function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('Verifikasi Email Anda - PlanWeb');
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Email verifikasi telah dikirim ulang. Silakan cek inbox Anda.'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Resend verification email failed: ' . $e->getMessage());
-
+        if (!$user->validateOtp($request->otp)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengirim email verifikasi. Silakan coba lagi nanti.'
+                'message' => 'Kode OTP tidak valid atau sudah kedaluwarsa'
+            ], 400);
+        }
+
+        // Verifikasi berhasil
+        $user->markPhoneAsVerified();
+
+        // Auto login setelah verifikasi
+        Auth::login($user);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verifikasi berhasil! Akun Anda telah aktif.',
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'phone' => $user->phone,
+                    'phone_verified' => true,
+                ],
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ]
+        ]);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor WhatsApp tidak valid'
+            ], 422);
+        }
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak ditemukan'
+            ], 404);
+        }
+
+        if ($user->hasVerifiedPhone()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor WhatsApp sudah terverifikasi'
+            ], 400);
+        }
+
+        // Generate OTP baru
+        $otp = $user->generateOtp();
+
+        $whatsappSent = $this->whatsappService->sendOtp($user->phone, $otp);
+
+        if (!$whatsappSent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim OTP. Silakan coba lagi nanti.'
             ], 500);
         }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode OTP baru telah dikirim ke WhatsApp Anda.'
+        ]);
     }
 
     public function login(Request $request)
@@ -194,8 +214,9 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Cek apakah input adalah email atau username
-        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        // Cek apakah input adalah phone atau username
+        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' :
+                    (preg_match('/^[0-9+]+$/', $request->login) ? 'phone' : 'username');
 
         // Attempt login
         $credentials = [
@@ -206,22 +227,28 @@ class AuthController extends Controller
         if (!Auth::attempt($credentials)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email/username atau password salah'
+                'message' => 'Username/nomor WhatsApp atau password salah'
             ], 401);
         }
 
         $user = User::where($loginType, $request->login)->firstOrFail();
 
-        // Check if email is verified
-        if (!$user->hasVerifiedEmail()) {
-            Auth::logout();
+        // Check if phone is verified
+        if (!$user->hasVerifiedPhone()) {
+            // Kirim OTP otomatis saat login jika belum verifikasi
+            $otp = $user->generateOtp();
+            $whatsappSent = $this->whatsappService->sendOtp($user->phone, $otp);
+
+            if (!$whatsappSent) {
+                Log::error('Failed to send WhatsApp OTP during login: ' . $user->phone);
+            }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Email belum terverifikasi. Silakan cek email Anda untuk link verifikasi.',
+                'message' => 'Nomor WhatsApp belum terverifikasi. Kode OTP baru telah dikirim ke WhatsApp Anda.',
                 'data' => [
                     'needs_verification' => true,
-                    'email' => $user->email
+                    'phone' => $user->phone
                 ]
             ], 403);
         }
@@ -235,9 +262,9 @@ class AuthController extends Controller
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
-                    'email' => $user->email,
                     'username' => $user->username,
-                    'email_verified' => true,
+                    'phone' => $user->phone,
+                    'phone_verified' => true,
                 ],
                 'access_token' => $token,
                 'token_type' => 'Bearer',
@@ -247,51 +274,127 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|exists:users,phone',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-
-        if ($status === Password::RESET_LINK_SENT) {
+        if ($validator->fails()) {
             return response()->json([
-                'message' => 'Link reset password telah dikirim ke email Anda.'
-            ], 200);
+                'success' => false,
+                'message' => 'Nomor WhatsApp tidak terdaftar'
+            ], 422);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak ditemukan'
+            ], 404);
+        }
+
+        // Generate reset OTP
+        $otp = $user->generateResetOtp();
+
+        $whatsappSent = $this->whatsappService->sendResetOtp($user->phone, $otp);
+
+        if (!$whatsappSent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim OTP. Silakan coba lagi nanti.'
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode OTP reset password telah dikirim ke WhatsApp Anda.'
         ]);
     }
 
-    /**
-     * Reset password setelah user membuka link yang dikirim ke email
-     */
+    public function verifyResetOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|exists:users,phone',
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid'
+            ], 422);
+        }
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user->validateResetOtp($request->otp)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP tidak valid atau sudah kedaluwarsa'
+            ], 400);
+        }
+
+        // OTP valid, return token untuk reset password
+        $resetToken = bin2hex(random_bytes(32));
+
+        // Simpan token sementara (bisa menggunakan cache)
+        cache()->put('reset_token_' . $resetToken, $user->id, now()->addMinutes(10));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP verified successfully',
+            'data' => [
+                'reset_token' => $resetToken
+            ]
+        ]);
+    }
+
     public function resetPassword(Request $request)
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email|exists:users,email',
+        $validator = Validator::make($request->all(), [
+            'reset_token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                ])->save();
-            }
-        );
-
-        if ($status == Password::PASSWORD_RESET) {
-            return response()->json(['message' => 'Password berhasil direset.'], 200);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid'
+            ], 422);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
+        // Validasi reset token
+        $cacheKey = 'reset_token_' . $request->reset_token;
+        $userId = cache()->get($cacheKey);
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token reset tidak valid atau sudah kedaluwarsa'
+            ], 400);
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak ditemukan'
+            ], 404);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->clearResetOtp();
+        $user->save();
+
+        // Hapus token dari cache
+        cache()->forget($cacheKey);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil direset. Silakan login dengan password baru.'
         ]);
     }
 
