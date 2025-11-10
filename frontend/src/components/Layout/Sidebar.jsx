@@ -53,6 +53,8 @@ const Sidebar = ({
           label: "Strategi Pemasaran",
           icon: FileChartColumnIncreasing,
         },
+        { id: 'operational-plan', label: 'Rencana Operasional', icon: Workflow },
+        
       ],
     },
     {

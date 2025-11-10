@@ -17,7 +17,20 @@ const MarketAnalysisEdit = ({ analysis, onBack, onSuccess }) => {
         main_competitors: '',
         competitor_strengths: '',
         competitor_weaknesses: '',
-        competitive_advantage: ''
+        competitive_advantage: '',
+        // TAM SAM SOM - TAMBAHKAN INI
+        tam_total: '',
+        sam_percentage: '',
+        sam_total: '',
+        som_percentage: '',
+        som_total: '',
+        // SWOT Analysis - TAMBAHKAN INI
+        strengths: '',
+        weaknesses: '',
+        opportunities: '',
+        threats: '',
+        // Competitors - TAMBAHKAN INI
+        competitors: []
     });
 
     // Fetch business backgrounds untuk dropdown
@@ -45,6 +58,7 @@ const MarketAnalysisEdit = ({ analysis, onBack, onSuccess }) => {
 
     useEffect(() => {
         if (analysis) {
+            console.log('Analysis data untuk edit:', analysis); // Debug log
             setFormData({
                 business_background_id: analysis.business_background_id || '',
                 target_market: analysis.target_market || '',
@@ -53,7 +67,33 @@ const MarketAnalysisEdit = ({ analysis, onBack, onSuccess }) => {
                 main_competitors: analysis.main_competitors || '',
                 competitor_strengths: analysis.competitor_strengths || '',
                 competitor_weaknesses: analysis.competitor_weaknesses || '',
-                competitive_advantage: analysis.competitive_advantage || ''
+                competitive_advantage: analysis.competitive_advantage || '',
+                // TAM SAM SOM - TAMBAHKAN INI
+                tam_total: analysis.tam_total || '',
+                sam_percentage: analysis.sam_percentage || '',
+                sam_total: analysis.sam_total || '',
+                som_percentage: analysis.som_percentage || '',
+                som_total: analysis.som_total || '',
+                // SWOT Analysis - TAMBAHKAN INI
+                strengths: analysis.strengths || '',
+                weaknesses: analysis.weaknesses || '',
+                opportunities: analysis.opportunities || '',
+                threats: analysis.threats || '',
+                // Competitors - TAMBAHKAN INI
+                competitors: analysis.competitors && analysis.competitors.length > 0 
+                    ? analysis.competitors.map(comp => ({
+                        id: comp.id || null,
+                        competitor_name: comp.competitor_name || '',
+                        type: comp.type || 'competitor',
+                        code: comp.code || '',
+                        address: comp.address || '',
+                        annual_sales_estimate: comp.annual_sales_estimate || '',
+                        selling_price: comp.selling_price || '',
+                        strengths: comp.strengths || '',
+                        weaknesses: comp.weaknesses || '',
+                        sort_order: comp.sort_order || 0
+                    }))
+                    : []
             });
         }
     }, [analysis]);
@@ -86,7 +126,7 @@ const MarketAnalysisEdit = ({ analysis, onBack, onSuccess }) => {
                 user_id: user.id
             };
 
-            console.log('Updating market analysis data:', submitData);
+            console.log('Updating market analysis data:', submitData); // Debug log
             const response = await marketAnalysisApi.update(analysis.id, submitData);
 
             if (response.data.status === 'success') {
