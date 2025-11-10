@@ -48,6 +48,9 @@ Route::prefix('market-analysis')->group(function () {
     Route::post('/', [MarketAnalysisController::class, 'store']);
     Route::put('/{id}', [MarketAnalysisController::class, 'update']);
     Route::delete('/{id}', [MarketAnalysisController::class, 'destroy']);
+
+    // REVISI: Route baru untuk kalkulasi market size
+    Route::post('/calculate-market-size', [MarketAnalysisController::class, 'calculateMarketSize']);
 });
 
 // Product Service Routes
