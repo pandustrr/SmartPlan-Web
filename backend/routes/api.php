@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessPlan\BusinessController;
+use App\Http\Controllers\BusinessPlan\ExecutiveSummaryController;
+use App\Http\Controllers\BusinessPlan\FinancialPlanController;
 use App\Http\Controllers\BusinessPlan\MarketAnalysisController;
 use App\Http\Controllers\BusinessPlan\MarketingStrategyController;
 use App\Http\Controllers\BusinessPlan\ProductServiceController;
@@ -81,6 +83,7 @@ Route::prefix('operational-plan')->group(function () {
     Route::delete('/{id}', [OperationalPlanController::class, 'destroy']);
 });
 
+// Team Structure
 Route::prefix('team-structure')->group(function () {
     Route::get('/', [TeamStructureController::class, 'index']);
     Route::get('/{id}', [TeamStructureController::class, 'show']);
@@ -88,6 +91,19 @@ Route::prefix('team-structure')->group(function () {
     Route::put('/{id}', [TeamStructureController::class, 'update']);
     Route::delete('/{id}', [TeamStructureController::class, 'destroy']);
 });
+
+// Financial Plan
+Route::prefix('financial-plans')->group(function () {
+    Route::get('/', [FinancialPlanController::class, 'index']);
+    Route::post('/', [FinancialPlanController::class, 'store']);
+    Route::get('/{id}', [FinancialPlanController::class, 'show']);
+    Route::put('/{id}', [FinancialPlanController::class, 'update']);
+    Route::delete('/{id}', [FinancialPlanController::class, 'destroy']);
+});
+
+// Route::get('/executive-summary', [ExecutiveSummaryController::class, 'index']);
+Route::get('/executive-summary/{userId}', [ExecutiveSummaryController::class, 'index']);
+
 
 
 Route::get('/test-wa', function () {
