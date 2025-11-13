@@ -13,7 +13,6 @@ import {
   Building,
   Package,
   FileChartColumnIncreasing,
-  Users, 
 } from "lucide-react";
 
 const Sidebar = ({
@@ -61,16 +60,15 @@ const Sidebar = ({
           label: "Strategi Pemasaran", 
           icon: FileChartColumnIncreasing
         },
-        
-        { 
-          id: 'operational-plan', 
-          label: 'Rencana Operasional', 
-          icon: Workflow 
+        {
+          id: "operational-plan",
+          label: "Rencana Operasional",
+          icon: Workflow,
         },
-        { 
-          id: 'team-structure', 
-          label: 'Struktur Organisasi & Tim', 
-          icon: Users 
+        {
+          id: "executive-summary",
+          label: "Executive Summary",
+          icon: Files,
         },
       ],
     },

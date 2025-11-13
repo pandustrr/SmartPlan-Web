@@ -8,6 +8,7 @@ import {
   BarChart3,
   Building,
   Package,
+  Files,
 } from "lucide-react";
 import Background from "../components/BusinessPlan/BusinessBackground/Background";
 import MarketAnalysis from "../components/BusinessPlan/MarketAnalysis/MarketAnalysis";
@@ -34,8 +35,8 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
   };
 
   const handleBackToMain = () => {
-    setActiveSubSection('');
-    setView('main');
+    setActiveSubSection("");
+    setView("main");
   };
 
   const renderMainView = () => (
@@ -158,7 +159,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
         {/* Rencana Operasional Card */}
         <div
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-teal-300 dark:hover:border-teal-600"
-          onClick={() => handleSubSectionClick('operational-plan')}
+          onClick={() => handleSubSectionClick("operational-plan")}
         >
           <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
             <Workflow className="text-teal-600 dark:text-teal-400" size={24} />
@@ -171,31 +172,39 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           </p>
           <div className="flex items-center text-teal-600 dark:text-teal-400 text-sm font-medium">
             <span>Kelola Operasional</span>
-            <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </div>
         </div>
 
-        {/* Strategi Pemasaran Card */}
+        {/* Executive Summary Card */}
         <div
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-pink-300 dark:hover:border-pink-600"
-          onClick={() => handleSubSectionClick("marketing-strategies")}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-teal-300 dark:hover:border-teal-600"
+          onClick={() => handleSubSectionClick("executive-summary")}
         >
-          <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-            <Target
-              className="text-pink-600 dark:text-pink-400"
-              size={24}
-            />
+          <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Files className="text-teal-600 dark:text-teal-400" size={24} />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Strategi Pemasaran
+            Ringkasan Eksekutif
           </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-            Rencana pemasaran, promosi, dan strategi penjualan
+            Latar belakang usaha, strategi pemasaran, dan rencana keuangan
+            secara ringkas
           </p>
-          <div className="flex items-center text-pink-600 dark:text-pink-400 text-sm font-medium">
-            <span>Kelola Strategi</span>
+          <div className="flex items-center text-teal-600 dark:text-teal-400 text-sm font-medium">
+            <span>Lihat Ringkasan</span>
             <svg
               className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
               fill="none"
@@ -250,13 +259,13 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
 
   const renderSubSection = () => {
     switch (view) {
-      case 'business-background':
+      case "business-background":
         return <Background onBack={handleBackToMain} />;
-      case 'market-analysis':
+      case "market-analysis":
         return <MarketAnalysis onBack={handleBackToMain} />;
-      case 'product-service':
+      case "product-service":
         return <ProductService onBack={handleBackToMain} />;
-      case 'operational-plan':
+      case "operational-plan":
         return <OperationalPlan onBack={handleBackToMain} />;
       case 'marketing-strategies':
         return <MarketingStrategies onBack={handleBackToMain} />;
