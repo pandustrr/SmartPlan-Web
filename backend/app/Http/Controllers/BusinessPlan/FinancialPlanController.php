@@ -370,7 +370,7 @@ class FinancialPlanController extends Controller
             }
 
             // Sort by date
-            usort($filteredData, function($a, $b) {
+            usort($filteredData, function ($a, $b) {
                 return strtotime($a['date']) - strtotime($b['date']);
             });
 
@@ -486,100 +486,65 @@ class FinancialPlanController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Method untuk generate laporan
-     */
-    public function generateReport($id, Request $request)
-    {
-        try {
-            $plan = FinancialPlan::with('businessBackground')->findOrFail($id);
-
-            $reportType = $request->get('report_type', 'summary');
-            $period = $request->get('period', 'yearly');
-
-            $reportData = $plan->generateReportData($reportType, $period);
-
-            // Add additional analysis data
-            $reportData['additional_analysis'] = $this->generateAdditionalAnalysis($plan);
-            $reportData['executive_summary'] = $this->generateExecutiveSummary($plan);
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $reportData,
-                'message' => 'Laporan berhasil di-generate'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error generating report: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal generate laporan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
     /**
      * Method untuk data chart
      */
-/**
- * Method untuk data chart
- */
-public function getChartData($id, Request $request)
-{
-    try {
-        $plan = FinancialPlan::findOrFail($id);
-        $chartType = $request->get('chart_type', 'profit_loss');
-        $timeRange = $request->get('time_range', 'monthly');
+    public function getChartData($id, Request $request)
+    {
+        try {
+            $plan = FinancialPlan::findOrFail($id);
+            $chartType = $request->get('chart_type', 'profit_loss');
+            $timeRange = $request->get('time_range', 'monthly');
 
-        $data = [];
+            $data = [];
 
-        switch ($chartType) {
-            case 'profit_loss':
-                $data = $this->getProfitLossChartData($plan);
-                break;
+            switch ($chartType) {
+                case 'profit_loss':
+                    $data = $this->getProfitLossChartData($plan);
+                    break;
 
-            case 'capital_structure':
-                $data = $this->getCapitalStructureChartData($plan);
-                break;
+                case 'capital_structure':
+                    $data = $this->getCapitalStructureChartData($plan);
+                    break;
 
-            case 'cash_flow':
-                $data = $this->getCashFlowChartData($plan, $timeRange);
-                break;
+                case 'cash_flow':
+                    $data = $this->getCashFlowChartData($plan, $timeRange);
+                    break;
 
-            case 'revenue_streams':
-                $data = $this->getRevenueStreamsChartData($plan);
-                break;
+                case 'revenue_streams':
+                    $data = $this->getRevenueStreamsChartData($plan);
+                    break;
 
-            case 'expense_breakdown':
-                $data = $this->getExpenseBreakdownChartData($plan);
-                break;
+                case 'expense_breakdown':
+                    $data = $this->getExpenseBreakdownChartData($plan);
+                    break;
 
-            case 'feasibility':
-                $data = $this->getFeasibilityChartData($plan);
-                break;
+                case 'feasibility':
+                    $data = $this->getFeasibilityChartData($plan);
+                    break;
 
-            case 'monthly_trends':
-                $data = $this->getMonthlyTrendsChartData($plan);
-                break;
+                case 'monthly_trends':
+                    $data = $this->getMonthlyTrendsChartData($plan);
+                    break;
 
-            case 'performance_indicators':
-                $data = $this->getPerformanceIndicatorsChartData($plan);
-                break;
+                case 'performance_indicators':
+                    $data = $this->getPerformanceIndicatorsChartData($plan);
+                    break;
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data,
+                'message' => 'Data chart berhasil diambil'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting chart data: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil data chart: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $data,
-            'message' => 'Data chart berhasil diambil'
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Error getting chart data: ' . $e->getMessage());
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Gagal mengambil data chart: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     /**
      * Method untuk dashboard charts (multiple plans)
@@ -767,7 +732,7 @@ public function getChartData($id, Request $request)
         }
 
         // Sort by priority
-        usort($recommendations, function($a, $b) {
+        usort($recommendations, function ($a, $b) {
             $priorityOrder = ['high' => 3, 'medium' => 2, 'low' => 1];
             return $priorityOrder[$b['priority']] - $priorityOrder[$a['priority']];
         });
@@ -1055,7 +1020,7 @@ public function getChartData($id, Request $request)
 
     private function getDashboardProfitTrendData($plans)
     {
-        return $plans->map(function($plan) {
+        return $plans->map(function ($plan) {
             return [
                 'name' => $plan->plan_name,
                 'pendapatan' => $plan->total_monthly_income,
@@ -1067,7 +1032,7 @@ public function getChartData($id, Request $request)
 
     private function getDashboardRoiComparisonData($plans)
     {
-        return $plans->map(function($plan) {
+        return $plans->map(function ($plan) {
             return [
                 'name' => $plan->plan_name,
                 'roi' => $plan->roi_percentage,
@@ -1080,7 +1045,7 @@ public function getChartData($id, Request $request)
     {
         $distribution = $plans->groupBy('feasibility_status')->map->count();
 
-        return $distribution->map(function($count, $status) {
+        return $distribution->map(function ($count, $status) {
             return [
                 'name' => $status,
                 'value' => $count
@@ -1090,7 +1055,7 @@ public function getChartData($id, Request $request)
 
     private function getDashboardCapitalEfficiencyData($plans)
     {
-        return $plans->map(function($plan) {
+        return $plans->map(function ($plan) {
             $efficiency = $plan->total_initial_capital > 0 ?
                 ($plan->net_profit * 12) / $plan->total_initial_capital * 100 : 0;
 
@@ -1140,8 +1105,13 @@ public function getChartData($id, Request $request)
                 'projected_income' => $projectedIncome,
                 'projected_opex' => $projectedOpex,
                 'projected_profit' => $projectedIncome - $projectedOpex,
-                'cumulative_profit' => array_reduce(array_slice($forecast, 0, $i),
-                    function($carry, $item) { return $carry + $item['projected_profit']; }, 0) + ($projectedIncome - $projectedOpex)
+                'cumulative_profit' => array_reduce(
+                    array_slice($forecast, 0, $i),
+                    function ($carry, $item) {
+                        return $carry + $item['projected_profit'];
+                    },
+                    0
+                ) + ($projectedIncome - $projectedOpex)
             ];
         }
 
