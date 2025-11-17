@@ -22,7 +22,8 @@ const OperationalPlanCreate = ({ onBack, onSuccess }) => {
         status: 'draft',
         employees: [],
         operational_hours: [],
-        suppliers: []
+        suppliers: [],
+        workflow_diagram: null // Pastikan workflow_diagram ada di formData
     });
 
     // Fetch business backgrounds untuk dropdown
@@ -62,6 +63,11 @@ const OperationalPlanCreate = ({ onBack, onSuccess }) => {
 
     const handleSuppliersChange = (suppliers) => {
         setFormData(prev => ({ ...prev, suppliers }));
+    };
+
+    // Tambahkan handler untuk workflow diagram
+    const handleWorkflowDiagramChange = (workflowDiagram) => {
+        setFormData(prev => ({ ...prev, workflow_diagram: workflowDiagram }));
     };
 
     const handleSubmit = async (e, submitData = null) => {
@@ -145,6 +151,7 @@ const OperationalPlanCreate = ({ onBack, onSuccess }) => {
             onEmployeesChange={handleEmployeesChange}
             onOperationalHoursChange={handleOperationalHoursChange}
             onSuppliersChange={handleSuppliersChange}
+            onWorkflowDiagramChange={handleWorkflowDiagramChange}
             onSubmit={handleSubmit}
             onBack={onBack}
             submitButtonText="Simpan Rencana"

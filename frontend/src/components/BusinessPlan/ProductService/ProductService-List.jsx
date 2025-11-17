@@ -19,7 +19,6 @@ const ProductServiceList = ({
     const [failedImages, setFailedImages] = useState(new Set());
     const [selectedBusiness, setSelectedBusiness] = useState('all');
     const [selectedType, setSelectedType] = useState('all');
-    const [selectedStatus, setSelectedStatus] = useState('all');
 
     const handleDeleteClick = (productId, productName) => {
         setProductToDelete({ id: productId, name: productName });
@@ -81,11 +80,6 @@ const ProductServiceList = ({
         
         // Filter type
         if (selectedType !== 'all' && product.type !== selectedType) {
-            return false;
-        }
-        
-        // Filter status
-        if (selectedStatus !== 'all' && product.status !== selectedStatus) {
             return false;
         }
         
@@ -162,7 +156,6 @@ const ProductServiceList = ({
     const resetFilters = () => {
         setSelectedBusiness('all');
         setSelectedType('all');
-        setSelectedStatus('all');
     };
 
     if (isLoading) {
@@ -332,82 +325,134 @@ const ProductServiceList = ({
                 </div>
             )}
 
-            {/* FILTER SECTION */}
+            {/* FILTER SECTION - TANPA FILTER STATUS */}
             {(products.length > 0 || uniqueBusinesses.length > 0) && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                             <Building size={16} />
                             Filter Data:
                         </h3>
-                        {(selectedBusiness !== 'all' || selectedType !== 'all' || selectedStatus !== 'all') && (
+                        {(selectedBusiness !== 'all' || selectedType !== 'all') && (
                             <button
                                 onClick={resetFilters}
-                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 w-full sm:w-auto text-left sm:text-center flex items-center gap-1"
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 w-full sm:w-auto text-left sm:text-center"
                             >
-                                <X size={14} />
-                                Reset Filter
+                                Reset Semua Filter
                             </button>
                         )}
                     </div>
+                    
+                    {/* Filter Bisnis - Button Style */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        <button
+                            onClick={() => setSelectedBusiness('all')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedBusiness === 'all'
+                                    ? 'bg-green-500 border-green-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Building size={14} />
+                            <span>Semua Bisnis</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedBusiness === 'all' 
+                                    ? 'bg-green-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {products.length}
+                            </span>
+                        </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Filter Bisnis */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Filter Berdasarkan Bisnis
-                            </label>
-                            <select
-                                value={selectedBusiness}
-                                onChange={(e) => setSelectedBusiness(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        {uniqueBusinesses.map(business => (
+                            <button
+                                key={business.id}
+                                onClick={() => setSelectedBusiness(business.id)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                    selectedBusiness === business.id
+                                        ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
+                                        : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                }`}
                             >
-                                <option value="all">Semua Bisnis</option>
-                                {uniqueBusinesses.map(business => (
-                                    <option key={business.id} value={business.id}>
-                                        {business.name} - {business.category}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                                <Building size={14} />
+                                <div className="text-left">
+                                    <div className="font-medium">{business.name}</div>
+                                    <div className="text-xs opacity-80 hidden sm:block">{business.category}</div>
+                                </div>
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                    selectedBusiness === business.id 
+                                        ? 'bg-blue-600 text-white' 
+                                        : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                }`}>
+                                    {products.filter(p => p.business_background?.id === business.id).length}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
 
-                        {/* Filter Tipe */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Filter Berdasarkan Tipe
-                            </label>
-                            <select
-                                value={selectedType}
-                                onChange={(e) => setSelectedType(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            >
-                                <option value="all">Semua Tipe</option>
-                                <option value="product">Produk</option>
-                                <option value="service">Layanan</option>
-                            </select>
-                        </div>
+                    {/* Filter Tipe - Button Style */}
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setSelectedType('all')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedType === 'all'
+                                    ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Package size={14} />
+                            <span>Semua Tipe</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedType === 'all' 
+                                    ? 'bg-purple-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {products.length}
+                            </span>
+                        </button>
 
-                        {/* Filter Status */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Filter Berdasarkan Status
-                            </label>
-                            <select
-                                value={selectedStatus}
-                                onChange={(e) => setSelectedStatus(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            >
-                                <option value="all">Semua Status</option>
-                                <option value="draft">Draft</option>
-                                <option value="in_development">Dalam Pengembangan</option>
-                                <option value="launched">Diluncurkan</option>
-                            </select>
-                        </div>
+                        <button
+                            onClick={() => setSelectedType('product')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedType === 'product'
+                                    ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Package size={14} />
+                            <span>Produk</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedType === 'product' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {products.filter(p => p.type === 'product').length}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setSelectedType('service')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedType === 'service'
+                                    ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <TrendingUp size={14} />
+                            <span>Layanan</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedType === 'service' 
+                                    ? 'bg-purple-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {products.filter(p => p.type === 'service').length}
+                            </span>
+                        </button>
                     </div>
 
                     {/* Filter Info */}
-                    {(selectedBusiness !== 'all' || selectedType !== 'all' || selectedStatus !== 'all') && (
-                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    {(selectedBusiness !== 'all' || selectedType !== 'all') && (
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 text-sm">
                                     <Building size={16} />
@@ -418,12 +463,6 @@ const ProductServiceList = ({
                                         )}
                                         {selectedType !== 'all' && (
                                             <span> - Tipe: <strong>{selectedType === 'product' ? 'Produk' : 'Layanan'}</strong></span>
-                                        )}
-                                        {selectedStatus !== 'all' && (
-                                            <span> - Status: <strong>
-                                                {selectedStatus === 'draft' ? 'Draft' : 
-                                                 selectedStatus === 'in_development' ? 'Dalam Pengembangan' : 'Diluncurkan'}
-                                            </strong></span>
                                         )}
                                     </span>
                                 </div>
@@ -592,19 +631,13 @@ const ProductServiceList = ({
                     {/* Info Jumlah Data */}
                     <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Menampilkan {filteredProducts.length} dari {products.length} produk/layanan
-                        {(selectedBusiness !== 'all' || selectedType !== 'all' || selectedStatus !== 'all') && (
+                        {(selectedBusiness !== 'all' || selectedType !== 'all') && (
                             <span>
                                 {selectedBusiness !== 'all' && (
                                     <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
                                 )}
                                 {selectedType !== 'all' && (
                                     <span> - Tipe: <strong>{selectedType === 'product' ? 'Produk' : 'Layanan'}</strong></span>
-                                )}
-                                {selectedStatus !== 'all' && (
-                                    <span> - Status: <strong>
-                                        {selectedStatus === 'draft' ? 'Draft' : 
-                                         selectedStatus === 'in_development' ? 'Dalam Pengembangan' : 'Diluncurkan'}
-                                    </strong></span>
                                 )}
                             </span>
                         )}

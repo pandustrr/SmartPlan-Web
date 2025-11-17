@@ -109,7 +109,14 @@ class OperationalPlanController extends Controller
         try {
             $planData = $request->all();
 
-            // Generate workflow diagram otomatis jika daily_workflow diisi
+            // Handle workflow_diagram - sesuaikan dengan struktur model
+            if ($request->has('workflow_diagram') && is_array($request->workflow_diagram)) {
+                // Validasi struktur workflow_diagram
+                $validatedDiagram = $this->validateWorkflowDiagram($request->workflow_diagram);
+                $planData['workflow_diagram'] = $validatedDiagram;
+            }
+
+            // Generate workflow diagram otomatis jika daily_workflow diisi dan tidak ada workflow_diagram
             if (!empty($request->daily_workflow) && !$request->has('workflow_diagram')) {
                 $plan = new OperationalPlan($planData);
                 $workflowDiagram = $plan->generateWorkflowDiagram();
@@ -117,6 +124,9 @@ class OperationalPlanController extends Controller
             }
 
             $plan = OperationalPlan::create($planData);
+
+            // Reload dengan relationship
+            $plan->load(['user', 'businessBackground']);
 
             return response()->json([
                 'status' => 'success',
@@ -144,7 +154,7 @@ class OperationalPlanController extends Controller
         }
 
         // Cek apakah user_id cocok dengan pemilik data
-        if ($request->user_id != $plan->user_id) {
+        if ($request->user_id && $request->user_id != $plan->user_id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized: You cannot update this data'
@@ -152,6 +162,7 @@ class OperationalPlanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
+            'business_background_id' => 'sometimes|required|exists:business_backgrounds,id',
             'business_location' => 'sometimes|required|string|max:255',
             'location_description' => 'nullable|string',
             'location_type' => 'sometimes|required|string|max:50',
@@ -178,7 +189,17 @@ class OperationalPlanController extends Controller
         try {
             $updateData = $request->all();
 
-            // Regenerate workflow diagram jika daily_workflow berubah
+            // Handle workflow_diagram - sesuaikan dengan struktur model
+            if ($request->has('workflow_diagram')) {
+                if (is_array($request->workflow_diagram)) {
+                    $validatedDiagram = $this->validateWorkflowDiagram($request->workflow_diagram);
+                    $updateData['workflow_diagram'] = $validatedDiagram;
+                } elseif ($request->workflow_diagram === null) {
+                    $updateData['workflow_diagram'] = null;
+                }
+            }
+
+            // Regenerate workflow diagram hanya jika daily_workflow berubah DAN tidak ada workflow_diagram yang dikirim
             $workflowChanged = $request->has('daily_workflow') &&
                              $request->daily_workflow !== $plan->daily_workflow;
 
@@ -194,6 +215,9 @@ class OperationalPlanController extends Controller
             }
 
             $plan->update($updateData);
+
+            // Reload dengan relationship
+            $plan->load(['user', 'businessBackground']);
 
             return response()->json([
                 'status' => 'success',
@@ -383,5 +407,44 @@ class OperationalPlanController extends Controller
                 'message' => 'Terjadi kesalahan saat mengambil statistics.'
             ], 500);
         }
+    }
+
+    /**
+     * Validasi struktur workflow diagram
+     */
+    private function validateWorkflowDiagram($diagram)
+    {
+        // Struktur expected berdasarkan model:
+        // {
+        //     "steps": [...],
+        //     "nodes": [...],
+        //     "edges": [...],
+        //     "generated_at": "..."
+        // }
+
+        $validated = [];
+
+        if (isset($diagram['steps']) && is_array($diagram['steps'])) {
+            $validated['steps'] = array_map(function($step) {
+                return [
+                    'id' => $step['id'] ?? 'step_' . uniqid(),
+                    'number' => $step['number'] ?? 1,
+                    'description' => $step['description'] ?? '',
+                    'type' => $step['type'] ?? 'process'
+                ];
+            }, $diagram['steps']);
+        }
+
+        if (isset($diagram['nodes']) && is_array($diagram['nodes'])) {
+            $validated['nodes'] = $diagram['nodes'];
+        }
+
+        if (isset($diagram['edges']) && is_array($diagram['edges'])) {
+            $validated['edges'] = $diagram['edges'];
+        }
+
+        $validated['generated_at'] = $diagram['generated_at'] ?? now()->toISOString();
+
+        return $validated;
     }
 }

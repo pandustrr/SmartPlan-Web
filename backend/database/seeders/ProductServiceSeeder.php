@@ -4,40 +4,81 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\ProductService;
-use App\Models\User;
-use App\Models\BusinessBackground;
 
 class ProductServiceSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $user = User::first();
-        $business = BusinessBackground::first();
+        ProductService::create([
+            'user_id' => 1,
+            'business_background_id' => 3,
+            'type' => 'product',
+            'name' => 'Signature Caramel Latte',
+            'description' => 'Minuman kopi spesial dengan karamel homemade yang creamy, menjadi salah satu menu favorit pelanggan.',
+            'price' => 25000,
+            'image_path' => null, // bisa diisi storage path jika sudah upload
+            'advantages' => 'Rasa premium, bahan berkualitas, cocok untuk semua kalangan.',
+            'development_strategy' => 'Pengembangan varian rasa baru dan paket bundling untuk meningkatkan penjualan.',
+            'bmc_alignment' => [
+                'customer_segment' => 'Mahasiswa, pekerja, dan pecinta kopi.',
+                'value_proposition' => 'Rasa premium dengan harga terjangkau.',
+                'channels' => 'Penjualan langsung dan aplikasi delivery.',
+                'customer_relationships' => 'Customer service ramah dan program loyalitas.',
+                'revenue_streams' => 'Penjualan minuman dan layanan tambahan.',
+                'key_resources' => 'Bahan baku premium, brand café, tenaga barista.',
+                'key_activities' => 'Produksi minuman, layanan pelanggan.',
+                'key_partnerships' => 'Supplier kopi lokal, marketplace delivery.',
+                'cost_structure' => 'Biaya bahan baku, SDM, dan operasional café.'
+            ],
+            'status' => 'launched',
+        ]);
 
-        if ($user && $business) {
-            ProductService::create([
-                'user_id' => $user->id,
-                'business_background_id' => $business->id,
-                'type' => 'product',
-                'name' => 'Smart Business Planner Software',
-                'description' => 'Software lengkap untuk perencanaan bisnis dengan fitur analisis pasar, forecasting, dan business model canvas integration.',
-                'price' => 2990000,
-                'advantages' => 'User-friendly interface, real-time analytics, comprehensive reporting, cloud-based solution',
-                'development_strategy' => 'Continuous improvement based on user feedback, regular feature updates, integration with popular business tools',
-                'status' => 'launched'
-            ]);
+        ProductService::create([
+            'user_id' => 1,
+            'business_background_id' => 3,
+            'type' => 'product',
+            'name' => 'Chicken Rice Bowl',
+            'description' => 'Menu makanan praktis dengan ayam crispy dan saus signature, cocok untuk makan siang.',
+            'price' => 30000,
+            'image_path' => null,
+            'advantages' => 'Porsi besar, cita rasa khas, harga pelajar.',
+            'development_strategy' => 'Menambahkan pilihan level pedas dan varian saus baru.',
+            'bmc_alignment' => [
+                'customer_segment' => 'Mahasiswa yang butuh makanan cepat dan murah.',
+                'value_proposition' => 'Porsi banyak, rasa enak, harga ramah kantong.',
+                'channels' => 'Dine-in, take-away, dan marketplace.',
+                'customer_relationships' => 'Program diskon bundling.',
+                'revenue_streams' => 'Penjualan makanan utama.',
+                'key_resources' => 'Dapur produksi, chef, bahan baku.',
+                'key_activities' => 'Memasak, quality control.',
+                'key_partnerships' => 'Supplier ayam dan beras.',
+                'cost_structure' => 'Biaya bahan baku + tenaga masak.'
+            ],
+            'status' => 'launched',
+        ]);
 
-            ProductService::create([
-                'user_id' => $user->id,
-                'business_background_id' => $business->id,
-                'type' => 'service',
-                'name' => 'Business Consultation Package',
-                'description' => 'Layanan konsultasi bisnis profesional untuk startup dan UMKM dengan pendekatan personalized.',
-                'price' => 1500000,
-                'advantages' => 'Expert consultants, customized solutions, ongoing support, proven methodologies',
-                'development_strategy' => 'Expand consultant network, develop specialized industry packages, create online learning resources',
-                'status' => 'in_development'
-            ]);
-        }
+        ProductService::create([
+            'user_id' => 1,
+            'business_background_id' => 3,
+            'type' => 'service',
+            'name' => 'Café Event Hosting',
+            'description' => 'Layanan penyewaan café untuk acara kecil seperti meeting, birthday, atau komunitas.',
+            'price' => 150000,
+            'image_path' => null,
+            'advantages' => 'Tempat cozy, fasilitas lengkap, harga terjangkau.',
+            'development_strategy' => 'Menambahkan paket dekorasi dan sound system.',
+            'bmc_alignment' => [
+                'customer_segment' => 'Komunitas kampus dan pekerja.',
+                'value_proposition' => 'Tempat nyaman dengan pelayanan lengkap.',
+                'channels' => 'Booking via WhatsApp dan website.',
+                'customer_relationships' => 'Support personal untuk kebutuhan acara.',
+                'revenue_streams' => 'Sewa tempat + upsell makanan/minuman.',
+                'key_resources' => 'Ruang café, staf event.',
+                'key_activities' => 'Persiapan tempat, service event.',
+                'key_partnerships' => 'Vendor dekorasi dan event komunitas.',
+                'cost_structure' => 'Biaya listrik, staf, dan maintenance.'
+            ],
+            'status' => 'in_development',
+        ]);
     }
 }

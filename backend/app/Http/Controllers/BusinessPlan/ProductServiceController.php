@@ -13,7 +13,19 @@ class ProductServiceController extends Controller
 {
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Decode bmc_alignment dari JSON string ke array sebelum validasi
+        $requestData = $request->all();
+
+        if ($request->has('bmc_alignment') && is_string($request->bmc_alignment)) {
+            try {
+                $requestData['bmc_alignment'] = json_decode($request->bmc_alignment, true);
+            } catch (\Exception $e) {
+                Log::error('Error decoding bmc_alignment JSON: ' . $e->getMessage());
+                $requestData['bmc_alignment'] = [];
+            }
+        }
+
+        $validator = Validator::make($requestData, [
             'user_id' => 'required|exists:users,id',
             'business_background_id' => 'required|exists:business_backgrounds,id',
             'type' => 'required|in:product,service',
@@ -59,15 +71,15 @@ class ProductServiceController extends Controller
                 'status' => $request->status ?? 'draft',
             ];
 
-            // Handle BMC Alignment
-            if ($request->has('bmc_alignment')) {
-                $productData['bmc_alignment'] = $request->bmc_alignment;
+            // Handle BMC Alignment - gunakan data yang sudah di-decode
+            if (isset($requestData['bmc_alignment']) && is_array($requestData['bmc_alignment'])) {
+                $productData['bmc_alignment'] = $requestData['bmc_alignment'];
             }
 
             $product = ProductService::create($productData);
 
             // Generate BMC alignment otomatis jika tidak disediakan
-            if (!$request->has('bmc_alignment')) {
+            if (!isset($requestData['bmc_alignment']) || empty($requestData['bmc_alignment'])) {
                 $product->generateBmcAlignment();
                 $product->save();
             }
@@ -93,6 +105,138 @@ class ProductServiceController extends Controller
             ], 500);
         }
     }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $product = ProductService::find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Product or service not found'
+                ], 404);
+            }
+
+            // Check ownership
+            if ($request->user_id != $product->user_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized: You cannot update this data'
+                ], 403);
+            }
+
+            // Decode bmc_alignment dari JSON string ke array sebelum validasi
+            $requestData = $request->all();
+
+            if ($request->has('bmc_alignment') && is_string($request->bmc_alignment)) {
+                try {
+                    $requestData['bmc_alignment'] = json_decode($request->bmc_alignment, true);
+                } catch (\Exception $e) {
+                    Log::error('Error decoding bmc_alignment JSON: ' . $e->getMessage());
+                    $requestData['bmc_alignment'] = [];
+                }
+            }
+
+            $validator = Validator::make($requestData, [
+                'business_background_id' => 'required|exists:business_backgrounds,id',
+                'type' => 'required|in:product,service',
+                'name' => 'required|string|max:255',
+                'description' => 'required|string',
+                'price' => 'nullable|numeric|min:0',
+                'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'advantages' => 'nullable|string',
+                'development_strategy' => 'nullable|string',
+                'bmc_alignment' => 'nullable|array',
+                'status' => 'nullable|in:draft,in_development,launched'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $updateData = [
+                'business_background_id' => $request->business_background_id,
+                'type' => $request->type,
+                'name' => $request->name,
+                'description' => $request->description,
+                'advantages' => $request->advantages,
+                'development_strategy' => $request->development_strategy,
+                'status' => $request->status ?? 'draft',
+            ];
+
+            // Handle price
+            if ($request->has('price') && $request->price !== '') {
+                $updateData['price'] = $request->price;
+            } else {
+                $updateData['price'] = null;
+            }
+
+            // Handle BMC Alignment - gunakan data yang sudah di-decode
+            if (isset($requestData['bmc_alignment']) && is_array($requestData['bmc_alignment'])) {
+                $updateData['bmc_alignment'] = $requestData['bmc_alignment'];
+            } else {
+                // Regenerate BMC alignment jika data penting berubah
+                $importantFieldsChanged = $request->has('name') || $request->has('description') ||
+                                        $request->has('advantages') || $request->has('development_strategy');
+
+                if ($importantFieldsChanged) {
+                    $product->generateBmcAlignment();
+                    $updateData['bmc_alignment'] = $product->bmc_alignment;
+                }
+            }
+
+            // Handle image upload
+            if ($request->hasFile('image_path')) {
+                // Delete old image if exists
+                if ($product->image_path) {
+                    Storage::disk('public')->delete($product->image_path);
+                }
+
+                // Simpan file baru
+                $updateData['image_path'] = $request->file('image_path')->store('product_images', 'public');
+
+                Log::info('Image updated successfully', [
+                    'new_path' => $updateData['image_path'],
+                    'full_url' => asset('storage/' . $updateData['image_path'])
+                ]);
+            } elseif ($request->has('remove_image') && $request->remove_image) {
+                // Handle image removal
+                if ($product->image_path) {
+                    Storage::disk('public')->delete($product->image_path);
+                }
+                $updateData['image_path'] = null;
+            }
+
+            $product->update($updateData);
+
+            // Reload dengan relationship
+            $product->load(['businessBackground', 'user']);
+
+            // Format response dengan full image URL
+            $formattedProduct = $this->formatProductResponse($product);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product/service updated successfully',
+                'data' => $formattedProduct
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating product/service: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update product/service',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ... (method lainnya tetap sama)
 
     public function index(Request $request)
     {
@@ -181,124 +325,6 @@ class ProductServiceController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch product/service',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function update(Request $request, $id)
-    {
-        try {
-            $product = ProductService::find($id);
-
-            if (!$product) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Product or service not found'
-                ], 404);
-            }
-
-            // Check ownership
-            if ($request->user_id != $product->user_id) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Unauthorized: You cannot update this data'
-                ], 403);
-            }
-
-            $validator = Validator::make($request->all(), [
-                'business_background_id' => 'required|exists:business_backgrounds,id',
-                'type' => 'required|in:product,service',
-                'name' => 'required|string|max:255',
-                'description' => 'required|string',
-                'price' => 'nullable|numeric|min:0',
-                'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                'advantages' => 'nullable|string',
-                'development_strategy' => 'nullable|string',
-                'bmc_alignment' => 'nullable|array',
-                'status' => 'nullable|in:draft,in_development,launched'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            $updateData = [
-                'business_background_id' => $request->business_background_id,
-                'type' => $request->type,
-                'name' => $request->name,
-                'description' => $request->description,
-                'advantages' => $request->advantages,
-                'development_strategy' => $request->development_strategy,
-                'status' => $request->status ?? 'draft',
-            ];
-
-            // Handle price
-            if ($request->has('price') && $request->price !== '') {
-                $updateData['price'] = $request->price;
-            } else {
-                $updateData['price'] = null;
-            }
-
-            // Handle BMC Alignment
-            if ($request->has('bmc_alignment')) {
-                $updateData['bmc_alignment'] = $request->bmc_alignment;
-            } else {
-                // Regenerate BMC alignment jika data penting berubah
-                $importantFieldsChanged = $request->has('name') || $request->has('description') ||
-                                        $request->has('advantages') || $request->has('development_strategy');
-
-                if ($importantFieldsChanged) {
-                    $product->generateBmcAlignment();
-                    $updateData['bmc_alignment'] = $product->bmc_alignment;
-                }
-            }
-
-            // Handle image upload
-            if ($request->hasFile('image_path')) {
-                // Delete old image if exists
-                if ($product->image_path) {
-                    Storage::disk('public')->delete($product->image_path);
-                }
-
-                // Simpan file baru
-                $updateData['image_path'] = $request->file('image_path')->store('product_images', 'public');
-
-                Log::info('Image updated successfully', [
-                    'new_path' => $updateData['image_path'],
-                    'full_url' => asset('storage/' . $updateData['image_path'])
-                ]);
-            } elseif ($request->has('remove_image') && $request->remove_image) {
-                // Handle image removal
-                if ($product->image_path) {
-                    Storage::disk('public')->delete($product->image_path);
-                }
-                $updateData['image_path'] = null;
-            }
-
-            $product->update($updateData);
-
-            // Reload dengan relationship
-            $product->load(['businessBackground', 'user']);
-
-            // Format response dengan full image URL
-            $formattedProduct = $this->formatProductResponse($product);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Product/service updated successfully',
-                'data' => $formattedProduct
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error updating product/service: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to update product/service',
                 'error' => $e->getMessage()
             ], 500);
         }
