@@ -249,7 +249,7 @@ const BackgroundList = ({
                                     className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Eye size={16} />
-                                    
+                                        
                                 </button>
                                 <button
                                     onClick={() => onEdit(business)}
