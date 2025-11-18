@@ -1,15 +1,13 @@
-// frontend/src/services/businessPlan/index.js
-
-// Import semua API terlebih dahulu
-import backgroundApi from './backgroundApi';
+import { backgroundApi } from './backgroundApi'; // Import named export
 import marketAnalysisApi from './marketAnalysisApi';
 import productServiceApi from './productServiceApi';
 import marketingStrategiesApi from './marketingStrategiesApi';
 import operationalPlanApi from './operationalPlanApi';
 import teamStructureApi from './teamStructureApi';
 import financialPlanApi from './financialPlanApi';
+import pdfBusinessPlanApi from './pdfBusinessPlanApi';
 
-// Export individual APIs
+// Named exports
 export {
   backgroundApi,
   marketAnalysisApi,
@@ -17,18 +15,18 @@ export {
   marketingStrategiesApi,
   operationalPlanApi,
   teamStructureApi,
-  financialPlanApi
+  financialPlanApi,
+  pdfBusinessPlanApi
 };
 
-// Export as grouped object (backward compatibility)
-const businessPlanAPI = {
-  business: backgroundApi,
-  marketAnalysis: marketAnalysisApi,
-  productService: productServiceApi,
-  marketingStrategies: marketingStrategiesApi,
-  operationalPlan: operationalPlanApi,
-  teamStructure: teamStructureApi,
-  financialPlan: financialPlanApi,
+// Default export (opsional)
+export default {
+  backgroundApi,
+  marketAnalysisApi,
+  productServiceApi,
+  marketingStrategiesApi,
+  operationalPlanApi,
+  teamStructureApi,
+  financialPlanApi,
+  pdfBusinessPlanApi
 };
-
-export default businessPlanAPI;
