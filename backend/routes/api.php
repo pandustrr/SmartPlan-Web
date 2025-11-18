@@ -2,13 +2,13 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessPlan\BusinessController;
-use App\Http\Controllers\BusinessPlan\ExecutiveSummaryController;
 use App\Http\Controllers\BusinessPlan\FinancialPlanController;
 use App\Http\Controllers\BusinessPlan\MarketAnalysisController;
 use App\Http\Controllers\BusinessPlan\MarketingStrategyController;
 use App\Http\Controllers\BusinessPlan\ProductServiceController;
 use App\Http\Controllers\BusinessPlan\OperationalPlanController;
 use App\Http\Controllers\BusinessPlan\TeamStructureController;
+use App\Http\Controllers\BusinessPlan\PdfBusinessPlanController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 
@@ -125,9 +125,12 @@ Route::prefix('team-structure')->group(function () {
         Route::get('/{id}/charts', [FinancialPlanController::class, 'getChartData']);
     });
 
-// Route::get('/executive-summary', [ExecutiveSummaryController::class, 'index']);
-Route::get('/executive-summary/{userId}', [ExecutiveSummaryController::class, 'index']);
-
+// PDF Business Plan Routes
+Route::prefix('pdf-business-plan')->middleware('auth:sanctum')->group(function () {
+    Route::post('/generate', [PdfBusinessPlanController::class, 'generatePdf']);
+    Route::post('/executive-summary', [PdfBusinessPlanController::class, 'generateExecutiveSummary']);
+    Route::get('/statistics', [PdfBusinessPlanController::class, 'getPdfStatistics']);
+});
 
 Route::get('/test-wa', function () {
     $response = Http::withHeaders([

@@ -9,6 +9,8 @@ import {
   Building,
   Package,
   Files,
+  Download,
+  FileDown,
 } from "lucide-react";
 import Background from "../components/BusinessPlan/BusinessBackground/Background";
 import MarketAnalysis from "../components/BusinessPlan/MarketAnalysis/MarketAnalysis";
@@ -17,6 +19,7 @@ import MarketingStrategies from "../components/BusinessPlan/MarketingStrategies/
 import OperationalPlan from '../components/BusinessPlan/OperationalPlan/OperationalPlan';
 import TeamStructure from '../components/BusinessPlan/TeamStructure/TeamStructure';
 import FinancialPlan from '../components/BusinessPlan/FinancialPlan/FinancialPlan';
+import PdfBusinessPlan from '../components/BusinessPlan/PdfBusinessPlan/PdfBusinessPlan';
 
 const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
   const [view, setView] = useState("main");
@@ -49,6 +52,29 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
         <p className="text-gray-600 dark:text-gray-400">
           Kelola semua aspek rencana bisnis Anda di satu tempat
         </p>
+      </div>
+
+      {/* Quick Actions Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              📊 PDF Business Plan
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Generate laporan bisnis profesional dalam format PDF dengan semua data terintegrasi
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleSubSectionClick("pdf-business-plan")}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+            >
+              <FileDown size={18} />
+              Generate PDF
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -157,6 +183,41 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           </div>
         </div>
 
+        {/* Strategi Pemasaran Card */}
+        <div
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-pink-300 dark:hover:border-pink-600"
+          onClick={() => handleSubSectionClick("marketing-strategies")}
+        >
+          <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Target
+              className="text-pink-600 dark:text-pink-400"
+              size={24}
+            />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Strategi Pemasaran
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+            Strategi promosi, media, harga, dan rencana kolaborasi
+          </p>
+          <div className="flex items-center text-pink-600 dark:text-pink-400 text-sm font-medium">
+            <span>Kelola Strategi</span>
+            <svg
+              className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </div>
+
         {/* Rencana Operasional Card */}
         <div
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-teal-300 dark:hover:border-teal-600"
@@ -219,9 +280,9 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
               />
             </svg>
           </div>
-        </div>  
+        </div>
 
-        {/*Rencana Keuangan Card */}
+        {/* Rencana Keuangan Card */}
         <div
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-emerald-300 dark:hover:border-emerald-600"
           onClick={() => handleSubSectionClick('financial-plan')}
@@ -253,23 +314,22 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           </div>
         </div>
 
-        {/* Executive Summary Card */}
+        {/* PDF Business Plan Card */}
         <div
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-teal-300 dark:hover:border-teal-600"
-          onClick={() => handleSubSectionClick("executive-summary")}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-300 dark:hover:border-blue-600"
+          onClick={() => handleSubSectionClick("pdf-business-plan")}
         >
-          <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-            <Files className="text-teal-600 dark:text-teal-400" size={24} />
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <FileDown className="text-blue-600 dark:text-blue-400" size={24} />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Ringkasan Eksekutif
+            PDF Business Plan
           </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-            Latar belakang usaha, strategi pemasaran, dan rencana keuangan
-            secara ringkas
+            Generate laporan bisnis profesional dengan semua data terintegrasi dalam format PDF
           </p>
-          <div className="flex items-center text-teal-600 dark:text-teal-400 text-sm font-medium">
-            <span>Lihat Ringkasan</span>
+          <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+            <span>Generate PDF</span>
             <svg
               className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
               fill="none"
@@ -285,9 +345,44 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
             </svg>
           </div>
         </div>
+      </div>
 
+      {/* Progress Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Progress Rencana Bisnis
+        </h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Latar Belakang Bisnis</span>
+            <span className="text-sm font-medium text-green-600">Siap</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Analisis Pasar</span>
+            <span className="text-sm font-medium text-yellow-600">Dalam Proses</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Produk & Layanan</span>
+            <span className="text-sm font-medium text-green-600">Siap</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Rencana Keuangan</span>
+            <span className="text-sm font-medium text-yellow-600">Dalam Proses</span>
+          </div>
+        </div>
 
-
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => handleSubSectionClick("pdf-business-plan")}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium"
+          >
+            <Download size={18} />
+            Generate Business Plan PDF
+          </button>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+            Download laporan bisnis lengkap dalam format PDF
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -308,6 +403,8 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
         return <TeamStructure onBack={handleBackToMain} />;
       case 'financial-plan':
         return <FinancialPlan onBack={handleBackToMain} />;
+      case 'pdf-business-plan':
+        return <PdfBusinessPlan onBack={handleBackToMain} />;
       default:
         return renderMainView();
     }
