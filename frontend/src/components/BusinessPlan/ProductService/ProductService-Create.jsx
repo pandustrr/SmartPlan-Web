@@ -72,15 +72,13 @@ const ProductServiceCreate = ({ onBack, onSuccess }) => {
                 image_path: file,
             }));
 
-            // Kalau silent = true, jangan munculkan toast lagi
             if (!options.silent) {
                 toast.success('Gambar berhasil dipilih');
             }
         }
     };
 
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e, formDataWithBmc) => {
         e.preventDefault();
 
         // Validasi: business background harus dipilih
@@ -134,6 +132,11 @@ const ProductServiceCreate = ({ onBack, onSuccess }) => {
             submitData.append('advantages', formData.advantages?.trim() || '');
             submitData.append('development_strategy', formData.development_strategy?.trim() || '');
 
+            // Append BMC alignment jika ada
+            if (formDataWithBmc.bmc_alignment) {
+                submitData.append('bmc_alignment', JSON.stringify(formDataWithBmc.bmc_alignment));
+            }
+
             // Append file hanya jika ada file
             if (formData.image_path instanceof File) {
                 submitData.append('image_path', formData.image_path);
@@ -145,7 +148,8 @@ const ProductServiceCreate = ({ onBack, onSuccess }) => {
                 type: formData.type,
                 name: formData.name,
                 status: formData.status,
-                hasImage: !!formData.image_path
+                hasImage: !!formData.image_path,
+                hasBmcAlignment: !!formDataWithBmc.bmc_alignment
             });
 
             const response = await productServiceApi.create(submitData);
@@ -194,7 +198,7 @@ const ProductServiceCreate = ({ onBack, onSuccess }) => {
     return (
         <ProductServiceForm
             title="Tambah Produk/Layanan"
-            subtitle="Isi formulir untuk menambahkan produk/layanan baru"
+            subtitle="Isi formulir untuk menambahkan produk/layanan baru dengan integrasi Business Model Canvas"
             formData={formData}
             businesses={businesses}
             isLoadingBusinesses={isLoadingBusinesses}

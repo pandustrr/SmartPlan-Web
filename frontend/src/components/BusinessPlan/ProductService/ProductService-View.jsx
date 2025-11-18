@@ -1,8 +1,9 @@
-import { Edit3, Package, DollarSign, Star, TrendingUp, Building, Calendar, Tag, Image } from 'lucide-react';
+import { Edit3, Package, DollarSign, Star, TrendingUp, Building, Calendar, Tag, Image, Target, Users, BarChart3, Shield, Handshake, CreditCard, Activity } from 'lucide-react';
 import { useState } from 'react';
 
 const ProductServiceView = ({ product, onBack, onEdit }) => {
     const [imageError, setImageError] = useState(false);
+    const [showBmcDetails, setShowBmcDetails] = useState(false);
 
     // Early return jika product undefined
     if (!product) {
@@ -65,12 +66,10 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
 
     // Get image URL - Prioritaskan image_url dari backend
     const getImageUrl = () => {
-        // Prioritaskan image_url dari backend yang sudah include full URL
         if (product.image_url) {
             return product.image_url;
         }
         
-        // Fallback ke path langsung jika image_url tidak ada
         if (product.image_path) {
             return `/storage/${product.image_path}`;
         }
@@ -93,6 +92,73 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
         };
     };
 
+    // BMC Fields configuration
+    const bmcFields = [
+        {
+            key: 'customer_segment',
+            icon: Target,
+            label: 'Customer Segment',
+            description: 'Target pasar untuk produk/layanan ini',
+            color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'
+        },
+        {
+            key: 'value_proposition',
+            icon: Shield,
+            label: 'Value Proposition',
+            description: 'Nilai unik yang ditawarkan kepada customer',
+            color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+        },
+        {
+            key: 'channels',
+            icon: BarChart3,
+            label: 'Channels',
+            description: 'Saluran distribusi dan pemasaran',
+            color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300'
+        },
+        {
+            key: 'customer_relationships',
+            icon: Users,
+            label: 'Customer Relationships',
+            description: 'Strategi menjaga hubungan dengan customer',
+            color: 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300'
+        },
+        {
+            key: 'revenue_streams',
+            icon: CreditCard,
+            label: 'Revenue Streams',
+            description: 'Sumber pendapatan dari produk/layanan',
+            color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
+        },
+        {
+            key: 'key_resources',
+            icon: Package,
+            label: 'Key Resources',
+            description: 'Sumber daya utama yang dibutuhkan',
+            color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300'
+        },
+        {
+            key: 'key_activities',
+            icon: Activity,
+            label: 'Key Activities',
+            description: 'Aktivitas utama dalam bisnis',
+            color: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
+        },
+        {
+            key: 'key_partnerships',
+            icon: Handshake,
+            label: 'Key Partnerships',
+            description: 'Kemitraan strategis yang dibutuhkan',
+            color: 'bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-300'
+        },
+        {
+            key: 'cost_structure',
+            icon: DollarSign,
+            label: 'Cost Structure',
+            description: 'Struktur biaya operasional',
+            color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300'
+        }
+    ];
+
     const imageUrl = getImageUrl();
     const statusBadge = getStatusBadge(product.status || 'draft');
     const typeBadge = getTypeBadge(product.type || 'product');
@@ -102,6 +168,8 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
         console.error('Failed to load image:', imageUrl);
         setImageError(true);
     };
+
+    const hasBmcData = product.bmc_alignment && Object.values(product.bmc_alignment).some(value => value && value.trim() !== '');
 
     return (
         <div className="space-y-6">
@@ -120,7 +188,7 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Detail Produk/Layanan</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Lihat detail lengkap produk/layanan</p>
+                        <p className="text-gray-600 dark:text-gray-400">Lihat detail lengkap produk/layanan dengan integrasi Business Model Canvas</p>
                     </div>
                     <button
                         onClick={() => onEdit(product)}
@@ -166,6 +234,12 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                                 <Building size={14} />
                                 {statusBadge.label}
                             </span>
+                            {hasBmcData && (
+                                <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 flex items-center gap-1">
+                                    <BarChart3 size={14} />
+                                    BMC Integrated
+                                </span>
+                            )}
                         </div>
                         <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <span className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full flex items-center gap-1">
@@ -305,6 +379,62 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                     </div>
                 )}
 
+                {/* BMC Alignment Section */}
+                {hasBmcData && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <BarChart3 size={20} />
+                                Business Model Canvas Alignment
+                            </h3>
+                            <button
+                                onClick={() => setShowBmcDetails(!showBmcDetails)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                            >
+                                {showBmcDetails ? 'Sembunyikan Detail' : 'Tampilkan Detail'}
+                            </button>
+                        </div>
+
+                        {showBmcDetails ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {bmcFields.map((field) => {
+                                    const IconComponent = field.icon;
+                                    const value = product.bmc_alignment?.[field.key];
+                                    
+                                    if (!value || value.trim() === '') return null;
+
+                                    return (
+                                        <div key={field.key} className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <IconComponent size={16} className={field.color} />
+                                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                                                    {field.label}
+                                                </h4>
+                                            </div>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                                                {value}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6">
+                                <div className="text-center">
+                                    <BarChart3 className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
+                                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                        BMC Integration Active
+                                    </h4>
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                        Produk/layanan ini telah terintegrasi dengan Business Model Canvas. 
+                                        Klik "Tampilkan Detail" untuk melihat analisis lengkap.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Informasi Metadata */}
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Informasi Lainnya</h3>
@@ -340,6 +470,14 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                                     {statusBadge.label}
                                 </p>
                             </div>
+                            {hasBmcData && (
+                                <div className="md:col-span-2">
+                                    <p className="text-gray-600 dark:text-gray-400">BMC Integration</p>
+                                    <p className="font-semibold text-green-600 dark:text-green-400">
+                                        ✓ Terintegrasi dengan Business Model Canvas
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

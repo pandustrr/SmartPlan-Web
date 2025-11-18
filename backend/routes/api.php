@@ -63,6 +63,10 @@ Route::prefix('product-service')->group(function () {
     Route::post('/{id}', [ProductServiceController::class, 'update']); // POST untuk FormData
     Route::put('/{id}', [ProductServiceController::class, 'update']); // PUT untuk JSON
     Route::delete('/{id}', [ProductServiceController::class, 'destroy']);
+
+    // New endpoints untuk BMC alignment dan statistics
+    Route::post('/{id}/generate-bmc-alignment', [ProductServiceController::class, 'generateBmcAlignment']);
+    Route::get('/statistics/overview', [ProductServiceController::class, 'getStatistics']);
 });
 
 // Marketing Strategy
@@ -74,13 +78,18 @@ Route::prefix('marketing-strategy')->group(function () {
     Route::delete('/{id}', [MarketingStrategyController::class, 'destroy']);
 });
 
-// Operational Plan
+// Operational Plan Routes
 Route::prefix('operational-plan')->group(function () {
     Route::get('/', [OperationalPlanController::class, 'index']);
     Route::post('/', [OperationalPlanController::class, 'store']);
     Route::get('/{id}', [OperationalPlanController::class, 'show']);
     Route::put('/{id}', [OperationalPlanController::class, 'update']);
     Route::delete('/{id}', [OperationalPlanController::class, 'destroy']);
+
+    // New endpoints untuk workflow diagram
+    Route::post('/{id}/generate-workflow-diagram', [OperationalPlanController::class, 'generateWorkflowDiagram']);
+    Route::post('/{id}/upload-workflow-image', [OperationalPlanController::class, 'uploadWorkflowImage']);
+    Route::get('/statistics/overview', [OperationalPlanController::class, 'getStatistics']);
 });
 
 // Team Structure

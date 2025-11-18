@@ -22,7 +22,8 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
         status: 'draft',
         employees: [],
         operational_hours: [],
-        suppliers: []
+        suppliers: [],
+        workflow_diagram: null
     });
 
     // Fetch business backgrounds untuk dropdown
@@ -50,8 +51,15 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
 
     useEffect(() => {
         if (plan) {
+            console.log('🔍 Loading plan data for edit:', {
+                id: plan.id,
+                workflow_diagram: plan.workflow_diagram,
+                has_diagram: !!plan.workflow_diagram,
+                steps_count: plan.workflow_diagram?.steps?.length || 0
+            });
+
             setFormData({
-                business_background_id: plan.business_background_id || '',
+                business_background_id: plan.business_background_id || plan.business_background?.id || '',
                 business_location: plan.business_location || '',
                 location_description: plan.location_description || '',
                 location_type: plan.location_type || '',
@@ -63,12 +71,14 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
                 status: plan.status || 'draft',
                 employees: Array.isArray(plan.employees) ? plan.employees : [],
                 operational_hours: Array.isArray(plan.operational_hours) ? plan.operational_hours : [],
-                suppliers: Array.isArray(plan.suppliers) ? plan.suppliers : []
+                suppliers: Array.isArray(plan.suppliers) ? plan.suppliers : [],
+                workflow_diagram: plan.workflow_diagram || null
             });
         }
     }, [plan]);
 
     const handleInputChange = (name, value) => {
+        console.log(`Input changed: ${name} =`, value);
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -84,29 +94,48 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
         setFormData(prev => ({ ...prev, suppliers }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleWorkflowDiagramChange = (workflowDiagram) => {
+        console.log('🔄 Workflow diagram changed:', workflowDiagram);
+        setFormData(prev => ({ 
+            ...prev, 
+            workflow_diagram: workflowDiagram 
+        }));
+    };
+
+    const handleSubmit = async (e, submitData = null) => {
         e.preventDefault();
         
+        // Gunakan submitData jika ada (dari form), atau formData jika tidak
+        const dataToSubmit = submitData || formData;
+        
+        console.log('🚀 Submitting update data:', {
+            plan_id: plan.id,
+            workflow_diagram: dataToSubmit.workflow_diagram,
+            has_diagram: !!dataToSubmit.workflow_diagram,
+            steps_count: dataToSubmit.workflow_diagram?.steps?.length || 0,
+            all_data: dataToSubmit
+        });
+
         // Validasi: business background harus dipilih
-        if (!formData.business_background_id) {
+        if (!dataToSubmit.business_background_id) {
             toast.error('Pilih bisnis terlebih dahulu');
             return;
         }
 
         // Validasi: lokasi bisnis harus diisi
-        if (!formData.business_location.trim()) {
+        if (!dataToSubmit.business_location.trim()) {
             toast.error('Lokasi bisnis wajib diisi');
             return;
         }
 
         // Validasi: tipe lokasi harus dipilih
-        if (!formData.location_type) {
+        if (!dataToSubmit.location_type) {
             toast.error('Tipe lokasi wajib dipilih');
             return;
         }
 
         // Validasi: alur kerja harian harus diisi
-        if (!formData.daily_workflow.trim()) {
+        if (!dataToSubmit.daily_workflow.trim()) {
             toast.error('Alur kerja harian wajib diisi');
             return;
         }
@@ -120,22 +149,38 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
                 throw new Error('User data not found');
             }
 
-            const submitData = {
-                ...formData,
+            // Siapkan data untuk dikirim - pastikan workflow_diagram termasuk
+            const finalData = {
+                business_background_id: dataToSubmit.business_background_id,
+                business_location: dataToSubmit.business_location,
+                location_description: dataToSubmit.location_description,
+                location_type: dataToSubmit.location_type,
+                location_size: dataToSubmit.location_size,
+                rent_cost: dataToSubmit.rent_cost,
+                daily_workflow: dataToSubmit.daily_workflow,
+                equipment_needs: dataToSubmit.equipment_needs,
+                technology_stack: dataToSubmit.technology_stack,
+                status: dataToSubmit.status,
+                employees: dataToSubmit.employees,
+                operational_hours: dataToSubmit.operational_hours,
+                suppliers: dataToSubmit.suppliers,
+                workflow_diagram: dataToSubmit.workflow_diagram, // Pastikan ini ada
                 user_id: user.id
             };
 
-            console.log('Updating operational plan data:', submitData);
-            const response = await operationalPlanApi.update(plan.id, submitData);
+            console.log('📤 Final data to update:', finalData);
+
+            const response = await operationalPlanApi.update(plan.id, finalData);
 
             if (response.data.status === 'success') {
+                console.log('✅ Update successful:', response.data);
                 toast.success('Rencana operasional berhasil diperbarui!');
-                onSuccess();
+                onSuccess(response.data.data); // Kirim data terbaru ke parent
             } else {
                 throw new Error(response.data.message || 'Terjadi kesalahan');
             }
         } catch (error) {
-            console.error('Error updating operational plan:', error);
+            console.error('❌ Error updating operational plan:', error);
             
             let errorMessage = 'Terjadi kesalahan saat memperbarui rencana operasional';
             if (error.response?.data?.message) {
@@ -143,6 +188,8 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
             } else if (error.response?.data?.errors) {
                 const errors = Object.values(error.response.data.errors).flat();
                 errorMessage = errors.join(', ');
+            } else if (error.message) {
+                errorMessage = error.message;
             }
             
             toast.error(errorMessage);
@@ -171,11 +218,13 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
             onEmployeesChange={handleEmployeesChange}
             onOperationalHoursChange={handleOperationalHoursChange}
             onSuppliersChange={handleSuppliersChange}
+            onWorkflowDiagramChange={handleWorkflowDiagramChange}
             onSubmit={handleSubmit}
             onBack={onBack}
             submitButtonText="Perbarui Rencana"
             submitButtonIcon={<Save size={16} />}
             mode="edit"
+            existingPlan={plan}
         />
     );
 };

@@ -6,7 +6,6 @@ export const productServiceApi = {
     getById: (id) => api.get(`/product-service/${id}`),
     
     create: (productData) => {
-        // Untuk create, langsung gunakan POST
         return api.post("/product-service", productData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -15,15 +14,11 @@ export const productServiceApi = {
     },
     
     update: (id, productData) => {
-        // Untuk update dengan FormData, gunakan POST dengan _method=PUT
-        // Pastikan productData adalah FormData object
         const formData = productData instanceof FormData ? productData : new FormData();
         
-        // Jika productData bukan FormData, convert ke FormData
         if (!(productData instanceof FormData)) {
             for (const key in productData) {
                 if (productData.hasOwnProperty(key)) {
-                    // Handle berbagai tipe data
                     if (productData[key] !== null && productData[key] !== undefined) {
                         if (productData[key] instanceof File) {
                             formData.append(key, productData[key]);
@@ -37,7 +32,6 @@ export const productServiceApi = {
             }
         }
         
-        // Tambahkan _method untuk Laravel (hanya jika belum ada)
         if (!formData.has('_method')) {
             formData.append('_method', 'PUT');
         }
@@ -50,11 +44,19 @@ export const productServiceApi = {
     },
     
     delete: (id, userId) => {
-        // Untuk delete, kirim user_id dalam body
         return api.delete(`/product-service/${id}`, { 
             data: { user_id: userId } 
         });
     },
+
+    // New methods untuk BMC alignment
+    generateBmcAlignment: (id) => {
+        return api.post(`/product-service/${id}/generate-bmc-alignment`);
+    },
+
+    getStatistics: (params = {}) => {
+        return api.get('/product-service/statistics/overview', { params });
+    }
 };
 
 export default productServiceApi;

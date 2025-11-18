@@ -29,8 +29,12 @@ return new class extends Migration
             // Supplier & Mitra
             $table->json('suppliers')->nullable();
 
-            // Alur Kerja
+            // Alur Kerja - Text dan Diagram
             $table->text('daily_workflow');
+            $table->json('workflow_diagram')->nullable(); // Untuk menyimpan data diagram
+            $table->string('workflow_image_path')->nullable(); // Untuk menyimpan gambar diagram
+
+            // Equipment & Technology
             $table->text('equipment_needs')->nullable();
             $table->text('technology_stack')->nullable();
 
@@ -38,6 +42,10 @@ return new class extends Migration
             $table->enum('status', ['draft', 'completed'])->default('draft');
 
             $table->timestamps();
+
+            // Indexes untuk performa
+            $table->index(['user_id', 'business_background_id']);
+            $table->index('status');
         });
     }
 

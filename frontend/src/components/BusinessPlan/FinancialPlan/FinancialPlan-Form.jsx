@@ -267,13 +267,13 @@ const FinancialPlanForm = ({
         );
     };
 
-    const handleSubmit = async (e, submitData) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Final validation
+        // Final validation - menggunakan formData dari props
         const finalErrors = {};
-        if (!submitData.plan_name?.trim()) finalErrors.plan_name = 'Nama rencana wajib diisi';
-        if (!submitData.business_background_id) finalErrors.business_background_id = 'Pilih bisnis terlebih dahulu';
+        if (!formData.plan_name?.trim()) finalErrors.plan_name = 'Nama rencana wajib diisi';
+        if (!formData.business_background_id) finalErrors.business_background_id = 'Pilih bisnis terlebih dahulu';
 
         if (Object.keys(finalErrors).length > 0) {
             setErrors(finalErrors);
@@ -283,11 +283,11 @@ const FinancialPlanForm = ({
 
         // Convert data to monthly basis before submitting to API
         const dataToSubmit = {
-            ...submitData,
+            ...formData, // Menggunakan formData dari props
             // Ensure all financial data is in monthly basis for API
-            monthly_opex: convertToMonthlyBasis(submitData.monthly_opex || [], periodType),
-            sales_projections: convertSalesToMonthlyBasis(submitData.sales_projections || [], periodType),
-            cash_flow_simulation: convertCashFlowToMonthlyBasis(submitData.cash_flow_simulation || [], periodType),
+            monthly_opex: convertToMonthlyBasis(formData.monthly_opex || [], periodType),
+            sales_projections: convertSalesToMonthlyBasis(formData.sales_projections || [], periodType),
+            cash_flow_simulation: convertCashFlowToMonthlyBasis(formData.cash_flow_simulation || [], periodType),
             period_type: periodType // Store period type for reference
         };
 

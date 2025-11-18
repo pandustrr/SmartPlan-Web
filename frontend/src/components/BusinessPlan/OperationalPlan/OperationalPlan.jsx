@@ -12,6 +12,7 @@ const OperationalPlan = () => {
     const [view, setView] = useState('list');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [statistics, setStatistics] = useState(null);
 
     // Fetch semua operational plans
     const fetchPlans = async () => {
@@ -47,8 +48,34 @@ const OperationalPlan = () => {
         }
     };
 
+    // Fetch statistics
+    const fetchStatistics = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!user?.id) {
+                console.warn('User ID not found for statistics');
+                return;
+            }
+
+            const response = await operationalPlanApi.getStatistics({
+                user_id: user.id
+            });
+            
+            if (response.data.status === 'success') {
+                setStatistics(response.data.data);
+            } else {
+                console.warn('Failed to fetch statistics:', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching statistics:', error);
+            // Jangan tampilkan toast untuk error statistics, karena tidak critical
+        }
+    };
+
     useEffect(() => {
         fetchPlans();
+        fetchStatistics();
     }, []);
 
     // Handler functions
@@ -76,6 +103,7 @@ const OperationalPlan = () => {
             if (response.data.status === 'success') {
                 toast.success('Rencana operasional berhasil dihapus!');
                 fetchPlans();
+                fetchStatistics(); // Refresh statistics setelah delete
                 setView('list');
             } else {
                 throw new Error(response.data.message || 'Failed to delete operational plan');
@@ -97,23 +125,26 @@ const OperationalPlan = () => {
 
     const handleCreateSuccess = () => {
         fetchPlans();
+        fetchStatistics(); // Refresh statistics setelah create
         setView('list');
     };
 
     const handleUpdateSuccess = () => {
         fetchPlans();
+        fetchStatistics(); // Refresh statistics setelah update
         setView('list');
     };
 
     const handleRetry = () => {
         fetchPlans();
+        fetchStatistics();
     };
 
     // Render loading state
     if (isLoading && view === 'list') {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-center items-center h-64">
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -129,7 +160,7 @@ const OperationalPlan = () => {
     if (error && view === 'list') {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center py-12">
                         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,6 +205,7 @@ const OperationalPlan = () => {
                         isLoading={isLoading}
                         error={error}
                         onRetry={handleRetry}
+                        statistics={statistics}
                     />
                 );
             case 'create':
@@ -210,6 +242,7 @@ const OperationalPlan = () => {
                         isLoading={isLoading}
                         error={error}
                         onRetry={handleRetry}
+                        statistics={statistics}
                     />
                 );
         }
@@ -217,7 +250,7 @@ const OperationalPlan = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {renderView()}
             </div>
         </div>

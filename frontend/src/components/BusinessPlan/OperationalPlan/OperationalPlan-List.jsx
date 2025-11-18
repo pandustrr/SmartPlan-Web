@@ -10,12 +10,14 @@ const OperationalPlanList = ({
     onCreateNew,
     isLoading,
     error,
-    onRetry
+    onRetry,
+    statistics
 }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [planToDelete, setPlanToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedBusiness, setSelectedBusiness] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('all');
 
     const handleDeleteClick = (planId, planTitle) => {
         setPlanToDelete({ id: planId, title: planTitle });
@@ -28,7 +30,7 @@ const OperationalPlanList = ({
         setIsDeleting(true);
         try {
             await onDelete(planToDelete.id);
-            // Hapus toast sukses di sini biar gak duplikat
+            toast.success('Rencana operasional berhasil dihapus!');
         } catch (error) {
             toast.error('Gagal menghapus rencana operasional!');
         } finally {
@@ -63,11 +65,20 @@ const OperationalPlanList = ({
         );
     };
 
-    const filteredPlans = selectedBusiness === 'all'
-        ? plans
-        : plans.filter(plan =>
-            plan.business_background?.id === selectedBusiness
-        );
+    // Filter plans berdasarkan criteria
+    const filteredPlans = plans.filter(plan => {
+        // Filter business
+        if (selectedBusiness !== 'all' && plan.business_background?.id !== selectedBusiness) {
+            return false;
+        }
+        
+        // Filter status
+        if (selectedStatus !== 'all' && plan.status !== selectedStatus) {
+            return false;
+        }
+        
+        return true;
+    });
 
     const uniqueBusinesses = getUniqueBusinesses();
 
@@ -98,6 +109,12 @@ const OperationalPlanList = ({
                 {config.label}
             </span>
         );
+    };
+
+    // Reset semua filter
+    const resetFilters = () => {
+        setSelectedBusiness('all');
+        setSelectedStatus('all');
     };
 
     if (isLoading) {
@@ -214,7 +231,7 @@ const OperationalPlanList = ({
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Rencana Operasional</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Kelola rencana operasional bisnis Anda</p>
+                    <p className="text-gray-600 dark:text-gray-400">Kelola rencana operasional bisnis Anda dengan workflow diagram</p>
                 </div>
                 <button
                     onClick={onCreateNew}
@@ -225,78 +242,190 @@ const OperationalPlanList = ({
                 </button>
             </div>
 
-            {/* FILTER BUTTONS - Horizontal */}
-            {plans.length > 0 && uniqueBusinesses.length > 0 && (
+            {/* STATISTICS CARD */}
+            {statistics && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.total || 0}</p>
+                            </div>
+                            <Workflow className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Selesai</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.completed_count || 0}</p>
+                            </div>
+                            <Calendar className="w-8 h-8 text-green-600 dark:text-green-400" />
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Draft</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.draft_count || 0}</p>
+                            </div>
+                            <Users className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Dengan Diagram</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.with_diagram_count || 0}</p>
+                            </div>
+                            <Workflow className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* FILTER SECTION - Horizontal seperti MarketAnalysisList */}
+            {(plans.length > 0 || uniqueBusinesses.length > 0) && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                             <Building size={16} />
                             Filter Berdasarkan Bisnis:
                         </h3>
-                        {selectedBusiness !== 'all' && (
+                        {(selectedBusiness !== 'all' || selectedStatus !== 'all') && (
                             <button
-                                onClick={() => setSelectedBusiness('all')}
-                                className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 w-full sm:w-auto text-left sm:text-center"
+                                onClick={resetFilters}
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 w-full sm:w-auto text-left sm:text-center"
                             >
                                 Reset Filter
                             </button>
                         )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {/* Tombol Semua Bisnis */}
                         <button
                             onClick={() => setSelectedBusiness('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedBusiness === 'all'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                }`}
+                            }`}
                         >
                             <Building size={14} />
                             <span>Semua Bisnis</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === 'all'
-                                    ? 'bg-green-600 text-white'
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedBusiness === 'all' 
+                                    ? 'bg-green-600 text-white' 
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}>
+                            }`}>
                                 {plans.length}
                             </span>
                         </button>
 
-                        {/* Tombol untuk setiap bisnis - BIRU ketika aktif */}
+                        {/* Tombol untuk setiap bisnis */}
                         {uniqueBusinesses.map(business => (
                             <button
                                 key={business.id}
                                 onClick={() => setSelectedBusiness(business.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === business.id
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                    selectedBusiness === business.id
                                         ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                         : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                    }`}
+                                }`}
                             >
                                 <Building size={14} />
                                 <div className="text-left">
                                     <div className="font-medium">{business.name}</div>
                                     <div className="text-xs opacity-80 hidden sm:block">{business.category}</div>
                                 </div>
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === business.id
-                                        ? 'bg-blue-600 text-white'
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                    selectedBusiness === business.id 
+                                        ? 'bg-blue-600 text-white' 
                                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                    }`}>
+                                }`}>
                                     {plans.filter(p => p.business_background?.id === business.id).length}
                                 </span>
                             </button>
                         ))}
                     </div>
 
+                    {/* Status Filter */}
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setSelectedStatus('all')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedStatus === 'all'
+                                    ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Calendar size={14} />
+                            <span>Semua Status</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedStatus === 'all' 
+                                    ? 'bg-purple-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {plans.length}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setSelectedStatus('draft')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedStatus === 'draft'
+                                    ? 'bg-yellow-500 border-yellow-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Calendar size={14} />
+                            <span>Draft</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedStatus === 'draft' 
+                                    ? 'bg-yellow-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {plans.filter(p => p.status === 'draft').length}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setSelectedStatus('completed')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedStatus === 'completed'
+                                    ? 'bg-green-500 border-green-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Calendar size={14} />
+                            <span>Selesai</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedStatus === 'completed' 
+                                    ? 'bg-green-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {plans.filter(p => p.status === 'completed').length}
+                            </span>
+                        </button>
+                    </div>
+
                     {/* Filter Info */}
-                    {selectedBusiness !== 'all' && (
-                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    {(selectedBusiness !== 'all' || selectedStatus !== 'all') && (
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 text-sm">
                                     <Building size={16} />
                                     <span>
-                                        Menampilkan {filteredPlans.length} dari {plans.length} rencana untuk{' '}
-                                        <strong>
-                                            {uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}
-                                        </strong>
+                                        Menampilkan {filteredPlans.length} dari {plans.length} rencana
+                                        {selectedBusiness !== 'all' && (
+                                            <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                                        )}
+                                        {selectedStatus !== 'all' && (
+                                            <span> - Status: <strong>
+                                                {selectedStatus === 'draft' ? 'Draft' : 'Selesai'}
+                                            </strong></span>
+                                        )}
                                     </span>
                                 </div>
                             </div>
@@ -310,7 +439,7 @@ const OperationalPlanList = ({
                 <div className="text-center py-12">
                     <Workflow size={64} className="mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum ada rencana operasional</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">Mulai dengan menambahkan rencana operasional pertama Anda</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Mulai dengan menambahkan rencana operasional pertama Anda dengan fitur workflow diagram</p>
                     <button
                         onClick={onCreateNew}
                         className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors w-full sm:w-auto"
@@ -321,13 +450,13 @@ const OperationalPlanList = ({
             ) : filteredPlans.length === 0 ? (
                 <div className="text-center py-12">
                     <Building size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada rencana untuk bisnis ini</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ditemukan rencana operasional untuk bisnis yang dipilih</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada rencana yang sesuai</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ditemukan rencana operasional untuk filter yang dipilih</p>
                     <button
-                        onClick={() => setSelectedBusiness('all')}
-                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors w-full sm:w-auto"
+                        onClick={resetFilters}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
                     >
-                        Lihat Semua Rencana
+                        Reset Filter
                     </button>
                 </div>
             ) : (
@@ -354,6 +483,13 @@ const OperationalPlanList = ({
                                                     <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
                                                         {businessInfo.category}
                                                     </span>
+                                                    {/* WORKFLOW DIAGRAM BADGE */}
+                                                    {plan.workflow_diagram && (
+                                                        <span className="text-xs px-2 py-1 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300 flex items-center gap-1">
+                                                            <Workflow size={10} />
+                                                            Diagram
+                                                        </span>
+                                                    )}
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
                                                         {new Date(plan.created_at).toLocaleDateString('id-ID')}
                                                     </span>
@@ -430,8 +566,17 @@ const OperationalPlanList = ({
                     {/* Info Jumlah Data */}
                     <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Menampilkan {filteredPlans.length} dari {plans.length} rencana operasional
-                        {selectedBusiness !== 'all' && (
-                            <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                        {(selectedBusiness !== 'all' || selectedStatus !== 'all') && (
+                            <span>
+                                {selectedBusiness !== 'all' && (
+                                    <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                                )}
+                                {selectedStatus !== 'all' && (
+                                    <span> - Status: <strong>
+                                        {selectedStatus === 'draft' ? 'Draft' : 'Selesai'}
+                                    </strong></span>
+                                )}
+                            </span>
                         )}
                     </div>
                 </>

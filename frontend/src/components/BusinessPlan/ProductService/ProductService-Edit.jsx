@@ -132,7 +132,7 @@ const ProductServiceEdit = ({ product, onBack, onSuccess }) => {
         toast.info('Gambar berhasil dihapus');
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e, formDataWithBmc) => {
         e.preventDefault();
 
         // Validasi: business background harus dipilih
@@ -189,12 +189,17 @@ const ProductServiceEdit = ({ product, onBack, onSuccess }) => {
             submitData.append('advantages', formData.advantages?.trim() || '');
             submitData.append('development_strategy', formData.development_strategy?.trim() || '');
 
+            // Append BMC alignment jika ada
+            if (formDataWithBmc.bmc_alignment) {
+                submitData.append('bmc_alignment', JSON.stringify(formDataWithBmc.bmc_alignment));
+            }
+
             // Append file hanya jika ada file baru
             if (formData.image_path instanceof File) {
                 submitData.append('image_path', formData.image_path);
             } else if (!existingImageUrl && product.image_path) {
-                // Jika menghapus gambar yang sudah ada, kirim null
-                submitData.append('image_path', '');
+                // Jika menghapus gambar yang sudah ada, kirim flag remove_image
+                submitData.append('remove_image', 'true');
             }
 
             console.log('Updating product with data:', {
@@ -204,7 +209,8 @@ const ProductServiceEdit = ({ product, onBack, onSuccess }) => {
                 name: formData.name,
                 status: formData.status,
                 hasNewImage: !!formData.image_path,
-                removedExistingImage: !existingImageUrl && product.image_path
+                removedExistingImage: !existingImageUrl && product.image_path,
+                hasBmcAlignment: !!formDataWithBmc.bmc_alignment
             });
 
             // Gunakan update method
@@ -283,7 +289,7 @@ const ProductServiceEdit = ({ product, onBack, onSuccess }) => {
     return (
         <ProductServiceForm
             title="Edit Produk/Layanan"
-            subtitle="Perbarui informasi produk/layanan"
+            subtitle="Perbarui informasi produk/layanan dan integrasi Business Model Canvas"
             formData={formData}
             businesses={businesses}
             isLoadingBusinesses={isLoadingBusinesses}

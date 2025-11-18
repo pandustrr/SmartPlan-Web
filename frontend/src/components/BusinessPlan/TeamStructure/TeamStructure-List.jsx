@@ -1,4 +1,4 @@
-import { Users, Building, Calendar, Plus, Eye, Edit3, Trash2, Loader, RefreshCw, X, User, Briefcase, GraduationCap } from 'lucide-react';
+import { Users, Building, Calendar, Plus, Eye, Edit3, Trash2, Loader, RefreshCw, X, User, Briefcase, GraduationCap, Target, CheckCircle, Clock, Image } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -10,12 +10,14 @@ const TeamStructureList = ({
     onCreateNew,
     isLoading,
     error,
-    onRetry
+    onRetry,
+    statistics
 }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [teamToDelete, setTeamToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedBusiness, setSelectedBusiness] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('all');
 
     const handleDeleteClick = (teamId, teamName) => {
         setTeamToDelete({ id: teamId, name: teamName });
@@ -28,8 +30,9 @@ const TeamStructureList = ({
         setIsDeleting(true);
         try {
             await onDelete(teamToDelete.id);
+            toast.success('Anggota tim berhasil dihapus!');
         } catch (error) {
-            toast.error('Gagal menghapus struktur tim!');
+            toast.error('Gagal menghapus anggota tim!');
         } finally {
             setIsDeleting(false);
             setShowDeleteModal(false);
@@ -62,11 +65,20 @@ const TeamStructureList = ({
         );
     };
 
-    const filteredTeams = selectedBusiness === 'all'
-        ? teams
-        : teams.filter(team =>
-            team.business_background?.id === selectedBusiness
-        );
+    // Filter teams berdasarkan criteria
+    const filteredTeams = teams.filter(team => {
+        // Filter business
+        if (selectedBusiness !== 'all' && team.business_background?.id !== selectedBusiness) {
+            return false;
+        }
+        
+        // Filter status
+        if (selectedStatus !== 'all' && team.status !== selectedStatus) {
+            return false;
+        }
+        
+        return true;
+    });
 
     const uniqueBusinesses = getUniqueBusinesses();
 
@@ -115,6 +127,27 @@ const TeamStructureList = ({
                 {category || 'Tidak ada kategori'}
             </span>
         );
+    };
+
+    // Reset semua filter
+    const resetFilters = () => {
+        setSelectedBusiness('all');
+        setSelectedStatus('all');
+    };
+
+    // Calculate statistics jika tidak disediakan dari props
+    const calculatedStatistics = statistics || {
+        total: teams.length,
+        active_count: teams.filter(team => team.status === 'active').length,
+        draft_count: teams.filter(team => team.status === 'draft').length,
+        with_photo_count: teams.filter(team => team.photo_url).length,
+        management_count: teams.filter(team => team.team_category?.toLowerCase().includes('management')).length,
+        operational_count: teams.filter(team => team.team_category?.toLowerCase().includes('operasional')).length,
+        recent_count: teams.filter(team => {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            return new Date(team.created_at) > oneWeekAgo;
+        }).length
     };
 
     if (isLoading) {
@@ -242,17 +275,71 @@ const TeamStructureList = ({
                 </button>
             </div>
 
-            {/* FILTER BUTTONS */}
-            {teams.length > 0 && uniqueBusinesses.length > 0 && (
+            {/* STATISTICS CARDS - Konsisten dengan yang lain */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Total Anggota Tim
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Total Anggota</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{calculatedStatistics.total || 0}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Semua anggota tim
+                            </p>
+                        </div>
+                        <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
+                            <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                    </div>
+                </div> */}
+
+                {/* Anggota Aktif */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Aktif</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{calculatedStatistics.active_count || 0}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {calculatedStatistics.total > 0 ? 
+                                    Math.round((calculatedStatistics.active_count / calculatedStatistics.total) * 100) : 0
+                                }% dari total
+                            </p>
+                        </div>
+                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Status Draft */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Draft</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{calculatedStatistics.draft_count || 0}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Perlu diselesaikan
+                            </p>
+                        </div>
+                        <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* FILTER SECTION - Horizontal konsisten */}
+            {(teams.length > 0 || uniqueBusinesses.length > 0) && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                         <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                             <Building size={16} />
                             Filter Berdasarkan Bisnis:
                         </h3>
-                        {selectedBusiness !== 'all' && (
+                        {(selectedBusiness !== 'all' || selectedStatus !== 'all') && (
                             <button
-                                onClick={() => setSelectedBusiness('all')}
+                                onClick={resetFilters}
                                 className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 w-full sm:w-auto text-left sm:text-center"
                             >
                                 Reset Filter
@@ -260,21 +347,23 @@ const TeamStructureList = ({
                         )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-4">
                         {/* Tombol Semua Bisnis */}
                         <button
                             onClick={() => setSelectedBusiness('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedBusiness === 'all'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                }`}
+                            }`}
                         >
                             <Building size={14} />
                             <span>Semua Bisnis</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === 'all'
-                                    ? 'bg-green-600 text-white'
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedBusiness === 'all' 
+                                    ? 'bg-green-600 text-white' 
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}>
+                            }`}>
                                 {teams.length}
                             </span>
                         </button>
@@ -284,37 +373,104 @@ const TeamStructureList = ({
                             <button
                                 key={business.id}
                                 onClick={() => setSelectedBusiness(business.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === business.id
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                    selectedBusiness === business.id
                                         ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                         : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                    }`}
+                                }`}
                             >
                                 <Building size={14} />
                                 <div className="text-left">
                                     <div className="font-medium">{business.name}</div>
                                     <div className="text-xs opacity-80 hidden sm:block">{business.category}</div>
                                 </div>
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === business.id
-                                        ? 'bg-blue-600 text-white'
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                    selectedBusiness === business.id 
+                                        ? 'bg-blue-600 text-white' 
                                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                    }`}>
+                                }`}>
                                     {teams.filter(t => t.business_background?.id === business.id).length}
                                 </span>
                             </button>
                         ))}
                     </div>
 
+                    {/* Status Filter */}
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setSelectedStatus('all')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedStatus === 'all'
+                                    ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <User size={14} />
+                            <span>Semua Status</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedStatus === 'all' 
+                                    ? 'bg-purple-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {teams.length}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setSelectedStatus('draft')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedStatus === 'draft'
+                                    ? 'bg-yellow-500 border-yellow-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <User size={14} />
+                            <span>Draft</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedStatus === 'draft' 
+                                    ? 'bg-yellow-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {teams.filter(t => t.status === 'draft').length}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setSelectedStatus('active')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
+                                selectedStatus === 'active'
+                                    ? 'bg-green-500 border-green-500 text-white shadow-sm'
+                                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <User size={14} />
+                            <span>Aktif</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedStatus === 'active' 
+                                    ? 'bg-green-600 text-white' 
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            }`}>
+                                {teams.filter(t => t.status === 'active').length}
+                            </span>
+                        </button>
+                    </div>
+
                     {/* Filter Info */}
-                    {selectedBusiness !== 'all' && (
-                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    {(selectedBusiness !== 'all' || selectedStatus !== 'all') && (
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                 <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 text-sm">
                                     <Building size={16} />
                                     <span>
-                                        Menampilkan {filteredTeams.length} dari {teams.length} anggota tim untuk{' '}
-                                        <strong>
-                                            {uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}
-                                        </strong>
+                                        Menampilkan {filteredTeams.length} dari {teams.length} anggota tim
+                                        {selectedBusiness !== 'all' && (
+                                            <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                                        )}
+                                        {selectedStatus !== 'all' && (
+                                            <span> - Status: <strong>
+                                                {selectedStatus === 'draft' ? 'Draft' : 'Aktif'}
+                                            </strong></span>
+                                        )}
                                     </span>
                                 </div>
                             </div>
@@ -323,7 +479,7 @@ const TeamStructureList = ({
                 </div>
             )}
 
-            {/* TABLE VIEW */}
+            {/* CARD VIEW */}
             {teams.length === 0 ? (
                 <div className="text-center py-12">
                     <Users size={64} className="mx-auto text-gray-400 mb-4" />
@@ -331,7 +487,7 @@ const TeamStructureList = ({
                     <p className="text-gray-600 dark:text-gray-400 mb-4">Mulai dengan menambahkan anggota tim pertama Anda</p>
                     <button
                         onClick={onCreateNew}
-                        className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto"
+                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors w-full sm:w-auto"
                     >
                         Tambah Anggota Pertama
                     </button>
@@ -339,152 +495,121 @@ const TeamStructureList = ({
             ) : filteredTeams.length === 0 ? (
                 <div className="text-center py-12">
                     <Building size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada anggota tim untuk bisnis ini</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ditemukan anggota tim untuk bisnis yang dipilih</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Tidak ada anggota tim yang sesuai</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Tidak ditemukan anggota tim untuk filter yang dipilih</p>
                     <button
-                        onClick={() => setSelectedBusiness('all')}
+                        onClick={resetFilters}
                         className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto"
                     >
-                        Lihat Semua Anggota
+                        Reset Filter
                     </button>
                 </div>
             ) : (
                 <>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        {/* Table */}
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Anggota Tim
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Posisi & Kategori
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Bisnis
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Tanggal Dibuat
-                                        </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Aksi
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                                    {filteredTeams.map((team) => {
-                                        const businessInfo = getBusinessInfo(team);
-                                        return (
-                                            <tr key={team.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                                {/* Anggota Tim */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-3">
-                                                        {team.photo_url ? (
-                                                            <img 
-                                                                src={team.photo_url} 
-                                                                alt={team.member_name}
-                                                                className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center border border-indigo-200 dark:border-indigo-800">
-                                                                <User className="text-indigo-600 dark:text-indigo-400" size={16} />
-                                                            </div>
-                                                        )}
-                                                        <div className="min-w-0">
-                                                            <div className="font-medium text-gray-900 dark:text-white line-clamp-1">
-                                                                {team.member_name}
-                                                            </div>
-                                                            {team.experience && (
-                                                                <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 max-w-xs">
-                                                                    {team.experience.substring(0, 60)}...
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                {/* Posisi & Kategori */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="space-y-1">
-                                                        <div className="font-medium text-gray-900 dark:text-white">
-                                                            {team.position}
-                                                        </div>
-                                                        {getTeamCategoryBadge(team.team_category)}
-                                                    </div>
-                                                </td>
-
-                                                {/* Bisnis */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2">
-                                                        <Building size={14} className="text-gray-400" />
-                                                        <div>
-                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                                {businessInfo.name}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                {businessInfo.category}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                {/* Status */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {getStatusBadge(team.status)}
-                                                </td>
-
-                                                {/* Tanggal Dibuat */}
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                    <div className="flex items-center gap-1">
-                                                        <Calendar size={14} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {filteredTeams.map((team) => {
+                            const businessInfo = getBusinessInfo(team);
+                            
+                            return (
+                                <div key={team.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            {team.photo_url ? (
+                                                <img 
+                                                    src={team.photo_url} 
+                                                    alt={team.member_name}
+                                                    className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600"
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center border border-indigo-200 dark:border-indigo-800">
+                                                    <User className="text-indigo-600 dark:text-indigo-400" size={24} />
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-1">
+                                                    {team.member_name}
+                                                </h3>
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
+                                                        {businessInfo.category}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
                                                         {new Date(team.created_at).toLocaleDateString('id-ID')}
-                                                    </div>
-                                                </td>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                        <div className="flex items-start gap-2">
+                                            <Briefcase size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{team.position}</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <Users size={16} className="mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{team.team_category}</span>
+                                        </div>
+                                        {team.experience && (
+                                            <div className="flex items-start gap-2">
+                                                <GraduationCap size={16} className="mt-0.5 flex-shrink-0" />
+                                                <span className="line-clamp-2">{team.experience.substring(0, 80)}...</span>
+                                            </div>
+                                        )}
+                                    </div>
 
-                                                {/* Aksi */}
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => onView(team)}
-                                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                                                            title="Lihat Detail"
-                                                        >
-                                                            <Eye size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => onEdit(team)}
-                                                            className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 transition-colors p-2 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-                                                            title="Edit"
-                                                        >
-                                                            <Edit3 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteClick(team.id, team.member_name)}
-                                                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                            title="Hapus"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            {businessInfo.name}
+                                        </div>
+                                        {getStatusBadge(team.status)}
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => onView(team)}
+                                            className="flex-1 bg-blue-600 text-white py-2 px-2 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                            title="Lihat Detail"
+                                        >
+                                            <Eye size={14} />
+                                            <span className="hidden xs:inline">Lihat</span>
+                                        </button>
+                                        <button
+                                            onClick={() => onEdit(team)}
+                                            className="flex-1 bg-yellow-600 text-white py-2 px-2 rounded text-sm hover:bg-yellow-700 transition-colors flex items-center justify-center gap-1"
+                                            title="Edit"
+                                        >
+                                            <Edit3 size={14} />
+                                            <span className="hidden xs:inline">Edit</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteClick(team.id, team.member_name)}
+                                            className="flex-1 bg-red-600 text-white py-2 px-2 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
+                                            title="Hapus"
+                                        >
+                                            <Trash2 size={14} />
+                                            <span className="hidden xs:inline">Hapus</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {/* Info Jumlah Data */}
                     <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Menampilkan {filteredTeams.length} dari {teams.length} anggota tim
-                        {selectedBusiness !== 'all' && (
-                            <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                        {(selectedBusiness !== 'all' || selectedStatus !== 'all') && (
+                            <span>
+                                {selectedBusiness !== 'all' && (
+                                    <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                                )}
+                                {selectedStatus !== 'all' && (
+                                    <span> - Status: <strong>
+                                        {selectedStatus === 'draft' ? 'Draft' : 'Aktif'}
+                                    </strong></span>
+                                )}
+                            </span>
                         )}
                     </div>
                 </>
