@@ -11,7 +11,7 @@ class MarketingStrategySeeder extends Seeder
     {
         MarketingStrategy::create([
             'user_id' => 1,
-            'business_background_id' => 3,
+            'business_background_id' => 1,
 
             'promotion_strategy' => 'Menggunakan social media ads (Instagram & TikTok), promo bundling, dan program loyalitas pelanggan.',
             'media_used' => 'Instagram, TikTok, WhatsApp Broadcast, Brosur digital',

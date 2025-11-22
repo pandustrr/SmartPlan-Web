@@ -1,719 +1,580 @@
-import { useState, useEffect } from 'react';
-import { BarChart3, PieChart, TrendingUp, DollarSign, Download, Calendar } from 'lucide-react';
-import { financialPlanApi } from '../../../services/businessPlan';
-import { toast } from 'react-toastify';
+import { useState, useEffect, useRef } from "react";
+import { BarChart3, PieChart, TrendingUp, DollarSign, Download, Calendar } from "lucide-react";
+import { financialPlanApi } from "../../../services/businessPlan";
+import { toast } from "react-toastify";
 
-// Recharts untuk charting
-import {
-    BarChart,
-    Bar,
-    LineChart,
-    Line,
-    PieChart as RePieChart,
-    Pie,
-    Cell,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-    AreaChart,
-    Area,
-    RadarChart,
-    Radar,
-    PolarGrid,
-    PolarAngleAxis,
-    PolarRadiusAxis
-} from 'recharts';
+// Chart.js imports
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler } from "chart.js";
+import { Bar, Pie, Line } from "react-chartjs-2";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
 
 const FinancialPlanCharts = ({ plan, onBack }) => {
-    const [activeChart, setActiveChart] = useState('profit_loss');
-    const [chartData, setChartData] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [timeRange, setTimeRange] = useState('monthly');
-    const [forecastData, setForecastData] = useState(null);
+  const [activeChart, setActiveChart] = useState("profit_loss");
+  const [chartData, setChartData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeRange, setTimeRange] = useState("monthly");
+  const [forecastData, setForecastData] = useState(null);
 
-    const chartTypes = [
-        { id: 'profit_loss', name: 'Laba Rugi', icon: '📊', color: '#4f46e5' },
-        { id: 'capital_structure', name: 'Struktur Modal', icon: '💰', color: '#10b981' },
-        { id: 'revenue_streams', name: 'Sumber Pendapatan', icon: '📈', color: '#ef4444' },
-        { id: 'expense_breakdown', name: 'Breakdown Biaya', icon: '📉', color: '#8b5cf6' },
-        { id: 'feasibility', name: 'Analisis Kelayakan', icon: '🔍', color: '#06b6d4' },
-        { id: 'forecast', name: 'Proyeksi Masa Depan', icon: '🔮', color: '#8b5cf6' }
-    ];
+  // Refs untuk setiap chart
+  const chartRefs = {
+    profit_loss: useRef(null),
+    capital_structure: useRef(null),
+    revenue_streams: useRef(null),
+    expense_breakdown: useRef(null),
+    feasibility: useRef(null),
+    forecast: useRef(null),
+  };
 
-    // Warna untuk chart
-    const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899'];
+  const chartTypes = [
+    { id: "profit_loss", name: "Laba Rugi", icon: "📊", color: "#4f46e5" },
+    { id: "capital_structure", name: "Struktur Modal", icon: "💰", color: "#10b981" },
+    { id: "revenue_streams", name: "Sumber Pendapatan", icon: "📈", color: "#ef4444" },
+    { id: "expense_breakdown", name: "Breakdown Biaya", icon: "📉", color: "#8b5cf6" },
+    { id: "feasibility", name: "Analisis Kelayakan", icon: "🔍", color: "#06b6d4" },
+    { id: "forecast", name: "Proyeksi Masa Depan", icon: "🔮", color: "#8b5cf6" },
+  ];
 
-    useEffect(() => {
-        if (plan) {
-            fetchChartData();
-            fetchForecastData();
-        }
-    }, [plan, activeChart, timeRange]);
+  const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#84cc16", "#f97316", "#ec4899"];
 
-    const fetchChartData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await financialPlanApi.getChartData(plan.id, {
-                chart_type: activeChart,
-                time_range: timeRange
-            });
+  useEffect(() => {
+    if (plan) {
+      fetchChartData();
+      fetchForecastData();
+    }
+  }, [plan, activeChart, timeRange]);
 
-            if (response.data.status === 'success') {
-                setChartData(response.data.data);
-            } else {
-                throw new Error('Failed to fetch chart data');
-            }
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            toast.error('Gagal memuat data chart');
-            // Fallback data jika API error
-            setChartData(generateFallbackData());
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const fetchChartData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await financialPlanApi.getChartData(plan.id, {
+        chart_type: activeChart,
+        time_range: timeRange,
+      });
 
-    const fetchForecastData = async () => {
-        try {
-            const response = await financialPlanApi.getFinancialForecast(plan.id, {
-                period: 12
-            });
-            if (response.data.status === 'success') {
-                setForecastData(response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching forecast data:', error);
-        }
-    };
+      if (response.data.status === "success") {
+        setChartData(response.data.data);
+      } else {
+        throw new Error("Failed to fetch chart data");
+      }
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+      toast.error("Gagal memuat data chart");
+      setChartData(generateFallbackData());
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    // Generate fallback data dari plan data
-    const generateFallbackData = () => {
-        switch (activeChart) {
-            case 'profit_loss':
-                return {
-                    labels: ['Pendapatan', 'Biaya Operasional', 'Laba Kotor', 'Laba Bersih'],
-                    values: [
-                        plan.total_monthly_income || 0,
-                        plan.total_monthly_opex || 0,
-                        plan.gross_profit || 0,
-                        plan.net_profit || 0
-                    ]
-                };
+  const fetchForecastData = async () => {
+    try {
+      const response = await financialPlanApi.getFinancialForecast(plan.id, {
+        period: 12,
+      });
+      if (response.data.status === "success") {
+        setForecastData(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching forecast data:", error);
+    }
+  };
 
-            case 'capital_structure':
-                const capitalSources = plan.capital_sources || [];
-                return {
-                    labels: capitalSources.map(source => source.source),
-                    values: capitalSources.map(source => source.amount),
-                    percentages: capitalSources.map(source => source.percentage)
-                };
+  const generateFallbackData = () => {
+    switch (activeChart) {
+      case "profit_loss":
+        return {
+          labels: ["Pendapatan", "Biaya Operasional", "Laba Kotor", "Laba Bersih"],
+          values: [plan.total_monthly_income || 0, plan.total_monthly_opex || 0, plan.gross_profit || 0, plan.net_profit || 0],
+        };
 
-            case 'cash_flow':
-                // Generate monthly cash flow data
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                return {
-                    labels: months,
-                    income: months.map(() => Math.random() * (plan.total_monthly_income || 10000000) * 1.2),
-                    expense: months.map(() => Math.random() * (plan.total_monthly_opex || 5000000) * 1.1),
-                    net_flow: months.map((_, i) => (Math.random() * (plan.total_monthly_income || 10000000) * 1.2) - (Math.random() * (plan.total_monthly_opex || 5000000) * 1.1))
-                };
+      case "capital_structure":
+        const capitalSources = plan.capital_sources || [];
+        return {
+          labels: capitalSources.map((source) => source.source),
+          values: capitalSources.map((source) => source.amount),
+          percentages: capitalSources.map((source) => source.percentage),
+        };
 
-            case 'revenue_streams':
-                const salesData = plan.sales_projections || [];
-                return {
-                    labels: salesData.map(item => item.product),
-                    values: salesData.map(item => item.monthly_income)
-                };
+      case "revenue_streams":
+        const salesData = plan.sales_projections || [];
+        return {
+          labels: salesData.map((item) => item.product),
+          values: salesData.map((item) => item.monthly_income),
+        };
 
-            case 'expense_breakdown':
-                const opexData = plan.monthly_opex || [];
-                return {
-                    labels: opexData.map(item => item.category),
-                    values: opexData.map(item => item.amount)
-                };
+      case "expense_breakdown":
+        const opexData = plan.monthly_opex || [];
+        return {
+          labels: opexData.map((item) => item.category),
+          values: opexData.map((item) => item.amount),
+        };
 
-            case 'feasibility':
-                return {
-                    labels: ['ROI', 'Payback Period', 'Profit Margin'],
-                    values: [plan.roi_percentage || 0, plan.payback_period || 0, plan.profit_margin || 0],
-                    targets: [25, 24, 20]
-                };
+      case "feasibility":
+        return {
+          labels: ["ROI", "Payback Period", "Profit Margin"],
+          values: [plan.roi_percentage || 0, plan.payback_period || 0, plan.profit_margin || 0],
+          targets: [25, 24, 20],
+        };
 
-            case 'forecast':
-                return generateForecastData();
+      case "forecast":
+        return generateForecastDataLocal();
 
-            default:
-                return null;
-        }
-    };
-
-    const generateForecastData = () => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        return months.map((month, index) => {
-            const baseIncome = plan.total_monthly_income || 10000000;
-            const baseOpex = plan.total_monthly_opex || 5000000;
-            const growth = 1 + (index * 0.05); // 5% growth per month
-
-            return {
-                month,
-                projected_income: baseIncome * growth,
-                projected_opex: baseOpex * (1 + (index * 0.02)), // 2% growth per month
-                projected_profit: (baseIncome * growth) - (baseOpex * (1 + (index * 0.02)))
-            };
-        });
-    };
-
-    // Format currency untuk tooltip
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(value);
-    };
-
-    // Custom tooltip untuk chart
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-                    <p className="font-medium text-gray-900 dark:text-white">{label}</p>
-                    {payload.map((entry, index) => (
-                        <p key={index} style={{ color: entry.color }} className="text-sm text-gray-700 dark:text-gray-300">
-                            {entry.name}: {entry.name.includes('Rp') ? formatCurrency(entry.value) : entry.value}
-                            {entry.name.includes('%') && '%'}
-                            {entry.name.includes('Bulan') && ' bulan'}
-                        </p>
-                    ))}
-                </div>
-            );
-        }
+      default:
         return null;
-    };
+    }
+  };
 
-    // Render chart berdasarkan type
-    const renderChart = () => {
-        if (!chartData) return null;
+  const generateForecastDataLocal = () => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+    return months.map((month, index) => {
+      const baseIncome = plan.total_monthly_income || 10000000;
+      const baseOpex = plan.total_monthly_opex || 5000000;
+      const growth = 1 + index * 0.05;
 
-        switch (activeChart) {
-            case 'profit_loss':
-                const profitLossData = chartData.labels?.map((label, index) => ({
-                    name: label,
-                    value: chartData.values?.[index] || 0,
-                    fill: index === 0 ? '#10b981'
-                        : index === 1 ? '#ef4444'
-                            : index === 2 ? '#f59e0b'
-                                : '#4f46e5'
-                })) || [];
+      return {
+        month,
+        projected_income: baseIncome * growth,
+        projected_opex: baseOpex * (1 + index * 0.02),
+        projected_profit: baseIncome * growth - baseOpex * (1 + index * 0.02),
+      };
+    });
+  };
 
-                return (
-                    <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={profitLossData}>
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                                className="opacity-30"
-                                stroke="#e5e7eb"
-                            />
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
-                            <XAxis
-                                dataKey="name"
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
+  // Chart.js Options
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: "top",
+        labels: {
+          font: {
+            size: 12,
+          },
+          padding: 15,
+        },
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleFont: {
+          size: 13,
+        },
+        bodyFont: {
+          size: 12,
+        },
+        padding: 12,
+        displayColors: true,
+      },
+    },
+  };
 
-                            <YAxis
-                                tickFormatter={formatCurrency}
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
+  const renderChart = () => {
+    if (!chartData) return null;
 
-                            <Tooltip content={<CustomTooltip />} />
+    switch (activeChart) {
+      case "profit_loss": {
+        const data = {
+          labels: chartData.labels || ["Pendapatan", "Biaya Operasional", "Laba Kotor", "Laba Bersih"],
+          datasets: [
+            {
+              label: "Nilai (Rp)",
+              data: chartData.values || [],
+              backgroundColor: ["#10b981", "#ef4444", "#f59e0b", "#4f46e5"],
+              borderColor: ["#059669", "#dc2626", "#d97706", "#4338ca"],
+              borderWidth: 2,
+            },
+          ],
+        };
 
-                            <Legend
-                                formatter={(value) => (
-                                    <span className="text-gray-600 dark:text-gray-300">
-                                        {value}
-                                    </span>
-                                )}
-                            />
+        const options = {
+          ...commonOptions,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value) => formatCurrency(value),
+              },
+            },
+          },
+        };
 
-                            <Bar
-                                dataKey="value"
-                                name="Nilai (Rp)"
-                                radius={[4, 4, 0, 0]}
-                            >
-                                {profitLossData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                );
+        return <Bar ref={chartRefs.profit_loss} data={data} options={options} />;
+      }
 
+      case "capital_structure": {
+        const data = {
+          labels: chartData.labels || [],
+          datasets: [
+            {
+              label: "Sumber Modal",
+              data: chartData.values || [],
+              backgroundColor: COLORS,
+              borderColor: "#ffffff",
+              borderWidth: 2,
+            },
+          ],
+        };
 
-            case 'capital_structure':
-                const capitalData = chartData.labels?.map((label, index) => ({
-                    name: label,
-                    value: chartData.values?.[index] || 0,
-                    percentage: chartData.percentages?.[index] || 0
-                })) || [];
+        const options = {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            tooltip: {
+              ...commonOptions.plugins.tooltip,
+              callbacks: {
+                label: (context) => {
+                  const label = context.label || "";
+                  const value = formatCurrency(context.parsed);
+                  const percentage = chartData.percentages?.[context.dataIndex] || 0;
+                  return `${label}: ${value} (${percentage}%)`;
+                },
+              },
+            },
+          },
+        };
 
-                return (
-                    <div className="flex flex-col lg:flex-row gap-8 items-center">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <RePieChart>
-                                <Pie
-                                    data={capitalData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percentage }) => `${name}: ${percentage}%`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {capitalData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip formatter={(value) => [formatCurrency(value), 'Nominal']} />
-                            </RePieChart>
-                        </ResponsiveContainer>
+        return <Pie ref={chartRefs.capital_structure} data={data} options={options} />;
+      }
 
-                        <div className="space-y-2 min-w-[200px]">
-                            {capitalData.map((item, index) => (
-                                <div key={index} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div
-                                            className="w-3 h-3 rounded"
-                                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                                        />
-                                        <span className="text-sm text-gray-700 dark:text-gray-300">{item.name}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="font-medium text-gray-900 dark:text-white">{formatCurrency(item.value)}</div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">{item.percentage}%</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                );
+      case "revenue_streams": {
+        const data = {
+          labels: chartData.labels || [],
+          datasets: [
+            {
+              label: "Pendapatan/Bulan",
+              data: chartData.values || [],
+              backgroundColor: "#4f46e5",
+              borderColor: "#4338ca",
+              borderWidth: 2,
+            },
+          ],
+        };
 
-            case 'cash_flow':
-                const cashFlowData = chartData.labels?.map((label, index) => ({
-                    month: label,
-                    income: chartData.income?.[index] || 0,
-                    expense: chartData.expense?.[index] || 0,
-                    net: chartData.net_flow?.[index] || 0
-                })) || [];
+        const options = {
+          ...commonOptions,
+          indexAxis: "y",
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value) => formatCurrency(value),
+              },
+            },
+          },
+        };
 
-                return (
-                    <ResponsiveContainer width="100%" height={400}>
-                        <AreaChart data={cashFlowData}>
-                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#e5e7eb dark:stroke-gray-600" />
-                            <XAxis
-                                dataKey="month"
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <YAxis
-                                tickFormatter={formatCurrency}
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                            <Area type="monotone" dataKey="income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Kas Masuk" />
-                            <Area type="monotone" dataKey="expense" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Kas Keluar" />
-                            <Area type="monotone" dataKey="net" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.6} name="Net Cash Flow" />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                );
+        return <Bar ref={chartRefs.revenue_streams} data={data} options={options} />;
+      }
 
-            case 'revenue_streams':
-                const revenueData = chartData.labels?.map((label, index) => ({
-                    product: label.length > 15 ? label.substring(0, 15) + '...' : label,
-                    revenue: chartData.values?.[index] || 0,
-                    fullName: label
-                })) || [];
+      case "expense_breakdown": {
+        const data = {
+          labels: chartData.labels || [],
+          datasets: [
+            {
+              label: "Biaya Operasional",
+              data: chartData.values || [],
+              backgroundColor: COLORS,
+              borderColor: "#ffffff",
+              borderWidth: 2,
+            },
+          ],
+        };
 
-                return (
-                    <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={revenueData} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" horizontal={false} stroke="#e5e7eb dark:stroke-gray-600" />
-                            <XAxis
-                                type="number"
-                                tickFormatter={formatCurrency}
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <YAxis
-                                type="category"
-                                dataKey="product"
-                                width={100}
-                                tick={{ fontSize: 12, fill: '#6b7280' }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <Tooltip
-                                formatter={(value) => [formatCurrency(value), 'Pendapatan']}
-                                labelFormatter={(value, payload) => {
-                                    const data = payload[0]?.payload;
-                                    return data?.fullName || value;
-                                }}
-                            />
-                            <Legend />
-                            <Bar
-                                dataKey="revenue"
-                                name="Pendapatan/Bulan"
-                                fill="#4f46e5"
-                                radius={[0, 4, 4, 0]}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                );
+        const options = {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            tooltip: {
+              ...commonOptions.plugins.tooltip,
+              callbacks: {
+                label: (context) => {
+                  return `${context.label}: ${formatCurrency(context.parsed)}`;
+                },
+              },
+            },
+          },
+        };
 
-            case 'expense_breakdown':
-                const expenseData = chartData.labels?.map((label, index) => ({
-                    category: label.length > 15 ? label.substring(0, 15) + '...' : label,
-                    amount: chartData.values?.[index] || 0,
-                    fullName: label
-                })).sort((a, b) => b.amount - a.amount) || [];
+        return <Pie ref={chartRefs.expense_breakdown} data={data} options={options} />;
+      }
 
-                return (
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <RePieChart>
-                                <Pie
-                                    data={expenseData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ category, amount }) => `${category}: ${formatCurrency(amount)}`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="amount"
-                                >
-                                    {expenseData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip formatter={(value) => [formatCurrency(value), 'Biaya']} />
-                            </RePieChart>
-                        </ResponsiveContainer>
+      case "feasibility": {
+        const data = {
+          labels: chartData.labels || ["ROI", "Payback Period", "Profit Margin"],
+          datasets: [
+            {
+              label: "Nilai Aktual",
+              data: chartData.values || [],
+              backgroundColor: "#4f46e5",
+              borderColor: "#4338ca",
+              borderWidth: 2,
+            },
+            {
+              label: "Target Ideal",
+              data: chartData.targets || [],
+              backgroundColor: "#94a3b8",
+              borderColor: "#64748b",
+              borderWidth: 2,
+            },
+          ],
+        };
 
-                        <div className="space-y-2 min-w-[200px]">
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Detail Biaya</h4>
-                            {expenseData.map((item, index) => (
-                                <div key={index} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div
-                                            className="w-3 h-3 rounded"
-                                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                                        />
-                                        <span className="text-sm text-gray-700 dark:text-gray-300" title={item.fullName}>
-                                            {item.category}
-                                        </span>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="font-medium text-red-600 dark:text-red-400">
-                                            {formatCurrency(item.amount)}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                );
+        const options = {
+          ...commonOptions,
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        };
 
-            case 'feasibility':
-                const feasibilityData = chartData.labels?.map((label, index) => ({
-                    metric: label,
-                    actual: chartData.values?.[index] || 0,
-                    target: chartData.targets?.[index] || 0
-                })) || [];
+        return <Bar ref={chartRefs.feasibility} data={data} options={options} />;
+      }
 
-                return (
-                    <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={feasibilityData}>
-                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#e5e7eb dark:stroke-gray-600" />
-                            <XAxis
-                                dataKey="metric"
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <YAxis
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <Tooltip
-                                formatter={(value, name) => {
-                                    if (name === 'actual') {
-                                        return [value, 'Nilai Aktual'];
-                                    }
-                                    return [value, 'Target Ideal'];
-                                }}
-                            />
-                            <Legend />
-                            <Bar
-                                dataKey="actual"
-                                name="Nilai Aktual"
-                                fill="#4f46e5"
-                                radius={[4, 4, 0, 0]}
-                            />
-                            <Bar
-                                dataKey="target"
-                                name="Target Ideal"
-                                fill="#94a3b8"
-                                radius={[4, 4, 0, 0]}
-                                opacity={0.7}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                );
+      case "forecast": {
+        const forecastDataLocal = forecastData || generateForecastDataLocal();
 
-            case 'forecast':
-                if (!forecastData) return null;
+        const data = {
+          labels: forecastDataLocal.map((d) => d.month),
+          datasets: [
+            {
+              label: "Proyeksi Pendapatan",
+              data: forecastDataLocal.map((d) => d.projected_income),
+              borderColor: "#10b981",
+              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Proyeksi Biaya",
+              data: forecastDataLocal.map((d) => d.projected_opex),
+              borderColor: "#ef4444",
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Proyeksi Laba",
+              data: forecastDataLocal.map((d) => d.projected_profit),
+              borderColor: "#4f46e5",
+              backgroundColor: "rgba(79, 70, 229, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        };
 
-                return (
-                    <ResponsiveContainer width="100%" height={400}>
-                        <AreaChart data={forecastData}>
-                            <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#e5e7eb dark:stroke-gray-600" />
-                            <XAxis
-                                dataKey="month"
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <YAxis
-                                tickFormatter={formatCurrency}
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                className="text-gray-500 dark:text-gray-400"
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                            <Area type="monotone" dataKey="projected_income" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Proyeksi Pendapatan" />
-                            <Area type="monotone" dataKey="projected_opex" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} name="Proyeksi Biaya" />
-                            <Area type="monotone" dataKey="projected_profit" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.6} name="Proyeksi Laba" />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                );
+        const options = {
+          ...commonOptions,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value) => formatCurrency(value),
+              },
+            },
+          },
+        };
 
-            default:
-                return (
-                    <div className="flex items-center justify-center h-64">
-                        <p className="text-gray-500 dark:text-gray-400">Chart tidak tersedia</p>
-                    </div>
-                );
-        }
-    };
+        return <Line ref={chartRefs.forecast} data={data} options={options} />;
+      }
 
-    // Download chart sebagai gambar
-    const downloadChart = () => {
-        toast.info('Fitur download chart akan segera tersedia');
-    };
-
-    if (!plan) {
+      default:
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-            </div>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-gray-500 dark:text-gray-400">Chart tidak tersedia</p>
+          </div>
         );
     }
+  };
 
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="mb-2">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-4"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Kembali ke Detail
-                </button>
-
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analisis Grafik Keuangan</h1>
-                        <p className="text-gray-600 dark:text-gray-400">Visualisasi data rencana keuangan "{plan.plan_name}"</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <select
-                            value={timeRange}
-                            onChange={(e) => setTimeRange(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white text-sm"
-                        >
-                            <option value="monthly">Bulanan</option>
-                            <option value="yearly">Tahunan</option>
-                        </select>
-
-                        <button
-                            onClick={downloadChart}
-                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            <Download size={16} />
-                            Export
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Chart Type Navigation */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex overflow-x-auto gap-1">
-                    {chartTypes.map((chart) => (
-                        <button
-                            key={chart.id}
-                            onClick={() => setActiveChart(chart.id)}
-                            className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeChart === chart.id
-                                ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-                                }`}
-                        >
-                            <span className="text-lg">{chart.icon}</span>
-                            {chart.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Chart Container */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                {isLoading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-                            <p className="text-gray-500 dark:text-gray-400">Memuat data chart...</p>
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        {/* Chart Title */}
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                {chartTypes.find(chart => chart.id === activeChart)?.icon}
-                                {chartTypes.find(chart => chart.id === activeChart)?.name}
-                            </h3>
-
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                Periode: {timeRange === 'monthly' ? 'Bulanan' : 'Tahunan'}
-                            </div>
-                        </div>
-
-                        {/* Chart Content */}
-                        <div className="min-h-[400px]">
-                            {renderChart()}
-                        </div>
-
-                        {/* Chart Insights */}
-                        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Insights:</h4>
-                            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                {generateChartInsights()}
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
-                    <DollarSign className="w-6 h-6 text-green-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {formatCurrency(plan.total_monthly_income || 0)}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Pendapatan/Bln</p>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
-                    <TrendingUp className="w-6 h-6 text-blue-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {plan.roi_percentage || 0}%
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">ROI</p>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
-                    <BarChart3 className="w-6 h-6 text-purple-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {plan.profit_margin || 0}%
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Profit Margin</p>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
-                    <Calendar className="w-6 h-6 text-orange-600 mx-auto mb-1" />
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {plan.payback_period || 0}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Bulan Balik Modal</p>
-                </div>
-            </div>
-        </div>
-    );
-
-    function generateChartInsights() {
-        switch (activeChart) {
-            case 'profit_loss':
-                return [
-                    `Laba bersih bulanan: ${formatCurrency(plan.net_profit || 0)}`,
-                    `Margin profit: ${plan.profit_margin || 0}%`,
-                    (plan.net_profit || 0) > 0
-                        ? 'Usaha menunjukkan profitabilitas yang positif'
-                        : 'Perlu evaluasi biaya operasional dan strategi pendapatan'
-                ];
-
-            case 'capital_structure':
-                const mainSource = plan.capital_sources?.[0];
-                return [
-                    mainSource ? `Sumber modal utama: ${mainSource.source} (${mainSource.percentage}%)` : 'Belum ada data modal',
-                    `Total modal awal: ${formatCurrency(plan.total_initial_capital || 0)}`,
-                    'Diversifikasi sumber modal dapat mengurangi risiko'
-                ];
-
-
-            case 'revenue_streams':
-                const topProduct = plan.sales_projections?.[0];
-                return [
-                    topProduct ? `Produk andalan: ${topProduct.product}` : 'Belum ada data penjualan',
-                    `Total pendapatan bulanan: ${formatCurrency(plan.total_monthly_income || 0)}`,
-                    'Diversifikasi produk dapat meningkatkan stabilitas pendapatan'
-                ];
-
-            case 'expense_breakdown':
-                const largestExpense = plan.monthly_opex?.[0];
-                return [
-                    largestExpense ? `Biaya terbesar: ${largestExpense.category}` : 'Belum ada data biaya',
-                    `Total biaya operasional: ${formatCurrency(plan.total_monthly_opex || 0)}`,
-                    'Evaluasi efisiensi pada biaya terbesar untuk optimasi'
-                ];
-
-            case 'feasibility':
-                return [
-                    `Status kelayakan: ${plan.feasibility_status || 'Belum dianalisis'}`,
-                    (plan.roi_percentage || 0) >= 20 ? 'ROI menunjukkan performa yang baik' : 'Perlu peningkatan ROI',
-                    (plan.payback_period || 0) <= 24 ? 'Periode balik modal wajar' : 'Periode balik modal perlu dipercepat'
-                ];
-
-            case 'forecast':
-                return [
-                    'Proyeksi membantu perencanaan jangka panjang',
-                    'Siapkan skenario untuk berbagai kondisi pasar',
-                    'Update proyeksi secara berkala berdasarkan performa aktual'
-                ];
-
-            default:
-                return ['Analisis data untuk insights lebih lanjut...'];
-        }
+  const downloadChart = () => {
+    const chartRef = chartRefs[activeChart];
+    if (chartRef && chartRef.current) {
+      const canvas = chartRef.current.canvas;
+      const url = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `${activeChart}-chart.png`;
+      link.href = url;
+      link.click();
+      toast.success("Chart berhasil diunduh");
     }
+  };
+
+  const generateChartInsights = () => {
+    switch (activeChart) {
+      case "profit_loss":
+        return [
+          `Laba bersih bulanan: ${formatCurrency(plan.net_profit || 0)}`,
+          `Margin profit: ${plan.profit_margin || 0}%`,
+          (plan.net_profit || 0) > 0 ? "Usaha menunjukkan profitabilitas yang positif" : "Perlu evaluasi biaya operasional dan strategi pendapatan",
+        ];
+
+      case "capital_structure":
+        const mainSource = plan.capital_sources?.[0];
+        return [
+          mainSource ? `Sumber modal utama: ${mainSource.source} (${mainSource.percentage}%)` : "Belum ada data modal",
+          `Total modal awal: ${formatCurrency(plan.total_initial_capital || 0)}`,
+          "Diversifikasi sumber modal dapat mengurangi risiko",
+        ];
+
+      case "revenue_streams":
+        const topProduct = plan.sales_projections?.[0];
+        return [topProduct ? `Produk unggulan: ${topProduct.product}` : "Belum ada data penjualan", `Total pendapatan bulanan: ${formatCurrency(plan.total_monthly_income || 0)}`, "Fokus pada produk dengan margin tertinggi"];
+
+      case "expense_breakdown":
+        const topExpense = plan.monthly_opex?.[0];
+        return [topExpense ? `Biaya terbesar: ${topExpense.category}` : "Belum ada data biaya", `Total biaya operasional: ${formatCurrency(plan.total_monthly_opex || 0)}`, "Evaluasi efisiensi operasional secara berkala"];
+
+      case "feasibility":
+        return [`ROI saat ini: ${plan.roi_percentage || 0}% (Target: 25%)`, `Payback period: ${plan.payback_period || 0} bulan (Target: 24 bulan)`, `Status kelayakan: ${plan.feasibility_status || "Belum dianalisis"}`];
+
+      case "forecast":
+        return ["Proyeksi menunjukkan pertumbuhan 5% per bulan", "Biaya operasional diproyeksikan naik 2% per bulan", "Monitoring berkala diperlukan untuk validasi proyeksi"];
+
+      default:
+        return [];
+    }
+  };
+
+  if (!plan) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Analisis Grafik Keuangan</h1>
+            <p className="text-indigo-100">Visualisasi data rencana keuangan "{plan.plan_name}"</p>
+          </div>
+
+          <div className="flex gap-2">
+            <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)} className="px-3 py-2 border border-white/20 bg-white/10 backdrop-blur rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-white text-sm">
+              <option value="monthly" className="text-gray-900">
+                Bulanan
+              </option>
+              <option value="yearly" className="text-gray-900">
+                Tahunan
+              </option>
+            </select>
+
+            <button onClick={downloadChart} className="flex items-center gap-2 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors">
+              <Download size={16} />
+              Export
+            </button>
+
+            <button onClick={onBack} className="px-4 py-2 bg-white/20 backdrop-blur text-white rounded-lg hover:bg-white/30 transition-colors">
+              ← Kembali
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Chart Type Navigation */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex overflow-x-auto gap-1">
+          {chartTypes.map((chart) => (
+            <button
+              key={chart.id}
+              onClick={() => setActiveChart(chart.id)}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                activeChart === chart.id
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              <span className="text-lg">{chart.icon}</span>
+              {chart.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart Container */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+              <p className="text-gray-500 dark:text-gray-400">Memuat data chart...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                {chartTypes.find((chart) => chart.id === activeChart)?.icon}
+                {chartTypes.find((chart) => chart.id === activeChart)?.name}
+              </h3>
+              <div className="text-sm text-gray-500 dark:text-gray-400">Periode: {timeRange === "monthly" ? "Bulanan" : "Tahunan"}</div>
+            </div>
+
+            <div className="h-[400px]" data-chart-type={activeChart}>
+              {renderChart()}
+            </div>
+
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-2">Insights:</h4>
+              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                {generateChartInsights().map((insight, index) => (
+                  <p key={index}>• {insight}</p>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <DollarSign className="w-6 h-6 text-green-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(plan.total_monthly_income || 0)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Pendapatan/Bln</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <TrendingUp className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{plan.roi_percentage || 0}%</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">ROI</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <BarChart3 className="w-6 h-6 text-purple-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{plan.profit_margin || 0}%</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Profit Margin</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <Calendar className="w-6 h-6 text-orange-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{plan.payback_period || 0}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Bulan Balik Modal</p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default FinancialPlanCharts;

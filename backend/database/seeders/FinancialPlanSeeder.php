@@ -11,7 +11,7 @@ class FinancialPlanSeeder extends Seeder
     {
         FinancialPlan::create([
             'user_id' => 1,
-            'business_background_id' => 3, // pastikan ada datanya di DB
+            'business_background_id' => 1, // pastikan ada datanya di DB
 
             // === Sumber Modal ===
             'capital_sources' => [
@@ -59,7 +59,7 @@ class FinancialPlanSeeder extends Seeder
             'tax_rate' => 10,
             'tax_amount' => (32000000 - 10250000) * 0.1,
             'interest_expense' => 0,
-            'net_profit' => (32000000 - 10250000) - ( (32000000 - 10250000) * 0.1 ),
+            'net_profit' => (32000000 - 10250000) - ((32000000 - 10250000) * 0.1),
 
             // === Simulasi Arus Kas ===
             'cash_flow_simulation' => [

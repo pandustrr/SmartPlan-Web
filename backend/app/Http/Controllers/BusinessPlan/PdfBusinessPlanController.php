@@ -35,6 +35,7 @@ class PdfBusinessPlanController extends Controller
             $userId = Auth::id();
             $businessBackgroundId = $request->business_background_id;
             $mode = $request->mode ?? 'free';
+            $charts = $request->charts ?? null; // Terima charts data dari frontend
 
             // Validasi input
             if (!$businessBackgroundId) {
@@ -85,6 +86,7 @@ class PdfBusinessPlanController extends Controller
                 'data' => $businessData,
                 'mode' => $mode,
                 'executiveSummary' => $executiveSummary, // TAMBAHKAN INI
+                'charts' => $charts, // Pass charts data ke view
                 'generated_at' => now()->format('d F Y H:i:s')
             ]);
 

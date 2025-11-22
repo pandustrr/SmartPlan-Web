@@ -11,7 +11,7 @@ class ProductServiceSeeder extends Seeder
     {
         ProductService::create([
             'user_id' => 1,
-            'business_background_id' => 3,
+            'business_background_id' => 1,
             'type' => 'product',
             'name' => 'Signature Caramel Latte',
             'description' => 'Minuman kopi spesial dengan karamel homemade yang creamy, menjadi salah satu menu favorit pelanggan.',
@@ -35,7 +35,7 @@ class ProductServiceSeeder extends Seeder
 
         ProductService::create([
             'user_id' => 1,
-            'business_background_id' => 3,
+            'business_background_id' => 1,
             'type' => 'product',
             'name' => 'Chicken Rice Bowl',
             'description' => 'Menu makanan praktis dengan ayam crispy dan saus signature, cocok untuk makan siang.',
@@ -59,7 +59,7 @@ class ProductServiceSeeder extends Seeder
 
         ProductService::create([
             'user_id' => 1,
-            'business_background_id' => 3,
+            'business_background_id' => 1,
             'type' => 'service',
             'name' => 'Café Event Hosting',
             'description' => 'Layanan penyewaan café untuk acara kecil seperti meeting, birthday, atau komunitas.',

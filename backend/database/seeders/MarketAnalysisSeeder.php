@@ -11,7 +11,7 @@ class MarketAnalysisSeeder extends Seeder
     {
         $analysis = MarketAnalysis::create([
             'user_id' => 1,
-            'business_background_id' => 3, // Pastikan BusinessBackgroundSeeder sudah jalan
+            'business_background_id' => 1, // Pastikan BusinessBackgroundSeeder sudah jalan
 
             // Basic Market Analysis
             'target_market' => 'Mahasiswa, pekerja muda, dan pecinta kopi usia 18–35 tahun.',

@@ -35,7 +35,7 @@
         /* Layout halaman */
         .page {
             page-break-after: always;
-            padding: 20mm;
+            padding: 15mm;
             position: relative;
         }
 
@@ -47,7 +47,7 @@
         .header {
             border-bottom: 2px solid #2c5aa0;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .company-name {
@@ -64,8 +64,8 @@
 
         /* Sections */
         .section {
+            margin-top: 15px;
             margin-bottom: 25px;
-            page-break-inside: avoid;
         }
 
         .section-title {
@@ -79,6 +79,7 @@
 
         .subsection {
             margin-bottom: 15px;
+            page-break-inside: avoid;
         }
 
         .subsection-title {
@@ -133,8 +134,26 @@
             margin-bottom: 15px;
         }
 
+        .mb-5 {
+            margin-bottom: 5px;
+        }
+
         .mt-15 {
             margin-top: 15px;
+        }
+
+        /* Chart images */
+        .chart-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+            page-break-inside: avoid;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            background: #ffffff;
         }
 
         /* Financial highlights */
@@ -655,61 +674,60 @@
                 <div class="document-title">8. RENCANA KEUANGAN</div>
             </div>
 
-            <div class="section">
+            <div class="section" style="margin-top: 10px;">
                 @foreach ($data['financial_plans'] as $financial)
-                    <div class="subsection">
-                        <div class="subsection-title">{{ $financial->plan_name }}</div>
+                    <div class="subsection-title" style="margin-bottom: 10px;">{{ $financial->plan_name }}</div>
 
-                        <!-- Financial Highlights -->
-                        <div class="financial-highlights mb-15">
-                            <div class="subsection-title">Ringkasan Keuangan</div>
+                    <!-- Financial Highlights -->
+                    <div class="financial-highlights mb-15" style="page-break-inside: avoid;">
+                        <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Ringkasan Keuangan</h4>
+                        <table class="table">
+                            <tr>
+                                <td><strong>ROI</strong></td>
+                                <td>{{ $financial->roi_percentage }}%</td>
+                                <td><strong>Payback Period</strong></td>
+                                <td>{{ $financial->payback_period }} bulan</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Profit Margin</strong></td>
+                                <td>{{ $financial->profit_margin }}%</td>
+                                <td><strong>Status Kelayakan</strong></td>
+                                <td>{{ $financial->feasibility_status }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Capital Sources -->
+                    @if ($financial->capital_sources)
+                        <div class="mb-15" style="page-break-inside: avoid;">
+                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Sumber Modal</h4>
                             <table class="table">
-                                <tr>
-                                    <td><strong>ROI</strong></td>
-                                    <td>{{ $financial->roi_percentage }}%</td>
-                                    <td><strong>Payback Period</strong></td>
-                                    <td>{{ $financial->payback_period }} bulan</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Profit Margin</strong></td>
-                                    <td>{{ $financial->profit_margin }}%</td>
-                                    <td><strong>Status Kelayakan</strong></td>
-                                    <td>{{ $financial->feasibility_status }}</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <!-- Capital Sources -->
-                        @if ($financial->capital_sources)
-                            <div class="subsection">
-                                <div class="subsection-title">Sumber Modal</div>
-                                <table class="table">
                                     <tr>
                                         <th>Sumber</th>
                                         <th>Jumlah</th>
                                         <th>Persentase</th>
                                     </tr>
-                                    @foreach ($financial->capital_sources as $source)
-                                        <tr>
-                                            <td>{{ $source['source'] }}</td>
-                                            <td>Rp {{ number_format($source['amount'], 0, ',', '.') }}</td>
-                                            <td>{{ $source['percentage'] }}%</td>
-                                        </tr>
-                                    @endforeach
-                                    <tr class="text-bold">
-                                        <td>Total Modal Awal</td>
-                                        <td colspan="2">Rp
-                                            {{ number_format($financial->total_initial_capital, 0, ',', '.') }}</td>
+                                @foreach ($financial->capital_sources as $source)
+                                    <tr>
+                                        <td>{{ $source['source'] }}</td>
+                                        <td>Rp {{ number_format($source['amount'], 0, ',', '.') }}</td>
+                                        <td>{{ $source['percentage'] }}%</td>
                                     </tr>
-                                </table>
-                            </div>
-                        @endif
+                                @endforeach
+                                <tr class="text-bold">
+                                    <td>Total Modal Awal</td>
+                                    <td colspan="2">Rp
+                                        {{ number_format($financial->total_initial_capital, 0, ',', '.') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    @endif
 
-                        <!-- Sales Projections -->
-                        @if ($financial->sales_projections)
-                            <div class="subsection">
-                                <div class="subsection-title">Proyeksi Penjualan</div>
-                                <table class="table">
+                    <!-- Sales Projections -->
+                    @if ($financial->sales_projections)
+                        <div class="mb-15" style="page-break-inside: avoid;">
+                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Proyeksi Penjualan</h4>
+                            <table class="table">
                                     <tr>
                                         <th>Produk/Layanan</th>
                                         <th>Harga</th>
@@ -724,22 +742,22 @@
                                             <td>Rp {{ number_format($projection['monthly_income'], 0, ',', '.') }}</td>
                                         </tr>
                                     @endforeach
-                                    <tr class="text-bold">
-                                        <td colspan="3">Total Pendapatan Bulanan</td>
-                                        <td>Rp {{ number_format($financial->total_monthly_income, 0, ',', '.') }}</td>
-                                    </tr>
-                                    <tr class="text-bold">
-                                        <td colspan="3">Total Pendapatan Tahunan</td>
-                                        <td>Rp {{ number_format($financial->total_yearly_income, 0, ',', '.') }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        @endif
+                                <tr class="text-bold">
+                                    <td colspan="3">Total Pendapatan Bulanan</td>
+                                    <td>Rp {{ number_format($financial->total_monthly_income, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr class="text-bold">
+                                    <td colspan="3">Total Pendapatan Tahunan</td>
+                                    <td>Rp {{ number_format($financial->total_yearly_income, 0, ',', '.') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    @endif
 
-                        <!-- Profit Loss Summary -->
-                        <div class="subsection">
-                            <div class="subsection-title">Ringkasan Laba Rugi (Bulanan)</div>
-                            <table class="table">
+                    <!-- Profit Loss Summary -->
+                    <div class="mb-15" style="page-break-inside: avoid;">
+                        <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Ringkasan Laba Rugi (Bulanan)</h4>
+                        <table class="table">
                                 <tr>
                                     <td><strong>Pendapatan Bulanan</strong></td>
                                     <td class="text-right">Rp
@@ -759,27 +777,74 @@
                                     <td><strong>Pajak ({{ $financial->tax_rate }}%)</strong></td>
                                     <td class="text-right">Rp {{ number_format($financial->tax_amount, 0, ',', '.') }}
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Biaya Bunga</strong></td>
-                                    <td class="text-right">Rp
-                                        {{ number_format($financial->interest_expense, 0, ',', '.') }}</td>
-                                </tr>
-                                <tr class="text-bold">
-                                    <td><strong>Laba Bersih</strong></td>
-                                    <td class="text-right">Rp {{ number_format($financial->net_profit, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        @if ($financial->feasibility_notes)
-                            <div class="subsection">
-                                <div class="subsection-title">Analisis Kelayakan</div>
-                                <p>{!! nl2br(e($financial->feasibility_notes)) !!}</p>
-                            </div>
-                        @endif
+                            <tr>
+                                <td><strong>Biaya Bunga</strong></td>
+                                <td class="text-right">Rp
+                                    {{ number_format($financial->interest_expense, 0, ',', '.') }}</td>
+                            </tr>
+                            <tr class="text-bold">
+                                <td><strong>Laba Bersih</strong></td>
+                                <td class="text-right">Rp {{ number_format($financial->net_profit, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                        </table>
                     </div>
+
+                    @if ($financial->feasibility_notes)
+                        <div class="mb-15" style="page-break-inside: avoid;">
+                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Analisis Kelayakan</h4>
+                            <p>{!! nl2br(e($financial->feasibility_notes)) !!}</p>
+                        </div>
+                    @endif
+
+                    <!-- Financial Charts -->
+                    @if (isset($charts) && $charts)
+                        <div class="mb-15" style="margin-top: 25px;">
+                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 15px;">Grafik Analisis Keuangan</h4>
+
+                            @if (isset($charts['profit_loss']) && $charts['profit_loss'])
+                                <div class="mb-15" style="page-break-inside: avoid;">
+                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Laba Rugi</h4>
+                                    <img src="{{ $charts['profit_loss'] }}" alt="Grafik Laba Rugi" class="chart-image">
+                                </div>
+                            @endif
+
+                            @if (isset($charts['capital_structure']) && $charts['capital_structure'])
+                                <div class="mb-15" style="page-break-inside: avoid;">
+                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Struktur Modal</h4>
+                                    <img src="{{ $charts['capital_structure'] }}" alt="Grafik Struktur Modal" class="chart-image">
+                                </div>
+                            @endif
+
+                            @if (isset($charts['revenue_streams']) && $charts['revenue_streams'])
+                                <div class="mb-15" style="page-break-inside: avoid;">
+                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Sumber Pendapatan</h4>
+                                    <img src="{{ $charts['revenue_streams'] }}" alt="Grafik Sumber Pendapatan" class="chart-image">
+                                </div>
+                            @endif
+
+                            @if (isset($charts['expense_breakdown']) && $charts['expense_breakdown'])
+                                <div class="mb-15" style="page-break-inside: avoid;">
+                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Breakdown Biaya</h4>
+                                    <img src="{{ $charts['expense_breakdown'] }}" alt="Grafik Breakdown Biaya" class="chart-image">
+                                </div>
+                            @endif
+
+                            @if (isset($charts['feasibility']) && $charts['feasibility'])
+                                <div class="mb-15" style="page-break-inside: avoid;">
+                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Analisis Kelayakan</h4>
+                                    <img src="{{ $charts['feasibility'] }}" alt="Grafik Analisis Kelayakan" class="chart-image">
+                                </div>
+                            @endif
+
+                            @if (isset($charts['forecast']) && $charts['forecast'])
+                                <div class="mb-15" style="page-break-inside: avoid;">
+                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Proyeksi Masa Depan</h4>
+                                    <img src="{{ $charts['forecast'] }}" alt="Grafik Proyeksi Masa Depan" class="chart-image">
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 @endforeach
             </div>
         </div>

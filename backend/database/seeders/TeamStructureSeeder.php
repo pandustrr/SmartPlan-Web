@@ -12,8 +12,8 @@ class TeamStructureSeeder extends Seeder
         $data = [
             [
                 'user_id' => 1,
-                'business_background_id' => 3,
-                'operational_plan_id' => 2,
+                'business_background_id' => 1,
+                'operational_plan_id' => 1,
                 'team_category' => 'Manajemen',
                 'member_name' => 'Rizky Pratama',
                 'position' => 'Founder & CEO',
@@ -24,8 +24,8 @@ class TeamStructureSeeder extends Seeder
             ],
             [
                 'user_id' => 1,
-                'business_background_id' => 3,
-                'operational_plan_id' => 2,
+                'business_background_id' => 1,
+                'operational_plan_id' => 1,
                 'team_category' => 'Operasional',
                 'member_name' => 'Andi Setiawan',
                 'position' => 'Operational Staff',
@@ -36,8 +36,8 @@ class TeamStructureSeeder extends Seeder
             ],
             [
                 'user_id' => 1,
-                'business_background_id' => 3,
-                'operational_plan_id' => 2,
+                'business_background_id' => 1,
+                'operational_plan_id' => 1,
                 'team_category' => 'Customer Support',
                 'member_name' => 'Rina Oktaviani',
                 'position' => 'Customer Support',
@@ -48,8 +48,8 @@ class TeamStructureSeeder extends Seeder
             ],
             [
                 'user_id' => 1,
-                'business_background_id' => 3,
-                'operational_plan_id' => 2,
+                'business_background_id' => 1,
+                'operational_plan_id' => 1,
                 'team_category' => 'Teknologi',
                 'member_name' => 'Bagas Nurrahman',
                 'position' => 'IT & System Engineer',

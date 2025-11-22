@@ -11,7 +11,7 @@ class OperationalPlanSeeder extends Seeder
     {
         OperationalPlan::create([
             'user_id' => 1,
-            'business_background_id' => 3,
+            'business_background_id' => 1,
 
             // Lokasi Usaha
             'business_location' => 'Ruko Kampus, Jember',
