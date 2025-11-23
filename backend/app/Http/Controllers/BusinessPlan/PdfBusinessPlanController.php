@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\WorkflowDiagramService;
 
 
 class PdfBusinessPlanController extends Controller
@@ -49,6 +50,9 @@ class PdfBusinessPlanController extends Controller
             $businessData = $this->getBusinessPlanData($userId, $businessBackgroundId);
 
             $executiveSummary = $this->createExecutiveSummary($businessData);
+
+            // Generate workflow diagrams dari backend
+            $workflows = $this->generateWorkflowDiagrams($businessData['operational_plans']);
 
             if (!$businessData['business_background']) {
                 return response()->json([
@@ -85,8 +89,9 @@ class PdfBusinessPlanController extends Controller
             $pdf = PDF::loadView('pdf.business-plan', [
                 'data' => $businessData,
                 'mode' => $mode,
-                'executiveSummary' => $executiveSummary, // TAMBAHKAN INI
+                'executiveSummary' => $executiveSummary,
                 'charts' => $charts, // Pass charts data ke view
+                'workflows' => $workflows, // Pass workflow images ke view
                 'generated_at' => now()->format('d F Y H:i:s')
             ]);
 
@@ -299,5 +304,29 @@ class PdfBusinessPlanController extends Controller
                 'message' => 'Failed to get PDF statistics'
             ], 500);
         }
+    }
+
+    /**
+     * Generate workflow diagrams for operational plans
+     */
+    private function generateWorkflowDiagrams($operationalPlans)
+    {
+        $workflowService = new WorkflowDiagramService();
+        $workflows = [];
+
+        foreach ($operationalPlans as $plan) {
+            if ($plan->workflow_diagram) {
+                $diagram = is_string($plan->workflow_diagram)
+                    ? json_decode($plan->workflow_diagram, true)
+                    : $plan->workflow_diagram;
+
+                $image = $workflowService->generateWorkflowSvg($diagram);
+                if ($image) {
+                    $workflows[$plan->id] = $image;
+                }
+            }
+        }
+
+        return $workflows;
     }
 }

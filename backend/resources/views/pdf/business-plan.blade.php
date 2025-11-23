@@ -334,6 +334,7 @@
             </div>
 
             <div class="section">
+                <!-- 1. Target Pasar -->
                 @if ($data['market_analysis']->target_market)
                     <div class="subsection">
                         <div class="subsection-title">Target Pasar</div>
@@ -341,6 +342,7 @@
                     </div>
                 @endif
 
+                <!-- 2. Ukuran Pasar -->
                 @if ($data['market_analysis']->market_size)
                     <div class="subsection">
                         <div class="subsection-title">Ukuran Pasar</div>
@@ -348,14 +350,7 @@
                     </div>
                 @endif
 
-                @if ($data['market_analysis']->market_trends)
-                    <div class="subsection">
-                        <div class="subsection-title">Tren Pasar</div>
-                        <p>{!! nl2br(e($data['market_analysis']->market_trends)) !!}</p>
-                    </div>
-                @endif
-
-                <!-- Market Size Metrics -->
+                <!-- 3. Analisis Ukuran Pasar (TAM, SAM, SOM) -->
                 @if ($data['market_analysis']->tam_total)
                     <div class="subsection">
                         <div class="subsection-title">Analisis Ukuran Pasar</div>
@@ -390,7 +385,40 @@
                     </div>
                 @endif
 
-                <!-- Competitors -->
+                <!-- 4. Tren Pasar -->
+                @if ($data['market_analysis']->market_trends)
+                    <div class="subsection">
+                        <div class="subsection-title">Tren Pasar</div>
+                        <p>{!! nl2br(e($data['market_analysis']->market_trends)) !!}</p>
+                    </div>
+                @endif
+
+                <!-- 5. Analisis SWOT -->
+                @if (
+                    $data['market_analysis']->strengths ||
+                        $data['market_analysis']->weaknesses ||
+                        $data['market_analysis']->opportunities ||
+                        $data['market_analysis']->threats)
+                    <div class="subsection">
+                        <div class="subsection-title">Analisis SWOT</div>
+                        <table class="table">
+                            <tr>
+                                <th style="width: 25%;">Strengths (Kekuatan)</th>
+                                <th style="width: 25%;">Weaknesses (Kelemahan)</th>
+                                <th style="width: 25%;">Opportunities (Peluang)</th>
+                                <th style="width: 25%;">Threats (Ancaman)</th>
+                            </tr>
+                            <tr>
+                                <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
+                                <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
+                                <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
+                                <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
+                            </tr>
+                        </table>
+                    </div>
+                @endif
+
+                <!-- 6. Analisis Kompetitor (Tabel Detail) -->
                 @if ($data['market_analysis']->competitors->count() > 0)
                     <div class="subsection">
                         <div class="subsection-title">Analisis Kompetitor</div>
@@ -431,31 +459,32 @@
                     </div>
                 @endif
 
-                <!-- SWOT Analysis -->
-                @if (
-                    $data['market_analysis']->strengths ||
-                        $data['market_analysis']->weaknesses ||
-                        $data['market_analysis']->opportunities ||
-                        $data['market_analysis']->threats)
+                <!-- 7. Kompetitor Utama -->
+                @if ($data['market_analysis']->main_competitors)
                     <div class="subsection">
-                        <div class="subsection-title">Analisis SWOT</div>
+                        <div class="subsection-title">Kompetitor Utama</div>
+                        <p>{!! nl2br(e($data['market_analysis']->main_competitors)) !!}</p>
+                    </div>
+                @endif
+
+                <!-- 8. Analisis Kelebihan & Kekurangan Kompetitor -->
+                @if ($data['market_analysis']->competitor_strengths || $data['market_analysis']->competitor_weaknesses)
+                    <div class="subsection">
+                        <div class="subsection-title">Analisis Kelebihan & Kekurangan Kompetitor</div>
                         <table class="table">
                             <tr>
-                                <th style="width: 25%;">Strengths (Kekuatan)</th>
-                                <th style="width: 25%;">Weaknesses (Kelemahan)</th>
-                                <th style="width: 25%;">Opportunities (Peluang)</th>
-                                <th style="width: 25%;">Threats (Ancaman)</th>
+                                <th style="width: 50%;">Kekuatan Kompetitor</th>
+                                <th style="width: 50%;">Kelemahan Kompetitor</th>
                             </tr>
                             <tr>
-                                <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
-                                <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
-                                <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
-                                <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
+                                <td>{!! nl2br(e($data['market_analysis']->competitor_strengths ?? '-')) !!}</td>
+                                <td>{!! nl2br(e($data['market_analysis']->competitor_weaknesses ?? '-')) !!}</td>
                             </tr>
                         </table>
                     </div>
                 @endif
 
+                <!-- 9. Keunggulan Kompetitif -->
                 @if ($data['market_analysis']->competitive_advantage)
                     <div class="subsection">
                         <div class="subsection-title">Keunggulan Kompetitif</div>
@@ -517,6 +546,80 @@
                                 </td>
                             </tr>
                         </table>
+
+                        <!-- Business Model Canvas (BMC) -->
+                        @if ($product->bmc_alignment)
+                            <div style="margin-top: 15px;">
+                                <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2c5aa0;">
+                                    Business Model Canvas (BMC)
+                                </h4>
+                                <table class="table">
+                                    @if (isset($product->bmc_alignment['customer_segment']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Customer
+                                                    Segment</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['customer_segment'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['value_proposition']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Value
+                                                    Proposition</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['value_proposition'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['channels']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Channels</strong>
+                                            </td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['channels'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['customer_relationships']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Customer
+                                                    Relationships</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['customer_relationships'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['revenue_streams']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Revenue
+                                                    Streams</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['revenue_streams'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['key_resources']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Key
+                                                    Resources</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['key_resources'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['key_activities']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Key
+                                                    Activities</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['key_activities'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['key_partnerships']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Key
+                                                    Partnerships</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['key_partnerships'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                    @if (isset($product->bmc_alignment['cost_structure']))
+                                        <tr>
+                                            <td style="width: 25%; background-color: #f3f4f6;"><strong>Cost
+                                                    Structure</strong></td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['cost_structure'])) !!}</td>
+                                        </tr>
+                                    @endif
+                                </table>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -584,7 +687,7 @@
 
             <div class="section">
                 @foreach ($data['operational_plans'] as $plan)
-                    <div class="subsection">
+                    <div style="margin-bottom: 20px;">
                         <table class="table">
                             <tr>
                                 <td style="width: 20%;"><strong>Lokasi Bisnis</strong></td>
@@ -631,6 +734,15 @@
                                 </tr>
                             @endif
                         </table>
+
+                        @if (isset($workflows[$plan->id]))
+                            <div style="margin-top: 15px;">
+                                <h3 style="margin: 10px 0; font-size: 14px; font-weight: bold;">Diagram Alur Kerja</h3>
+                                <img src="{{ $workflows[$plan->id] }}"
+                                    style="width: 100%; max-width: 120px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #ffffff;"
+                                    alt="Workflow Diagram {{ $plan->business_location }}" />
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -702,11 +814,11 @@
                         <div class="mb-15" style="page-break-inside: avoid;">
                             <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Sumber Modal</h4>
                             <table class="table">
-                                    <tr>
-                                        <th>Sumber</th>
-                                        <th>Jumlah</th>
-                                        <th>Persentase</th>
-                                    </tr>
+                                <tr>
+                                    <th>Sumber</th>
+                                    <th>Jumlah</th>
+                                    <th>Persentase</th>
+                                </tr>
                                 @foreach ($financial->capital_sources as $source)
                                     <tr>
                                         <td>{{ $source['source'] }}</td>
@@ -720,6 +832,13 @@
                                         {{ number_format($financial->total_initial_capital, 0, ',', '.') }}</td>
                                 </tr>
                             </table>
+
+                            @if (isset($charts['capital_structure']) && $charts['capital_structure'])
+                                <div style="margin-top: 15px;">
+                                    <img src="{{ $charts['capital_structure'] }}" alt="Grafik Struktur Modal"
+                                        class="chart-image">
+                                </div>
+                            @endif
                         </div>
                     @endif
 
@@ -728,20 +847,20 @@
                         <div class="mb-15" style="page-break-inside: avoid;">
                             <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Proyeksi Penjualan</h4>
                             <table class="table">
+                                <tr>
+                                    <th>Produk/Layanan</th>
+                                    <th>Harga</th>
+                                    <th>Volume/Bulan</th>
+                                    <th>Pendapatan/Bulan</th>
+                                </tr>
+                                @foreach ($financial->sales_projections as $projection)
                                     <tr>
-                                        <th>Produk/Layanan</th>
-                                        <th>Harga</th>
-                                        <th>Volume/Bulan</th>
-                                        <th>Pendapatan/Bulan</th>
+                                        <td>{{ $projection['product'] }}</td>
+                                        <td>Rp {{ number_format($projection['price'], 0, ',', '.') }}</td>
+                                        <td>{{ number_format($projection['volume'], 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($projection['monthly_income'], 0, ',', '.') }}</td>
                                     </tr>
-                                    @foreach ($financial->sales_projections as $projection)
-                                        <tr>
-                                            <td>{{ $projection['product'] }}</td>
-                                            <td>Rp {{ number_format($projection['price'], 0, ',', '.') }}</td>
-                                            <td>{{ number_format($projection['volume'], 0, ',', '.') }}</td>
-                                            <td>Rp {{ number_format($projection['monthly_income'], 0, ',', '.') }}</td>
-                                        </tr>
-                                    @endforeach
+                                @endforeach
                                 <tr class="text-bold">
                                     <td colspan="3">Total Pendapatan Bulanan</td>
                                     <td>Rp {{ number_format($financial->total_monthly_income, 0, ',', '.') }}</td>
@@ -751,32 +870,72 @@
                                     <td>Rp {{ number_format($financial->total_yearly_income, 0, ',', '.') }}</td>
                                 </tr>
                             </table>
+
+                            @if (isset($charts['revenue_streams']) && $charts['revenue_streams'])
+                                <div style="margin-top: 15px;">
+                                    <img src="{{ $charts['revenue_streams'] }}" alt="Grafik Sumber Pendapatan"
+                                        class="chart-image">
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    <!-- Operational Expenses Breakdown -->
+                    @if ($financial->monthly_opex)
+                        <div class="mb-15" style="page-break-inside: avoid;">
+                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Breakdown Biaya
+                                Operasional</h4>
+                            <table class="table">
+                                <tr>
+                                    <th>Kategori Biaya</th>
+                                    <th>Jumlah/Bulan</th>
+                                </tr>
+                                @foreach ($financial->monthly_opex as $expense)
+                                    <tr>
+                                        <td>{{ $expense['category'] }}</td>
+                                        <td>Rp {{ number_format($expense['amount'], 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                                <tr class="text-bold">
+                                    <td>Total Biaya Operasional Bulanan</td>
+                                    <td>Rp {{ number_format($financial->total_monthly_opex, 0, ',', '.') }}</td>
+                                </tr>
+                            </table>
+
+                            @if (isset($charts['expense_breakdown']) && $charts['expense_breakdown'])
+                                <div style="margin-top: 15px;">
+                                    <img src="{{ $charts['expense_breakdown'] }}" alt="Grafik Breakdown Biaya"
+                                        class="chart-image">
+                                </div>
+                            @endif
                         </div>
                     @endif
 
                     <!-- Profit Loss Summary -->
                     <div class="mb-15" style="page-break-inside: avoid;">
-                        <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Ringkasan Laba Rugi (Bulanan)</h4>
+                        <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Ringkasan Laba Rugi
+                            (Bulanan)
+                        </h4>
                         <table class="table">
-                                <tr>
-                                    <td><strong>Pendapatan Bulanan</strong></td>
-                                    <td class="text-right">Rp
-                                        {{ number_format($financial->total_monthly_income, 0, ',', '.') }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Biaya Operasional Bulanan</strong></td>
-                                    <td class="text-right">Rp
-                                        {{ number_format($financial->total_monthly_opex, 0, ',', '.') }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Laba Kotor</strong></td>
-                                    <td class="text-right">Rp
-                                        {{ number_format($financial->gross_profit, 0, ',', '.') }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Pajak ({{ $financial->tax_rate }}%)</strong></td>
-                                    <td class="text-right">Rp {{ number_format($financial->tax_amount, 0, ',', '.') }}
-                                    </td>
+                            <tr>
+                                <td><strong>Pendapatan Bulanan</strong></td>
+                                <td class="text-right">Rp
+                                    {{ number_format($financial->total_monthly_income, 0, ',', '.') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Biaya Operasional Bulanan</strong></td>
+                                <td class="text-right">Rp
+                                    {{ number_format($financial->total_monthly_opex, 0, ',', '.') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Laba Kotor</strong></td>
+                                <td class="text-right">Rp
+                                    {{ number_format($financial->gross_profit, 0, ',', '.') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pajak ({{ $financial->tax_rate }}%)</strong></td>
+                                <td class="text-right">Rp {{ number_format($financial->tax_amount, 0, ',', '.') }}
+                                </td>
                             <tr>
                                 <td><strong>Biaya Bunga</strong></td>
                                 <td class="text-right">Rp
@@ -788,61 +947,205 @@
                                 </td>
                             </tr>
                         </table>
+
+                        @if (isset($charts['profit_loss']) && $charts['profit_loss'])
+                            <div style="margin-top: 15px;">
+                                <img src="{{ $charts['profit_loss'] }}" alt="Grafik Laba Rugi" class="chart-image">
+                            </div>
+                        @endif
                     </div>
 
                     @if ($financial->feasibility_notes)
                         <div class="mb-15" style="page-break-inside: avoid;">
                             <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Analisis Kelayakan</h4>
-                            <p>{!! nl2br(e($financial->feasibility_notes)) !!}</p>
+
+                            <table class="table" style="margin-bottom: 10px;">
+                                <tr>
+                                    <th>Indikator</th>
+                                    <th>Nilai</th>
+                                    <th>Interpretasi</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>ROI (Return on Investment)</strong></td>
+                                    <td>{{ $financial->roi_percentage }}%</td>
+                                    <td>
+                                        @if ($financial->roi_percentage >= 20)
+                                            Sangat Baik
+                                        @elseif($financial->roi_percentage >= 10)
+                                            Baik
+                                        @elseif($financial->roi_percentage >= 5)
+                                            Cukup
+                                        @else
+                                            Kurang Layak
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Payback Period</strong></td>
+                                    <td>{{ $financial->payback_period }} bulan</td>
+                                    <td>
+                                        @if ($financial->payback_period <= 12)
+                                            Sangat Baik
+                                        @elseif($financial->payback_period <= 24)
+                                            Baik
+                                        @elseif($financial->payback_period <= 36)
+                                            Cukup
+                                        @else
+                                            Lama
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Break Even Point (BEP)</strong></td>
+                                    <td>Rp {{ number_format($financial->bep_amount, 0, ',', '.') }}</td>
+                                    <td>Titik impas penjualan</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Profit Margin</strong></td>
+                                    <td>{{ $financial->profit_margin }}%</td>
+                                    <td>
+                                        @if ($financial->profit_margin >= 20)
+                                            Sangat Baik
+                                        @elseif($financial->profit_margin >= 10)
+                                            Baik
+                                        @elseif($financial->profit_margin >= 5)
+                                            Cukup
+                                        @else
+                                            Rendah
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr class="text-bold">
+                                    <td><strong>Status Kelayakan</strong></td>
+                                    <td colspan="2"
+                                        style="color: {{ $financial->feasibility_status == 'Layak' ? '#059669' : ($financial->feasibility_status == 'Cukup Layak' ? '#D97706' : '#DC2626') }};">
+                                        {{ $financial->feasibility_status }}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin-top: 10px;">{!! nl2br(e($financial->feasibility_notes)) !!}</p>
+
+                            @if (isset($charts['feasibility']) && $charts['feasibility'])
+                                <div style="margin-top: 15px;">
+                                    <img src="{{ $charts['feasibility'] }}" alt="Grafik Analisis Kelayakan"
+                                        class="chart-image">
+                                </div>
+                            @endif
                         </div>
                     @endif
 
-                    <!-- Financial Charts -->
-                    @if (isset($charts) && $charts)
-                        <div class="mb-15" style="margin-top: 25px;">
-                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 15px;">Grafik Analisis Keuangan</h4>
+                    <!-- Forecast Chart -->
+                    @if (isset($charts['forecast']) && $charts['forecast'])
+                        <div class="mb-15" style="page-break-inside: avoid;">
+                            <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Proyeksi Keuangan Masa
+                                Depan</h4>
 
-                            @if (isset($charts['profit_loss']) && $charts['profit_loss'])
-                                <div class="mb-15" style="page-break-inside: avoid;">
-                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Laba Rugi</h4>
-                                    <img src="{{ $charts['profit_loss'] }}" alt="Grafik Laba Rugi" class="chart-image">
-                                </div>
+                            @if (
+                                $financial->cash_flow_simulation &&
+                                    is_array($financial->cash_flow_simulation) &&
+                                    count($financial->cash_flow_simulation) > 0)
+                                <table class="table" style="margin-bottom: 15px;">
+                                    <tr>
+                                        <th>Periode</th>
+                                        <th>Pendapatan</th>
+                                        <th>Pengeluaran</th>
+                                        <th>Arus Kas</th>
+                                        <th>Saldo Kumulatif</th>
+                                    </tr>
+                                    @php
+                                        // Group cash flow by month
+                                        $monthlyData = [];
+                                        foreach ($financial->cash_flow_simulation as $flow) {
+                                            $date = \Carbon\Carbon::parse($flow['date']);
+                                            $monthKey = $date->format('Y-m');
+
+                                            if (!isset($monthlyData[$monthKey])) {
+                                                $monthlyData[$monthKey] = [
+                                                    'period' => $date->format('M Y'),
+                                                    'income' => 0,
+                                                    'expense' => 0,
+                                                ];
+                                            }
+
+                                            if ($flow['type'] === 'income') {
+                                                $monthlyData[$monthKey]['income'] += floatval($flow['amount']);
+                                            } else {
+                                                $monthlyData[$monthKey]['expense'] += floatval($flow['amount']);
+                                            }
+                                        }
+
+                                        ksort($monthlyData); // Sort by date
+                                        $cumulativeBalance = 0;
+                                        $displayedMonths = 0;
+                                        $maxDisplay = 12;
+                                    @endphp
+                                    @foreach ($monthlyData as $monthKey => $monthData)
+                                        @if ($displayedMonths < $maxDisplay)
+                                            @php
+                                                $netCashFlow = $monthData['income'] - $monthData['expense'];
+                                                $cumulativeBalance += $netCashFlow;
+                                                $displayedMonths++;
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $monthData['period'] }}</td>
+                                                <td>Rp {{ number_format($monthData['income'], 0, ',', '.') }}</td>
+                                                <td>Rp {{ number_format($monthData['expense'], 0, ',', '.') }}</td>
+                                                <td style="color: {{ $netCashFlow >= 0 ? '#059669' : '#DC2626' }};">
+                                                    Rp {{ number_format($netCashFlow, 0, ',', '.') }}
+                                                </td>
+                                                <td
+                                                    style="color: {{ $cumulativeBalance >= 0 ? '#059669' : '#DC2626' }};">
+                                                    Rp {{ number_format($cumulativeBalance, 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                </table>
+                            @else
+                                <table class="table" style="margin-bottom: 15px;">
+                                    <tr>
+                                        <th>Periode</th>
+                                        <th>Proyeksi Pendapatan</th>
+                                        <th>Proyeksi Pengeluaran</th>
+                                        <th>Proyeksi Laba Bersih</th>
+                                        <th>Saldo Kumulatif</th>
+                                    </tr>
+                                    @php
+                                        $cumulativeBalance = 0;
+                                    @endphp
+                                    @for ($month = 1; $month <= 12; $month++)
+                                        @php
+                                            $monthlyRevenue = $financial->total_monthly_income;
+                                            $monthlyExpense = $financial->total_monthly_opex;
+                                            $monthlyProfit = $financial->net_profit;
+                                            $cumulativeBalance += $monthlyProfit;
+                                        @endphp
+                                        <tr>
+                                            <td>Bulan {{ $month }}</td>
+                                            <td>Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($monthlyExpense, 0, ',', '.') }}</td>
+                                            <td style="color: {{ $monthlyProfit >= 0 ? '#059669' : '#DC2626' }};">
+                                                Rp {{ number_format($monthlyProfit, 0, ',', '.') }}
+                                            </td>
+                                            <td style="color: {{ $cumulativeBalance >= 0 ? '#059669' : '#DC2626' }};">
+                                                Rp {{ number_format($cumulativeBalance, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endfor
+                                    <tr class="text-bold">
+                                        <td>Total Tahun 1</td>
+                                        <td>Rp {{ number_format($financial->total_yearly_income, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($financial->total_monthly_opex * 12, 0, ',', '.') }}
+                                        </td>
+                                        <td>Rp {{ number_format($financial->net_profit * 12, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($cumulativeBalance, 0, ',', '.') }}</td>
+                                    </tr>
+                                </table>
                             @endif
 
-                            @if (isset($charts['capital_structure']) && $charts['capital_structure'])
-                                <div class="mb-15" style="page-break-inside: avoid;">
-                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Struktur Modal</h4>
-                                    <img src="{{ $charts['capital_structure'] }}" alt="Grafik Struktur Modal" class="chart-image">
-                                </div>
-                            @endif
-
-                            @if (isset($charts['revenue_streams']) && $charts['revenue_streams'])
-                                <div class="mb-15" style="page-break-inside: avoid;">
-                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Sumber Pendapatan</h4>
-                                    <img src="{{ $charts['revenue_streams'] }}" alt="Grafik Sumber Pendapatan" class="chart-image">
-                                </div>
-                            @endif
-
-                            @if (isset($charts['expense_breakdown']) && $charts['expense_breakdown'])
-                                <div class="mb-15" style="page-break-inside: avoid;">
-                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Breakdown Biaya</h4>
-                                    <img src="{{ $charts['expense_breakdown'] }}" alt="Grafik Breakdown Biaya" class="chart-image">
-                                </div>
-                            @endif
-
-                            @if (isset($charts['feasibility']) && $charts['feasibility'])
-                                <div class="mb-15" style="page-break-inside: avoid;">
-                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Analisis Kelayakan</h4>
-                                    <img src="{{ $charts['feasibility'] }}" alt="Grafik Analisis Kelayakan" class="chart-image">
-                                </div>
-                            @endif
-
-                            @if (isset($charts['forecast']) && $charts['forecast'])
-                                <div class="mb-15" style="page-break-inside: avoid;">
-                                    <h4 style="font-weight: bold; color: #374151; margin-bottom: 8px; font-size: 12px;">Grafik Proyeksi Masa Depan</h4>
-                                    <img src="{{ $charts['forecast'] }}" alt="Grafik Proyeksi Masa Depan" class="chart-image">
-                                </div>
-                            @endif
+                            <img src="{{ $charts['forecast'] }}" alt="Grafik Proyeksi Masa Depan"
+                                class="chart-image">
                         </div>
                     @endif
                 @endforeach

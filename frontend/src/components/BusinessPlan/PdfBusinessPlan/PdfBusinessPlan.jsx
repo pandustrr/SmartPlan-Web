@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { backgroundApi } from "../../../services/businessPlan/backgroundApi";
 import pdfBusinessPlanApi from "../../../services/businessPlan/pdfBusinessPlanApi";
-import { financialPlanApi } from "../../../services/businessPlan";
+import { financialPlanApi, operationalPlanApi } from "../../../services/businessPlan";
 import ChartCaptureRenderer from "./ChartCaptureRenderer";
 
 const PdfBusinessPlan = ({ onBack }) => {
@@ -18,6 +18,7 @@ const PdfBusinessPlan = ({ onBack }) => {
   const [isCapturingCharts, setIsCapturingCharts] = useState(false);
   const [financialPlan, setFinancialPlan] = useState(null);
   const [chartImages, setChartImages] = useState(null);
+  const [operationalPlans, setOperationalPlans] = useState([]);
 
   useEffect(() => {
     loadBusinessBackgrounds();
@@ -52,6 +53,8 @@ const PdfBusinessPlan = ({ onBack }) => {
         setSelectedBusinessData(response.data.data);
         // Load financial plan untuk business ini
         await loadFinancialPlan(selectedBusiness);
+        // Load operational plans untuk business ini
+        await loadOperationalPlans(selectedBusiness);
       }
     } catch (error) {
       console.error("Error loading selected business data:", error);
@@ -88,6 +91,20 @@ const PdfBusinessPlan = ({ onBack }) => {
     } catch (error) {
       console.error("Error loading financial plan:", error);
       setFinancialPlan(null);
+    }
+  };
+
+  const loadOperationalPlans = async (businessBackgroundId) => {
+    try {
+      const response = await operationalPlanApi.getAll();
+      if (response.data.status === "success") {
+        const plans = response.data.data.filter((plan) => plan.business_background_id == businessBackgroundId && plan.workflow_diagram);
+        console.log("Operational Plans with Workflow:", plans);
+        setOperationalPlans(plans);
+      }
+    } catch (error) {
+      console.error("Error loading operational plans:", error);
+      setOperationalPlans([]);
     }
   };
 
@@ -150,8 +167,10 @@ const PdfBusinessPlan = ({ onBack }) => {
     try {
       // Jika ada financial plan, capture charts terlebih dahulu
       let charts = null;
+      let workflows = null;
 
       console.log("Financial Plan:", financialPlan); // Debug log
+      console.log("Operational Plans:", operationalPlans); // Debug log
 
       if (financialPlan && !preview) {
         console.log("Starting chart capture..."); // Debug log
@@ -182,6 +201,8 @@ const PdfBusinessPlan = ({ onBack }) => {
         console.warn("No financial plan found for this business"); // Debug log
       }
 
+      // Workflows are now generated on backend, no frontend capture needed
+
       if (preview) {
         const response = await pdfBusinessPlanApi.previewPdf(selectedBusiness, mode);
         if (response.data.status === "success") {
@@ -191,7 +212,8 @@ const PdfBusinessPlan = ({ onBack }) => {
       } else {
         setMessage({ type: "info", text: "Membuat PDF..." });
         console.log("Sending request with charts:", charts ? "Yes" : "No"); // Debug log
-        const response = await pdfBusinessPlanApi.generatePdf(selectedBusiness, mode, charts);
+        console.log("Sending request with workflows:", workflows ? "Yes" : "No"); // Debug log
+        const response = await pdfBusinessPlanApi.generatePdf(selectedBusiness, mode, charts, workflows);
 
         // Create blob and download
         const blob = new Blob([response.data], { type: "application/pdf" });
@@ -289,29 +311,29 @@ const PdfBusinessPlan = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-6 bg-gray-50 dark:bg-gray-900">
+      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Header dengan Back Button */}
         <div className="mb-8">
-          <button onClick={onBack} className="mb-4 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200">
+          <button onClick={onBack} className="px-4 py-2 mb-4 text-gray-700 transition-colors duration-200 border border-gray-300 rounded-lg dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
             ← Kembali ke Menu Utama
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">📊 PDF Business Plan</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">📊 PDF Business Plan</h1>
           <p className="text-gray-600 dark:text-gray-400">Generate laporan business plan profesional dalam format PDF</p>
         </div>
 
         {/* Statistics */}
         {statistics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+            <div className="p-6 text-center bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-lg dark:bg-blue-900/20">
                 <span className="text-2xl">🏢</span>
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.total_business_plans}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Business Plans</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-center">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <div className="p-6 text-center bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 bg-green-100 rounded-lg dark:bg-green-900/20">
                 <span className="text-2xl">📈</span>
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.pdf_usage?.generated_today || 0}</div>
@@ -335,9 +357,9 @@ const PdfBusinessPlan = ({ onBack }) => {
 
         {/* Validation Errors */}
         {validationErrors.length > 0 && (
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <h3 className="font-semibold text-yellow-800 dark:text-yellow-400 mb-2">⚠️ Data yang perlu dilengkapi:</h3>
-            <ul className="list-disc list-inside space-y-1 text-yellow-700 dark:text-yellow-300">
+          <div className="p-4 mb-6 border border-yellow-200 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
+            <h3 className="mb-2 font-semibold text-yellow-800 dark:text-yellow-400">⚠️ Data yang perlu dilengkapi:</h3>
+            <ul className="space-y-1 text-yellow-700 list-disc list-inside dark:text-yellow-300">
               {validationErrors.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
@@ -347,28 +369,28 @@ const PdfBusinessPlan = ({ onBack }) => {
 
         {/* Business Completion Status */}
         {selectedBusinessData && (
-          <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <div className="p-4 mb-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900 dark:text-white">Status Kelengkapan Data</h3>
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{getBusinessCompletionStatus()}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full transition-all duration-300" style={{ width: `${getBusinessCompletionStatus()}%` }}></div>
+            <div className="w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700">
+              <div className="h-2 transition-all duration-300 bg-green-500 rounded-full" style={{ width: `${getBusinessCompletionStatus()}%` }}></div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{getBusinessCompletionStatus() >= 80 ? "✅ Data sudah cukup lengkap untuk generate PDF" : "⚠️ Lengkapi data terlebih dahulu untuk hasil yang optimal"}</p>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{getBusinessCompletionStatus() >= 80 ? "✅ Data sudah cukup lengkap untuk generate PDF" : "⚠️ Lengkapi data terlebih dahulu untuk hasil yang optimal"}</p>
           </div>
         )}
 
         {/* Main Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="p-6 mb-8 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
+          <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
             {/* Business Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pilih Bisnis</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Pilih Bisnis</label>
               <select
                 value={selectedBusiness}
                 onChange={(e) => setSelectedBusiness(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Pilih bisnis...</option>
                 {businessBackgrounds.map((business) => (
@@ -381,11 +403,11 @@ const PdfBusinessPlan = ({ onBack }) => {
 
             {/* Mode Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mode PDF</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Mode PDF</label>
               <select
                 value={mode}
                 onChange={(e) => setMode(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="free">🆓 Gratis - Dengan Watermark</option>
                 <option value="pro">💎 Pro - Tanpa Watermark</option>
@@ -398,25 +420,25 @@ const PdfBusinessPlan = ({ onBack }) => {
             <button
               onClick={() => handleGeneratePdf(true)}
               disabled={loading || !selectedBusiness || getBusinessCompletionStatus() < 50}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors duration-200 border border-gray-300 rounded-lg dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               title={getBusinessCompletionStatus() < 50 ? "Lengkapi data minimal 50% untuk preview" : ""}
             >
-              {loading ? <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div> : "👁️ Preview"}
+              {loading ? <div className="w-5 h-5 border-2 border-gray-300 rounded-full border-t-blue-600 animate-spin"></div> : "👁️ Preview"}
             </button>
 
             <button
               onClick={() => handleGeneratePdf(false)}
               disabled={loading || !selectedBusiness || getBusinessCompletionStatus() < 80}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="flex items-center gap-2 px-4 py-2 text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
               title={getBusinessCompletionStatus() < 80 ? "Lengkapi data minimal 80% untuk download PDF" : ""}
             >
-              {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "📥 Download PDF"}
+              {loading ? <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"></div> : "📥 Download PDF"}
             </button>
 
             <button
               onClick={handleGenerateExecutiveSummary}
               disabled={loading || !selectedBusiness || getBusinessCompletionStatus() < 50}
-              className="flex items-center gap-2 px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="flex items-center gap-2 px-4 py-2 text-blue-600 transition-colors duration-200 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
               title={getBusinessCompletionStatus() < 50 ? "Lengkapi data minimal 50% untuk ringkasan eksekutif" : ""}
             >
               📄 Ringkasan Eksekutif
@@ -424,9 +446,9 @@ const PdfBusinessPlan = ({ onBack }) => {
           </div>
 
           {/* Features Info */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">✨ Fitur PDF Business Plan:</h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700/50 dark:border-gray-600">
+            <h3 className="mb-3 font-semibold text-gray-900 dark:text-white">✨ Fitur PDF Business Plan:</h3>
+            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
               <li>• Ringkasan Eksekutif otomatis</li>
               <li>• Analisis pasar dan kompetitor</li>
               <li>• Rencana keuangan lengkap</li>
@@ -439,10 +461,10 @@ const PdfBusinessPlan = ({ onBack }) => {
 
         {/* Preview Modal */}
         {previewOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">Preview - {previewData?.business_name || "Business Plan"}</h2>
                   <button onClick={() => setPreviewOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                     ✕
@@ -453,14 +475,14 @@ const PdfBusinessPlan = ({ onBack }) => {
               <div className="p-6">
                 {previewData?.type === "executive_summary" ? (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ringkasan Eksekutif</h3>
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-                      <pre className="whitespace-pre-line text-gray-700 dark:text-gray-300 font-sans">{previewData.executive_summary}</pre>
+                    <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Ringkasan Eksekutif</h3>
+                    <div className="p-6 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700/50 dark:border-gray-600">
+                      <pre className="font-sans text-gray-700 whitespace-pre-line dark:text-gray-300">{previewData.executive_summary}</pre>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Preview untuk PDF</h3>
+                    <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Data Preview untuk PDF</h3>
                     <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                       <p>
                         <strong>Filename:</strong> {previewData?.filename}
@@ -470,7 +492,7 @@ const PdfBusinessPlan = ({ onBack }) => {
                       </p>
 
                       <div className="mt-4">
-                        <h4 className="font-medium text-gray-900 dark:text-white mb-2">Data yang akan dimasukkan dalam PDF:</h4>
+                        <h4 className="mb-2 font-medium text-gray-900 dark:text-white">Data yang akan dimasukkan dalam PDF:</h4>
                         <ul className="space-y-1">
                           <li>• Informasi Bisnis: {previewData?.preview_data?.business_background?.name}</li>
                           <li>• Analisis Pasar: {previewData?.preview_data?.market_analysis ? "✅" : "❌"}</li>
@@ -486,10 +508,10 @@ const PdfBusinessPlan = ({ onBack }) => {
                 )}
               </div>
 
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => setPreviewOpen(false)}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                  className="px-4 py-2 text-gray-700 transition-colors duration-200 border border-gray-300 rounded-lg dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Tutup
                 </button>
@@ -499,7 +521,7 @@ const PdfBusinessPlan = ({ onBack }) => {
                       setPreviewOpen(false);
                       handleGeneratePdf(false);
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                    className="px-4 py-2 text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
                   >
                     Download PDF
                   </button>
@@ -525,6 +547,8 @@ const PdfBusinessPlan = ({ onBack }) => {
             }}
           />
         )}
+
+        {/* Workflows are now generated on backend */}
       </div>
     </div>
   );
