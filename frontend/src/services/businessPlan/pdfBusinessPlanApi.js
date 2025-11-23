@@ -1,7 +1,7 @@
 import api from "../authApi";
 
 const pdfBusinessPlanApi = {
-  // Generate PDF
+  // Generate PDF - sekarang return JSON dengan base64
   generatePdf: (businessBackgroundId, mode = "free", charts = null) => {
     const payload = {
       business_background_id: businessBackgroundId,
@@ -14,7 +14,11 @@ const pdfBusinessPlanApi = {
     }
 
     return api.post("/pdf-business-plan/generate", payload, {
-      responseType: "blob", // Important for file download
+      // Hapus responseType: 'blob' karena sekarang return JSON
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 60000, // 60 seconds timeout
     });
   },
 

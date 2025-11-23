@@ -1,3 +1,4 @@
+import React from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -78,6 +79,11 @@ const Sidebar = ({
           label: "Rencana Keuangan",
           icon: DollarSign,
         },
+        {
+          id: "pdf-business-plan",
+          label: "PDF Business Plan",
+          icon: FileText,
+        },
       ],
     },
     {
@@ -85,18 +91,6 @@ const Sidebar = ({
       label: "Manajemen Keuangan",
       icon: BanknoteArrowUp,
       description: "Kelola keuangan bisnis Anda",
-      subItems: [
-        {
-          id: "business-background",
-          label: "Latar Belakang Bisnis",
-          icon: Building,
-        },
-        {
-          id: "business-background",
-          label: "Latar Belakang Bisnis",
-          icon: Building,
-        },
-      ],
     },
     {
       id: "forecast",
@@ -128,6 +122,7 @@ const Sidebar = ({
 
   const handleSubMenuClick = (subItemId, e) => {
     e.stopPropagation();
+    setActiveSection("business-plan"); // Set active section ke business-plan
     setActiveSubSection(subItemId);
     if (isMobile) {
       onClose();
@@ -187,7 +182,7 @@ const Sidebar = ({
               {/* Toggle Button */}
               <button
                 onClick={onToggle}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
                 {isOpen ? (
                   <ChevronLeft
@@ -206,7 +201,7 @@ const Sidebar = ({
               {isMobile && isOpen && (
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 lg:hidden"
                 >
                   <X size={20} className="text-gray-600 dark:text-gray-300" />
                 </button>
@@ -420,7 +415,7 @@ const Sidebar = ({
       {!isOpen && !isMobile && (
         <button
           onClick={onToggle}
-          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors hidden lg:flex items-center justify-center"
+          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 hidden lg:flex items-center justify-center"
           aria-label="Buka sidebar"
         >
           <ChevronRight

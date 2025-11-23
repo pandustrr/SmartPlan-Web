@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Services\WorkflowDiagramService;
 
-
 class PdfBusinessPlanController extends Controller
 {
     /**
@@ -30,13 +29,14 @@ class PdfBusinessPlanController extends Controller
             Log::info('PDF Generation Started', [
                 'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
-                'mode' => $request->mode
+                'mode' => $request->mode,
+                'has_charts' => !empty($request->charts)
             ]);
 
             $userId = Auth::id();
             $businessBackgroundId = $request->business_background_id;
             $mode = $request->mode ?? 'free';
-            $charts = $request->charts ?? null; // Terima charts data dari frontend
+            $charts = $request->charts ?? null;
 
             // Validasi input
             if (!$businessBackgroundId) {
@@ -49,17 +49,17 @@ class PdfBusinessPlanController extends Controller
             // Ambil semua data business plan
             $businessData = $this->getBusinessPlanData($userId, $businessBackgroundId);
 
-            $executiveSummary = $this->createExecutiveSummary($businessData);
-
-            // Generate workflow diagrams dari backend
-            $workflows = $this->generateWorkflowDiagrams($businessData['operational_plans']);
-
             if (!$businessData['business_background']) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Business background not found'
                 ], 404);
             }
+
+            $executiveSummary = $this->createExecutiveSummary($businessData);
+
+            // Generate workflow diagrams dari backend
+            $workflows = $this->generateWorkflowDiagrams($businessData['operational_plans']);
 
             // Log data yang ditemukan
             Log::info('Business Data Found', [
@@ -90,8 +90,8 @@ class PdfBusinessPlanController extends Controller
                 'data' => $businessData,
                 'mode' => $mode,
                 'executiveSummary' => $executiveSummary,
-                'charts' => $charts, // Pass charts data ke view
-                'workflows' => $workflows, // Pass workflow images ke view
+                'charts' => $charts,
+                'workflows' => $workflows,
                 'generated_at' => now()->format('d F Y H:i:s')
             ]);
 
@@ -101,15 +101,35 @@ class PdfBusinessPlanController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
                 'defaultFont' => 'Arial',
-                'chroot' => [public_path(), storage_path()], // Tambahkan ini
+                'chroot' => [public_path(), storage_path()],
+                'enable_php' => true,
             ]);
 
             $businessName = Str::slug($businessData['business_background']->name);
             $filename = "business-plan-{$businessName}-" . now()->format('Y-m-d') . ".pdf";
 
-            Log::info('PDF Generated Successfully', ['filename' => $filename]);
+            // Encode PDF ke base64
+            $pdfContent = $pdf->output();
+            $pdfBase64 = base64_encode($pdfContent);
 
-            return $pdf->download($filename);
+            Log::info('PDF Generated Successfully', [
+                'filename' => $filename,
+                'file_size' => strlen($pdfContent),
+                'base64_size' => strlen($pdfBase64)
+            ]);
+
+            // Return sebagai JSON dengan base64 PDF
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'filename' => $filename,
+                    'pdf_base64' => $pdfBase64,
+                    'file_size' => strlen($pdfContent),
+                    'mime_type' => 'application/pdf'
+                ],
+                'message' => 'PDF generated successfully'
+            ]);
+
         } catch (\Exception $e) {
             Log::error('Error generating PDF: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
@@ -146,7 +166,7 @@ class PdfBusinessPlanController extends Controller
                 'market_analysis' => MarketAnalysis::with(['businessBackground', 'competitors'])
                     ->where('user_id', $userId)
                     ->where('business_background_id', $businessBackgroundId)
-                    ->first(), // first() bukan get()
+                    ->first(),
 
                 'products_services' => ProductService::with(['businessBackground', 'user'])
                     ->where('user_id', $userId)

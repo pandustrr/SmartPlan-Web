@@ -167,13 +167,11 @@ const PdfBusinessPlan = ({ onBack }) => {
     try {
       // Jika ada financial plan, capture charts terlebih dahulu
       let charts = null;
-      let workflows = null;
 
-      console.log("Financial Plan:", financialPlan); // Debug log
-      console.log("Operational Plans:", operationalPlans); // Debug log
+      console.log("Financial Plan:", financialPlan);
 
       if (financialPlan && !preview) {
-        console.log("Starting chart capture..."); // Debug log
+        console.log("Starting chart capture...");
         setMessage({ type: "info", text: "Memproses grafik keuangan..." });
 
         // Set capturing state dan tunggu state update
@@ -183,7 +181,7 @@ const PdfBusinessPlan = ({ onBack }) => {
         charts = await new Promise((resolve, reject) => {
           // ChartCaptureRenderer akan memanggil callback ini
           window.__chartCaptureComplete = (capturedCharts) => {
-            console.log("Charts captured:", capturedCharts); // Debug log
+            console.log("Charts captured:", capturedCharts);
             resolve(capturedCharts);
           };
           window.__chartCaptureError = reject;
@@ -196,12 +194,10 @@ const PdfBusinessPlan = ({ onBack }) => {
 
         setIsCapturingCharts(false);
         setChartImages(charts);
-        console.log("Charts ready to send:", charts); // Debug log
+        console.log("Charts ready to send:", charts);
       } else if (!financialPlan) {
-        console.warn("No financial plan found for this business"); // Debug log
+        console.warn("No financial plan found for this business");
       }
-
-      // Workflows are now generated on backend, no frontend capture needed
 
       if (preview) {
         const response = await pdfBusinessPlanApi.previewPdf(selectedBusiness, mode);
@@ -211,33 +207,36 @@ const PdfBusinessPlan = ({ onBack }) => {
         }
       } else {
         setMessage({ type: "info", text: "Membuat PDF..." });
-        console.log("Sending request with charts:", charts ? "Yes" : "No"); // Debug log
-        console.log("Sending request with workflows:", workflows ? "Yes" : "No"); // Debug log
-        const response = await pdfBusinessPlanApi.generatePdf(selectedBusiness, mode, charts, workflows);
-
-        // Create blob and download
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-
-        // Extract filename from response headers or use default
-        const contentDisposition = response.headers["content-disposition"];
-        let filename = "business-plan.pdf";
-        if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-          if (filenameMatch) {
-            filename = filenameMatch[1];
+        
+        // Panggil API generate PDF (sekarang return JSON dengan base64)
+        const response = await pdfBusinessPlanApi.generatePdf(selectedBusiness, mode, charts);
+        
+        if (response.data.status === "success") {
+          const { filename, pdf_base64 } = response.data.data;
+          
+          // Convert base64 ke blob
+          const byteCharacters = atob(pdf_base64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
           }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' });
+          
+          // Create download link
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          setMessage({ type: "success", text: "PDF berhasil diunduh" });
+        } else {
+          throw new Error(response.data.message || 'Failed to generate PDF');
         }
-
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        setMessage({ type: "success", text: "PDF berhasil diunduh" });
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
