@@ -103,8 +103,8 @@ const Sidebar = ({
           icon: Folder,
         },
         {
-          id: "financial-transactions",
-          label: "Transaksi Keuangan",
+          id: "financial-simulation",
+          label: "Simulasi Keuangan",
           icon: Wallet,
         },
         {

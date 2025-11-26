@@ -21,6 +21,7 @@ class FinancialSimulation extends Model
         'type',
         'amount',
         'simulation_date',
+        'year',
         'description',
         'payment_method',
         'status',
@@ -35,6 +36,7 @@ class FinancialSimulation extends Model
         'simulation_date' => 'date',
         'recurring_end_date' => 'date',
         'is_recurring' => 'boolean',
+        'year' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
@@ -106,6 +108,22 @@ class FinancialSimulation extends Model
     }
 
     /**
+     * Scope untuk simulasi berdasarkan tahun tertentu
+     */
+    public function scopeForYear($query, $year)
+    {
+        return $query->where('year', $year);
+    }
+
+    /**
+     * Scope untuk simulasi tahun terbaru
+     */
+    public function scopeLatestYear($query)
+    {
+        return $query->where('year', now()->year);
+    }
+
+    /**
      * Generate simulation code
      */
     public static function generateSimulationCode()
@@ -122,6 +140,49 @@ class FinancialSimulation extends Model
         }
 
         return "{$prefix}{$date}{$newNumber}";
+    }
+
+    /**
+     * Set default year saat create
+     */
+    public function setYearAttribute($value)
+    {
+        $this->attributes['year'] = $value ?? now()->year;
+    }
+
+    /**
+     * Auto-increment tahun ketika tanggal simulasi berubah
+     */
+    public function setSimulationDateAttribute($value)
+    {
+        $this->attributes['simulation_date'] = $value;
+
+        // Jika tahun belum diset atau kosong, ambil dari simulation_date
+        if (!isset($this->attributes['year']) || $this->attributes['year'] === null) {
+            $this->attributes['year'] = \Carbon\Carbon::parse($value)->year;
+        }
+    }
+
+    /**
+     * Method untuk auto-increment tahun ke tahun berikutnya
+     */
+    public function incrementToNextYear()
+    {
+        $this->year = $this->year + 1;
+        return $this;
+    }
+
+    /**
+     * Method untuk get tahun available (untuk dropdown/filter)
+     */
+    public static function getAvailableYears($businessBackgroundId, $userId)
+    {
+        return self::where('user_id', $userId)
+            ->where('business_background_id', $businessBackgroundId)
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
     }
 
     /**

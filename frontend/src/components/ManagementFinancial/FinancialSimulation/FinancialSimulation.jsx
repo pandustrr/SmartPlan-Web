@@ -9,6 +9,7 @@ import { managementFinancialApi } from "../../../services/managementFinancial";
 const FinancialSimulation = ({ onBack, selectedBusiness }) => {
   const [simulations, setSimulations] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [availableYears, setAvailableYears] = useState([]);
   const [currentSimulation, setCurrentSimulation] = useState(null);
   const [view, setView] = useState("dashboard"); // dashboard, list, create, edit, view
   const [isLoading, setIsLoading] = useState(true);
@@ -17,8 +18,8 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
     type: "",
     status: "",
     category_id: "",
+    year: "",
     month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(),
   });
 
   // Fetch semua simulations
@@ -82,6 +83,29 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
     }
   };
 
+  // Fetch available years
+  const fetchAvailableYears = async () => {
+    try {
+      if (!selectedBusiness) {
+        setAvailableYears([]);
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      const params = {
+        user_id: user.id,
+        business_background_id: selectedBusiness.id,
+      };
+
+      const response = await managementFinancialApi.simulations.getAvailableYears(params);
+      if (response.data.status === "success") {
+        setAvailableYears(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching available years:", error);
+    }
+  };
+
   const handleError = (error, defaultMessage) => {
     let errorMessage = defaultMessage;
     if (error.response) {
@@ -95,8 +119,36 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
   };
 
   useEffect(() => {
+    // Load saved years from localStorage first
+    try {
+      const savedYears = JSON.parse(localStorage.getItem("simulation_years"));
+      if (savedYears && savedYears.length > 0) {
+        setAvailableYears(savedYears.sort((a, b) => b - a));
+        // Set default filter year if not set
+        if (!filters.year) {
+          setFilters(prev => ({ ...prev, year: savedYears[0] }));
+        }
+      } else {
+        const currentYear = new Date().getFullYear();
+        setAvailableYears([currentYear]);
+        localStorage.setItem("simulation_years", JSON.stringify([currentYear]));
+        if (!filters.year) {
+          setFilters(prev => ({ ...prev, year: currentYear }));
+        }
+      }
+    } catch (error) {
+      console.error("Error loading years from localStorage:", error);
+      const currentYear = new Date().getFullYear();
+      setAvailableYears([currentYear]);
+      if (!filters.year) {
+        setFilters(prev => ({ ...prev, year: currentYear }));
+      }
+    }
+    
+    // Then fetch data
     fetchSimulations();
     fetchCategories();
+    fetchAvailableYears();
   }, [selectedBusiness]);
 
   // Handler functions
@@ -167,6 +219,54 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
     fetchSimulations(newFilters);
   };
 
+  const handleAddYear = async (year) => {
+    // Add year to availableYears and save to localStorage
+    if (!availableYears.includes(year)) {
+      const newYears = [...availableYears, year].sort((a, b) => b - a);
+      setAvailableYears(newYears);
+      
+      // Save to localStorage for persistence
+      const simulationYears = JSON.parse(localStorage.getItem("simulation_years") || "[]");
+      localStorage.setItem("simulation_years", JSON.stringify([...simulationYears, year].filter((v, i, a) => a.indexOf(v) === i)));
+      
+      // Switch to the newly added year and fetch data
+      const newFilters = { ...filters, year };
+      setFilters(newFilters);
+      fetchSimulations(newFilters);
+    }
+  };
+
+  const handleDeleteYear = async (year) => {
+    try {
+      // Delete all simulations in this year
+      const simulationsInYear = simulations.filter(s => s.year === year);
+      for (const simulation of simulationsInYear) {
+        const user = JSON.parse(localStorage.getItem("user"));
+        await managementFinancialApi.simulations.delete(simulation.id, user.id);
+      }
+
+      // Update availableYears
+      const newYears = availableYears.filter(y => y !== year);
+      setAvailableYears(newYears);
+
+      // Update localStorage
+      localStorage.setItem("simulation_years", JSON.stringify(newYears));
+
+      // If deleted year was selected, switch to another year
+      if (filters.year === year) {
+        const currentYear = new Date().getFullYear();
+        const newSelectedYear = newYears.includes(currentYear) ? currentYear : newYears[0];
+        setFilters({ ...filters, year: newSelectedYear });
+        fetchSimulations({ ...filters, year: newSelectedYear });
+      } else {
+        fetchSimulations();
+      }
+    } catch (error) {
+      console.error("Error deleting year:", error);
+      throw error;
+    }
+  };
+
   const handleViewChange = (newView) => {
     setView(newView);
     setCurrentSimulation(null);
@@ -233,6 +333,9 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
             onViewChange={handleViewChange}
             isLoading={isLoading}
             selectedBusiness={selectedBusiness}
+            availableYears={availableYears}
+            onAddYear={handleAddYear}
+            onDeleteYear={handleDeleteYear}
           />
         );
       case "list":
@@ -250,6 +353,7 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
             isLoading={isLoading}
             error={error}
             onRetry={handleRetry}
+            availableYears={availableYears}
           />
         );
       case "create":
@@ -272,6 +376,9 @@ const FinancialSimulation = ({ onBack, selectedBusiness }) => {
             selectedBusiness={selectedBusiness}
             onViewChange={handleViewChange}
             isLoading={isLoading}
+            availableYears={availableYears}
+            onAddYear={handleAddYear}
+            onDeleteYear={handleDeleteYear}
           />
         );
     }

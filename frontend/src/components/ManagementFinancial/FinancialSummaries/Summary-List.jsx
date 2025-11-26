@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Calendar, TrendingUp, TrendingDown, DollarSign, Wallet, Eye, Trash2, RefreshCw, X, BarChart3, Target } from "lucide-react";
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Wallet, Eye, Trash2, RefreshCw, X, BarChart3, Target, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { managementFinancialApi } from "../../../services/managementFinancial";
 import SummaryChart from "./SummaryChart";
 
-const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, selectedYear, onYearChange, onBack, isLoading, error, onRetry }) => {
+const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateNew, selectedYear, onYearChange, onBack, isLoading, error, onRetry }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [summaryToDelete, setSummaryToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);

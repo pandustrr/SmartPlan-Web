@@ -1,6 +1,6 @@
 // frontend/src/components/ManagementFinancial/FinancialSimulation/Simulation-Form.jsx
 
-import { Save, Calendar, DollarSign, FileText, CreditCard, Repeat } from 'lucide-react';
+import { Save, Calendar, DollarSign, FileText, CreditCard, Repeat, TrendingUp } from 'lucide-react';
 
 const SimulationForm = ({
     title,
@@ -57,6 +57,15 @@ const SimulationForm = ({
 
     const handleDateChange = (e) => {
         onInputChange(e);
+        // Auto-update year ketika tanggal berubah
+        const selectedDate = new Date(e.target.value);
+        const selectedYear = selectedDate.getFullYear();
+        onInputChange({
+            target: {
+                name: 'year',
+                value: selectedYear
+            }
+        });
         // Jika recurring diaktifkan, set recurring_end_date default ke 1 tahun
         if (formData.is_recurring && !formData.recurring_end_date) {
             const date = new Date(e.target.value);
@@ -140,7 +149,7 @@ const SimulationForm = ({
                     </div>
 
                     {/* Nominal dan Tanggal */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Nominal *
@@ -178,6 +187,30 @@ const SimulationForm = ({
                                     required
                                 />
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Tahun Fiskal *
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <TrendingUp className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="number"
+                                    name="year"
+                                    value={formData.year || new Date().getFullYear()}
+                                    onChange={onInputChange}
+                                    min="2020"
+                                    max="2100"
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    required
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Auto-update saat tanggal berubah
+                            </p>
                         </div>
                     </div>
 

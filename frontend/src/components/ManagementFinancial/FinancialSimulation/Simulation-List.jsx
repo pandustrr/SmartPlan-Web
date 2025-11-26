@@ -27,7 +27,8 @@ const SimulationList = ({
     onBackToDashboard,
     isLoading,
     error,
-    onRetry
+    onRetry,
+    availableYears = []
 }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [simulationToDelete, setSimulationToDelete] = useState(null);
@@ -207,7 +208,24 @@ const SimulationList = ({
             {/* Filters */}
             {showFilters && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Tahun Fiskal
+                            </label>
+                            <select
+                                value={filters.year || ''}
+                                onChange={(e) => onFilterChange({ ...filters, year: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                            >
+                                <option value="">Semua Tahun</option>
+                                {availableYears.map(year => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Jenis
@@ -260,8 +278,8 @@ const SimulationList = ({
                                     type: '',
                                     status: '',
                                     category_id: '',
-                                    month: filters.month,
-                                    year: filters.year
+                                    year: '',
+                                    month: filters.month
                                 })}
                                 className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                             >
@@ -337,6 +355,7 @@ const SimulationList = ({
                                 <tr className="border-b border-gray-200 dark:border-gray-700">
                                     <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Deskripsi</th>
                                     <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Kategori</th>
+                                    <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Tahun</th>
                                     <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal</th>
                                     <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Metode</th>
                                     <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
@@ -379,6 +398,11 @@ const SimulationList = ({
                                                     style={{ backgroundColor: simulation.category?.color || '#6B7280' }}
                                                 ></div>
                                                 {simulation.category?.name}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-gray-600 dark:text-gray-400">
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300">
+                                                {simulation.year}
                                             </span>
                                         </td>
                                         <td className="p-4 text-gray-600 dark:text-gray-400">

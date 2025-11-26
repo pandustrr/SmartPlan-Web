@@ -52,6 +52,10 @@ export const managementFinancialApi = {
       console.log("API Call: Getting monthly comparison with params:", params);
       return api.get("/management-financial/simulations/monthly-comparison", { params });
     },
+    getAvailableYears: (params) => {
+      console.log("API Call: Getting available years with params:", params);
+      return api.get("/management-financial/simulations/available-years", { params });
+    },
   },
 
   // Financial Summaries (FIXED)

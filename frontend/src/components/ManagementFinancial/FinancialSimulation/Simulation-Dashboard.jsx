@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, TrendingDown, Plus, List, DollarSign, Calendar, PieChart, BarChart3 } from "lucide-react";
 import { managementFinancialApi } from "../../../services/managementFinancial";
+import YearManagement from "./Year-Management";
 
-const SimulationDashboard = ({ simulations, categories, filters, onFilterChange, onViewSimulation, onEditSimulation, onDeleteSimulation, onCreateNew, onViewChange, isLoading, selectedBusiness }) => {
+const SimulationDashboard = ({ simulations, categories, filters, onFilterChange, onViewSimulation, onEditSimulation, onDeleteSimulation, onCreateNew, onViewChange, isLoading, selectedBusiness, availableYears = [], onAddYear, onDeleteYear }) => {
   const [cashFlowSummary, setCashFlowSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
@@ -63,6 +64,20 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
     return months[month - 1] || "";
   };
 
+  const handleAddYear = async (year) => {
+    // Call parent handler to add year to availableYears and localStorage
+    await onAddYear(year);
+  };
+
+  const handleDeleteYear = async (year) => {
+    // Call parent handler to delete year
+    await onDeleteYear(year);
+  };
+
+  const handleYearChange = (year) => {
+    onFilterChange({ ...filters, year });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -83,6 +98,16 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
         </div>
       </div>
 
+      {/* Year Management */}
+      <YearManagement
+        availableYears={availableYears}
+        selectedYear={filters.year}
+        onYearChange={handleYearChange}
+        onAddYear={handleAddYear}
+        onDeleteYear={handleDeleteYear}
+        simulations={simulations}
+      />
+
       {/* Month Filter */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4">
@@ -90,25 +115,36 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
           <div className="flex gap-3">
             <select
               value={filters.month}
-              onChange={(e) => onFilterChange({ ...filters, month: e.target.value })}
+              onChange={(e) => onFilterChange({ ...filters, month: parseInt(e.target.value) })}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                <option key={month} value={month}>
-                  {getMonthName(month)}
-                </option>
-              ))}
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                return (
+                  <option key={month} value={month}>
+                    {months[month - 1]}
+                  </option>
+                );
+              })}
             </select>
             <select
               value={filters.year}
-              onChange={(e) => onFilterChange({ ...filters, year: e.target.value })}
+              onChange={(e) => onFilterChange({ ...filters, year: parseInt(e.target.value) })}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
+              {availableYears.length > 0 ? (
+                availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))
+              ) : (
+                Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>

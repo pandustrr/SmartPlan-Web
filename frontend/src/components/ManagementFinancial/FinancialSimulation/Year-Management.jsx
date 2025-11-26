@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Calendar, Edit3, Save, X } from 'lucide-react';
+import { Plus, Trash2, Calendar, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const YearManager = ({ 
+const YearManagement = ({ 
     availableYears, 
     selectedYear, 
     onYearChange, 
     onAddYear, 
     onDeleteYear,
-    summaries 
+    simulations 
 }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newYear, setNewYear] = useState('');
@@ -29,7 +29,7 @@ const YearManager = ({
 
     const handleAddYear = async () => {
         const year = parseInt(newYear);
-
+        
         if (!year) {
             toast.error('Masukkan tahun yang valid');
             return;
@@ -65,7 +65,7 @@ const YearManager = ({
 
     const confirmDeleteYear = async () => {
         if (!yearToDelete) return;
-        const summariesInYear = summaries.filter(s => s.year === yearToDelete);
+        const simulationsInYear = simulations.filter(s => s.year === yearToDelete);
 
         setIsDeleting(true);
         try {
@@ -86,9 +86,10 @@ const YearManager = ({
         return year !== currentYear && availableYears.length > 1;
     };
 
-    const getSummaryCount = (year) => {
-        return summaries.filter(s => s.year === year).length;
+    const getSimulationCount = (year) => {
+        return simulations.filter(s => s.year === year).length;
     };
+
 
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -103,7 +104,7 @@ const YearManager = ({
                             Tahun {selectedYear}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {getSummaryCount(selectedYear)} ringkasan bulanan
+                            {getSimulationCount(selectedYear)} simulasi keuangan
                         </p>
                     </div>
                 </div>
@@ -191,7 +192,7 @@ const YearManager = ({
                                     <span className="font-medium">Info Tahun Baru</span>
                                 </div>
                                 <p className="text-blue-700 dark:text-blue-400 text-xs mt-1">
-                                    Tahun baru akan dibuat tanpa data ringkasan. Anda bisa menambahkan ringkasan bulanan secara manual.
+                                    Tahun baru akan dibuat tanpa data simulasi. Anda bisa menambahkan simulasi keuangan secara manual.
                                 </p>
                             </div>
 
@@ -226,7 +227,7 @@ const YearManager = ({
                 </div>
             )}
 
-            {/* Delete Confirmation Modal (mengganti window.confirm) */}
+            {/* Delete Confirmation Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-md w-full p-6">
@@ -239,7 +240,7 @@ const YearManager = ({
                                 Apakah Anda yakin ingin menghapus tahun <strong>{yearToDelete}</strong>?
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                                Terdapat {summaries.filter(s => s.year === yearToDelete).length} ringkasan bulanan yang akan dihapus.
+                                Terdapat {simulations.filter(s => s.year === yearToDelete).length} simulasi yang akan dihapus.
                             </p>
                             <div className="flex gap-3">
                                 <button
@@ -275,4 +276,4 @@ const YearManager = ({
     );
 };
 
-export default YearManager;
+export default YearManagement;

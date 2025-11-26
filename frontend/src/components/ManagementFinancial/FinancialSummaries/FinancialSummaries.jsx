@@ -272,6 +272,7 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             onView={handleView}
             onDelete={handleDelete}
             onGenerateSummary={handleGenerateSummary}
+            onCreateNew={() => setView("create")}
             selectedYear={selectedYear}
             onYearChange={handleYearChange}
             onBack={onBack}
@@ -289,6 +290,7 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             onView={handleView}
             onDelete={handleDelete}
             onGenerateSummary={handleGenerateSummary}
+            onCreateNew={() => setView("create")}
             selectedYear={selectedYear}
             onYearChange={handleYearChange}
             onBack={onBack}
