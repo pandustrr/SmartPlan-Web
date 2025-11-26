@@ -24,6 +24,10 @@ class DatabaseSeeder extends Seeder
             OperationalPlanSeeder::class,
             TeamStructureSeeder::class,
             FinancialPlanSeeder::class,
+            // Financial Management Seeders
+            FinancialCategorySeeder::class,
+            FinancialSimulationSeeder::class,
+            FinancialSummarySeeder::class,
         ]);
     }
 }

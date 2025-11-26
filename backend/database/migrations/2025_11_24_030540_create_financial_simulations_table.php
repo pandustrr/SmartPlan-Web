@@ -12,6 +12,7 @@ return new class extends Migration
         Schema::create('financial_simulations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('business_background_id')->constrained('business_backgrounds')->onDelete('cascade');
             $table->foreignId('financial_category_id')->constrained()->onDelete('cascade');
             $table->string('simulation_code')->unique();
             $table->enum('type', ['income', 'expense']);

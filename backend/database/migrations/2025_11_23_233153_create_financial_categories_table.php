@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('financial_categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('business_background_id')->constrained('business_backgrounds')->onDelete('cascade');
             $table->string('name');
             $table->enum('type', ['income', 'expense']);
             $table->string('color')->default('#6B7280'); // default gray
@@ -22,8 +23,8 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            // Unique constraint untuk mencegah duplikasi nama kategori per user
-            $table->unique(['user_id', 'name']);
+            // Unique constraint untuk mencegah duplikasi nama kategori per user per business
+            $table->unique(['user_id', 'business_background_id', 'name']);
         });
     }
 

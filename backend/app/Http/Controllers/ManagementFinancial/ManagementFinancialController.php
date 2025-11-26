@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ManagementFinancial\FinancialCategory;
+use App\Models\ManagementFinancial\FinancialSimulation;
+use App\Models\ManagementFinancial\FinancialSummary;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use App\Models\ManagementFinancial\FinancialSummary;
 
 class ManagementFinancialController extends Controller
 {
@@ -19,10 +20,22 @@ class ManagementFinancialController extends Controller
     /**
      * Get all financial categories
      */
-    public function indexCategories()
+    public function indexCategories(Request $request)
     {
         try {
-            $categories = FinancialCategory::all();
+            $query = FinancialCategory::query();
+
+            // Filter by business_background_id if provided
+            if ($request->has('business_background_id')) {
+                $query->where('business_background_id', $request->business_background_id);
+            }
+
+            // Filter by user_id if provided
+            if ($request->has('user_id')) {
+                $query->where('user_id', $request->user_id);
+            }
+
+            $categories = $query->get();
 
             return response()->json([
                 'status' => 'success',
@@ -72,14 +85,17 @@ class ManagementFinancialController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
-            'name' => 'required|string|max:255|unique:financial_categories,name,NULL,id,user_id,' . $request->user_id,
+            'business_background_id' => 'required|exists:business_backgrounds,id',
+            'name' => 'required|string|max:255',
             'type' => 'required|in:income,expense',
             'color' => 'nullable|string|max:7',
             'status' => 'required|in:actual,plan',
             'description' => 'nullable|string'
         ], [
+            'user_id.required' => 'User ID wajib diisi.',
+            'business_background_id.required' => 'Business ID wajib diisi.',
+            'business_background_id.exists' => 'Business tidak ditemukan.',
             'name.required' => 'Nama kategori wajib diisi.',
-            'name.unique' => 'Nama kategori sudah digunakan.',
             'type.required' => 'Jenis kategori wajib dipilih.',
             'type.in' => 'Jenis kategori harus Income atau Expense.',
             'status.required' => 'Status kategori wajib dipilih.',
@@ -97,11 +113,25 @@ class ManagementFinancialController extends Controller
             ], 422);
         }
 
+        // Check unique constraint: name must be unique within user_id + business_background_id
+        $exists = FinancialCategory::where('user_id', $request->user_id)
+            ->where('business_background_id', $request->business_background_id)
+            ->where('name', $request->name)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nama kategori sudah digunakan untuk bisnis ini.'
+            ], 422);
+        }
+
         try {
             DB::beginTransaction();
 
             $category = FinancialCategory::create([
                 'user_id' => $request->user_id,
+                'business_background_id' => $request->business_background_id,
                 'name' => $request->name,
                 'type' => $request->type,
                 'color' => $request->color ?? $this->generateDefaultColor($request->type),
@@ -148,15 +178,22 @@ class ManagementFinancialController extends Controller
             ], 403);
         }
 
+        // Check business ownership
+        if ($request->has('business_background_id') && $request->business_background_id != $category->business_background_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized: Kategori ini milik bisnis lain.'
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:financial_categories,name,' . $id . ',id,user_id,' . $request->user_id,
+            'name' => 'required|string|max:255',
             'type' => 'required|in:income,expense',
             'color' => 'nullable|string|max:7',
             'status' => 'required|in:actual,plan',
             'description' => 'nullable|string'
         ], [
             'name.required' => 'Nama kategori wajib diisi.',
-            'name.unique' => 'Nama kategori sudah digunakan.',
             'type.required' => 'Jenis kategori wajib dipilih.',
             'type.in' => 'Jenis kategori harus Income atau Expense.',
             'status.required' => 'Status kategori wajib dipilih.',
@@ -168,6 +205,22 @@ class ManagementFinancialController extends Controller
                 'status' => 'error',
                 'errors' => $validator->errors()
             ], 422);
+        }
+
+        // Check unique constraint if name is changed
+        if ($request->name !== $category->name) {
+            $exists = FinancialCategory::where('user_id', $category->user_id)
+                ->where('business_background_id', $category->business_background_id)
+                ->where('name', $request->name)
+                ->where('id', '!=', $id)
+                ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Nama kategori sudah digunakan untuk bisnis ini.'
+                ], 422);
+            }
         }
 
         try {
@@ -291,6 +344,74 @@ class ManagementFinancialController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat mengambil ringkasan kategori.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get dashboard statistics
+     */
+    public function getDashboardStats(Request $request)
+    {
+        try {
+            $user_id = $request->user_id;
+
+            if (!$user_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User ID diperlukan'
+                ], 400);
+            }
+
+            // Validate business_background_id
+            if (!$request->has('business_background_id')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Business Background ID diperlukan'
+                ], 400);
+            }
+
+            $business_background_id = $request->business_background_id;
+
+            // Total Categories
+            $totalCategories = FinancialCategory::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
+                ->count();
+
+            // Total Simulations
+            $totalSimulations = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
+                ->count();
+
+            // Total Income (completed only)
+            $totalIncome = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
+                ->where('type', 'income')
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            // Total Expense (completed only)
+            $totalExpense = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
+                ->where('type', 'expense')
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'total_categories' => (int) $totalCategories,
+                    'total_simulations' => (int) $totalSimulations,
+                    'total_income' => (float) $totalIncome,
+                    'total_expense' => (float) $totalExpense,
+                    'net_cash_flow' => (float) ($totalIncome - $totalExpense)
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error fetching dashboard stats: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil statistik dashboard.'
             ], 500);
         }
     }

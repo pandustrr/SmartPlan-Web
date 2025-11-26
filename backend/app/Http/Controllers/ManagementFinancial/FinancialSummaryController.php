@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ManagementFinancial\FinancialSummary;
+use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\BusinessBackground;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +71,6 @@ class FinancialSummaryController extends Controller
                 'count' => $summaries->count(),
                 'message' => 'Data ringkasan keuangan berhasil diambil'
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('FinancialSummaryController: Error fetching financial summaries - ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
@@ -495,9 +495,18 @@ class FinancialSummaryController extends Controller
             // Fill missing months with zero values
             $completeData = [];
             $months = [
-                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
             ];
 
             for ($month = 1; $month <= 12; $month++) {
@@ -531,6 +540,152 @@ class FinancialSummaryController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat mengambil data perbandingan bulanan.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Auto-generate financial summary from simulations
+     * This will calculate summary from all completed financial simulations
+     */
+    public function generateFromSimulations(Request $request)
+    {
+        try {
+            Log::info('FinancialSummaryController: Auto-generating summary from simulations', ['request' => $request->all()]);
+
+            $validator = Validator::make($request->all(), [
+                'user_id' => 'required|exists:users,id',
+                'business_background_id' => 'required|exists:business_backgrounds,id',
+                'year' => 'required|integer|min:2020|max:2030',
+                'month' => 'nullable|integer|between:1,12', // Optional: generate specific month or all months
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user_id = $request->user_id;
+            $business_id = $request->business_background_id;
+            $year = $request->year;
+            $specificMonth = $request->month;
+
+            DB::beginTransaction();
+
+            $generatedSummaries = [];
+            $monthsToGenerate = $specificMonth ? [$specificMonth] : range(1, 12);
+
+            foreach ($monthsToGenerate as $month) {
+                // Query completed simulations for this month
+                $simulations = FinancialSimulation::where('user_id', $user_id)
+                    ->where('status', 'completed')
+                    ->whereYear('simulation_date', $year)
+                    ->whereMonth('simulation_date', $month)
+                    ->get();
+
+                // Calculate totals
+                $totalIncome = $simulations->where('type', 'income')->sum('amount');
+                $totalExpense = $simulations->where('type', 'expense')->sum('amount');
+                $grossProfit = $totalIncome - $totalExpense;
+
+                // Net profit (simplified: same as gross profit, can add tax/other deductions later)
+                $netProfit = $grossProfit;
+
+                // Calculate cash position (accumulative from previous month)
+                $previousMonth = $month - 1;
+                $previousYear = $year;
+                if ($previousMonth < 1) {
+                    $previousMonth = 12;
+                    $previousYear = $year - 1;
+                }
+
+                $previousSummary = FinancialSummary::where('user_id', $user_id)
+                    ->where('business_background_id', $business_id)
+                    ->where('year', $previousYear)
+                    ->where('month', $previousMonth)
+                    ->first();
+
+                $cashPosition = ($previousSummary ? $previousSummary->cash_position : 0) + $netProfit;
+
+                // Generate breakdown by category
+                $incomeByCategory = [];
+                $expenseByCategory = [];
+
+                foreach ($simulations as $simulation) {
+                    $categoryName = $simulation->category ? $simulation->category->name : 'Uncategorized';
+
+                    if ($simulation->type === 'income') {
+                        if (!isset($incomeByCategory[$categoryName])) {
+                            $incomeByCategory[$categoryName] = 0;
+                        }
+                        $incomeByCategory[$categoryName] += (float) $simulation->amount;
+                    } else {
+                        if (!isset($expenseByCategory[$categoryName])) {
+                            $expenseByCategory[$categoryName] = 0;
+                        }
+                        $expenseByCategory[$categoryName] += (float) $simulation->amount;
+                    }
+                }
+
+                // Skip if no transactions in this month
+                if ($totalIncome == 0 && $totalExpense == 0) {
+                    Log::info("Skipping month $month - no transactions");
+                    continue;
+                }
+
+                // Create or update summary
+                $summary = FinancialSummary::updateOrCreate(
+                    [
+                        'user_id' => $user_id,
+                        'business_background_id' => $business_id,
+                        'month' => $month,
+                        'year' => $year,
+                    ],
+                    [
+                        'total_income' => $totalIncome,
+                        'total_expense' => $totalExpense,
+                        'gross_profit' => $grossProfit,
+                        'net_profit' => $netProfit,
+                        'cash_position' => $cashPosition,
+                        'income_breakdown' => $incomeByCategory,
+                        'expense_breakdown' => $expenseByCategory,
+                        'notes' => 'Auto-generated from financial simulations on ' . now()->format('Y-m-d H:i:s'),
+                    ]
+                );
+
+                $generatedSummaries[] = $summary;
+
+                Log::info("Generated summary for month $month", [
+                    'total_income' => $totalIncome,
+                    'total_expense' => $totalExpense,
+                    'net_profit' => $netProfit
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Ringkasan keuangan berhasil di-generate dari simulasi',
+                'data' => [
+                    'generated_count' => count($generatedSummaries),
+                    'summaries' => $generatedSummaries,
+                    'year' => $year,
+                    'month' => $specificMonth
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('FinancialSummaryController: Error generating summary from simulations - ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat generate ringkasan keuangan: ' . $e->getMessage()
             ], 500);
         }
     }

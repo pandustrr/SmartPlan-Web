@@ -33,10 +33,15 @@ class FinancialSimulationController extends Controller
                 ], 400);
             }
 
-            $query = FinancialSimulation::with(['category' => function($query) {
+            $query = FinancialSimulation::with(['category' => function ($query) {
                 $query->select('id', 'name', 'type', 'color');
             }])
-            ->where('user_id', $user_id);
+                ->where('user_id', $user_id);
+
+            // Filter by business_background_id if provided
+            if ($request->has('business_background_id')) {
+                $query->where('business_background_id', $request->business_background_id);
+            }
 
             // Apply filters
             if ($request->has('type') && $request->type) {
@@ -54,7 +59,7 @@ class FinancialSimulationController extends Controller
             if ($request->has('month') && $request->month) {
                 $year = $request->year ?? now()->year;
                 $query->whereYear('simulation_date', $year)
-                      ->whereMonth('simulation_date', $request->month);
+                    ->whereMonth('simulation_date', $request->month);
             }
 
             if ($request->has('start_date') && $request->start_date) {
@@ -66,8 +71,8 @@ class FinancialSimulationController extends Controller
             }
 
             $simulations = $query->orderBy('simulation_date', 'desc')
-                                ->orderBy('created_at', 'desc')
-                                ->get();
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             return response()->json([
                 'status' => 'success',
@@ -117,6 +122,7 @@ class FinancialSimulationController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
+            'business_background_id' => 'required|exists:business_backgrounds,id',
             'financial_category_id' => 'required|exists:financial_categories,id',
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0',
@@ -130,6 +136,8 @@ class FinancialSimulationController extends Controller
             'notes' => 'nullable|string'
         ], [
             'user_id.required' => 'User ID diperlukan',
+            'business_background_id.required' => 'Business ID diperlukan',
+            'business_background_id.exists' => 'Business tidak ditemukan.',
             'financial_category_id.required' => 'Kategori wajib dipilih.',
             'financial_category_id.exists' => 'Kategori tidak valid.',
             'type.required' => 'Jenis simulasi wajib dipilih.',
@@ -173,6 +181,13 @@ class FinancialSimulationController extends Controller
                 ], 422);
             }
 
+            if ($category->business_background_id != $request->business_background_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Kategori tidak valid untuk bisnis ini.'
+                ], 422);
+            }
+
             if ($category->type != $request->type) {
                 return response()->json([
                     'status' => 'error',
@@ -182,6 +197,7 @@ class FinancialSimulationController extends Controller
 
             $simulationData = [
                 'user_id' => $request->user_id,
+                'business_background_id' => $request->business_background_id,
                 'financial_category_id' => $request->financial_category_id,
                 'simulation_code' => FinancialSimulation::generateSimulationCode(),
                 'type' => $request->type,
@@ -241,6 +257,14 @@ class FinancialSimulationController extends Controller
             ], 403);
         }
 
+        // Check business ownership
+        if ($request->has('business_background_id') && $request->business_background_id != $simulation->business_background_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized: Simulasi ini milik bisnis lain.'
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'financial_category_id' => 'required|exists:financial_categories,id',
             'type' => 'required|in:income,expense',
@@ -281,6 +305,14 @@ class FinancialSimulationController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Kategori tidak valid atau tidak ditemukan.'
+                ], 422);
+            }
+
+            // Validate category belongs to same business
+            if ($category->business_background_id != $simulation->business_background_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Kategori tidak valid untuk bisnis ini.'
                 ], 422);
             }
 
@@ -389,6 +421,15 @@ class FinancialSimulationController extends Controller
                 ], 400);
             }
 
+            // Validate business_background_id
+            if (!$request->has('business_background_id')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Business Background ID diperlukan'
+                ], 400);
+            }
+
+            $business_background_id = $request->business_background_id;
             $year = $request->year ?? now()->year;
             $month = $request->month ?? now()->month;
 
@@ -402,6 +443,7 @@ class FinancialSimulationController extends Controller
 
             // Total Income (completed)
             $totalIncome = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
                 ->where('type', 'income')
                 ->where('status', 'completed')
                 ->whereYear('simulation_date', $year)
@@ -410,6 +452,7 @@ class FinancialSimulationController extends Controller
 
             // Total Expense (completed)
             $totalExpense = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
                 ->where('type', 'expense')
                 ->where('status', 'completed')
                 ->whereYear('simulation_date', $year)
@@ -418,6 +461,7 @@ class FinancialSimulationController extends Controller
 
             // Planned Income
             $plannedIncome = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
                 ->where('type', 'income')
                 ->where('status', 'planned')
                 ->whereYear('simulation_date', $year)
@@ -426,6 +470,7 @@ class FinancialSimulationController extends Controller
 
             // Planned Expense
             $plannedExpense = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
                 ->where('type', 'expense')
                 ->where('status', 'planned')
                 ->whereYear('simulation_date', $year)
@@ -437,10 +482,11 @@ class FinancialSimulationController extends Controller
             $projectedNetCashFlow = ($totalIncome + $plannedIncome) - ($totalExpense + $plannedExpense);
 
             // Category breakdown
-            $categoryBreakdown = FinancialSimulation::with(['category' => function($query) {
+            $categoryBreakdown = FinancialSimulation::with(['category' => function ($query) {
                 $query->select('id', 'name', 'type', 'color');
             }])
                 ->where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
                 ->whereYear('simulation_date', $year)
                 ->whereMonth('simulation_date', $month)
                 ->selectRaw('type, financial_category_id, SUM(amount) as total_amount')
@@ -492,9 +538,19 @@ class FinancialSimulationController extends Controller
                 ], 400);
             }
 
+            // Validate business_background_id
+            if (!$request->has('business_background_id')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Business Background ID diperlukan'
+                ], 400);
+            }
+
+            $business_background_id = $request->business_background_id;
             $year = $request->year ?? now()->year;
 
             $monthlyData = FinancialSimulation::where('user_id', $user_id)
+                ->where('business_background_id', $business_background_id)
                 ->whereYear('simulation_date', $year)
                 ->selectRaw('
                     MONTH(simulation_date) as month,

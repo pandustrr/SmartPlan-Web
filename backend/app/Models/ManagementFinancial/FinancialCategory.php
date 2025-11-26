@@ -14,6 +14,7 @@ class FinancialCategory extends Model
 
     protected $fillable = [
         'user_id',
+        'business_background_id',
         'name',
         'type',
         'color',
@@ -33,6 +34,14 @@ class FinancialCategory extends Model
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class);
+    }
+
+    /**
+     * Relationship with BusinessBackground
+     */
+    public function businessBackground()
+    {
+        return $this->belongsTo(\App\Models\BusinessBackground::class);
     }
 
     /**
@@ -96,5 +105,5 @@ class FinancialCategory extends Model
     {
         return $this->hasMany(FinancialSimulation::class, 'financial_category_id');
     }
-    
+
 }

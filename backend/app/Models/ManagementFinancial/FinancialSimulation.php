@@ -15,6 +15,7 @@ class FinancialSimulation extends Model
 
     protected $fillable = [
         'user_id',
+        'business_background_id',
         'financial_category_id',
         'simulation_code',
         'type',
@@ -45,6 +46,14 @@ class FinancialSimulation extends Model
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class);
+    }
+
+    /**
+     * Relationship dengan BusinessBackground
+     */
+    public function businessBackground()
+    {
+        return $this->belongsTo(\App\Models\BusinessBackground::class);
     }
 
     /**
@@ -93,7 +102,7 @@ class FinancialSimulation extends Model
     public function scopeForMonth($query, $year, $month)
     {
         return $query->whereYear('simulation_date', $year)
-                    ->whereMonth('simulation_date', $month);
+            ->whereMonth('simulation_date', $month);
     }
 
     /**

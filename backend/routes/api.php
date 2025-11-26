@@ -141,6 +141,9 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
     // Management Financial Routes
     Route::prefix('management-financial')->group(function () {
 
+        // Dashboard Stats
+        Route::get('/dashboard-stats', [ManagementFinancialController::class, 'getDashboardStats']);
+
         // Financial Categories Routes
         Route::prefix('categories')->group(function () {
             Route::get('/', [ManagementFinancialController::class, 'indexCategories']);
@@ -156,6 +159,7 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::get('/', [FinancialSummaryController::class, 'index']);
             Route::get('/statistics', [FinancialSummaryController::class, 'getStatistics']);
             Route::get('/monthly-comparison', [FinancialSummaryController::class, 'getMonthlyComparison']);
+            Route::post('/generate-from-simulations', [FinancialSummaryController::class, 'generateFromSimulations']);
             Route::get('/{id}', [FinancialSummaryController::class, 'show']);
             Route::post('/', [FinancialSummaryController::class, 'store']);
             Route::put('/{id}', [FinancialSummaryController::class, 'update']);
@@ -172,9 +176,7 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::put('/{id}', [FinancialSimulationController::class, 'update']);
             Route::delete('/{id}', [FinancialSimulationController::class, 'destroy']);
         });
-
     });
-
 });
 
 // =====================================
