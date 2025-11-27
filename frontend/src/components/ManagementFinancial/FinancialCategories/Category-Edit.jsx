@@ -13,6 +13,7 @@ const CategoryEdit = ({ category, onBack, onSuccess, selectedBusiness }) => {
     color: "#3B82F6",
     status: "actual",
     description: "",
+    category_subtype: "other",
   });
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const CategoryEdit = ({ category, onBack, onSuccess, selectedBusiness }) => {
         color: category.color || "#3B82F6",
         status: category.status || "actual",
         description: category.description || "",
+        category_subtype: category.category_subtype || "other",
       });
     }
   }, [category]);

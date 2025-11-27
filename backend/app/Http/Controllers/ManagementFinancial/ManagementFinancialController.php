@@ -88,6 +88,7 @@ class ManagementFinancialController extends Controller
             'business_background_id' => 'required|exists:business_backgrounds,id',
             'name' => 'required|string|max:255',
             'type' => 'required|in:income,expense',
+            'category_subtype' => 'nullable|in:operating_revenue,non_operating_revenue,cogs,operating_expense,interest_expense,tax_expense,other',
             'color' => 'nullable|string|max:7',
             'status' => 'required|in:actual,plan',
             'description' => 'nullable|string'
@@ -98,6 +99,7 @@ class ManagementFinancialController extends Controller
             'name.required' => 'Nama kategori wajib diisi.',
             'type.required' => 'Jenis kategori wajib dipilih.',
             'type.in' => 'Jenis kategori harus Income atau Expense.',
+            'category_subtype.in' => 'Sub-tipe kategori tidak valid.',
             'status.required' => 'Status kategori wajib dipilih.',
             'status.in' => 'Status harus Actual atau Plan.'
         ]);
@@ -134,6 +136,7 @@ class ManagementFinancialController extends Controller
                 'business_background_id' => $request->business_background_id,
                 'name' => $request->name,
                 'type' => $request->type,
+                'category_subtype' => $request->category_subtype ?? $this->getDefaultSubtype($request->type),
                 'color' => $request->color ?? $this->generateDefaultColor($request->type),
                 'status' => $request->status,
                 'description' => $request->description
@@ -189,6 +192,7 @@ class ManagementFinancialController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'type' => 'required|in:income,expense',
+            'category_subtype' => 'nullable|in:operating_revenue,non_operating_revenue,cogs,operating_expense,interest_expense,tax_expense,other',
             'color' => 'nullable|string|max:7',
             'status' => 'required|in:actual,plan',
             'description' => 'nullable|string'
@@ -196,6 +200,7 @@ class ManagementFinancialController extends Controller
             'name.required' => 'Nama kategori wajib diisi.',
             'type.required' => 'Jenis kategori wajib dipilih.',
             'type.in' => 'Jenis kategori harus Income atau Expense.',
+            'category_subtype.in' => 'Sub-tipe kategori tidak valid.',
             'status.required' => 'Status kategori wajib dipilih.',
             'status.in' => 'Status harus Actual atau Plan.'
         ]);
@@ -229,6 +234,7 @@ class ManagementFinancialController extends Controller
             $category->update([
                 'name' => $request->name,
                 'type' => $request->type,
+                'category_subtype' => $request->category_subtype ?? $category->category_subtype,
                 'color' => $request->color ?? $category->color,
                 'status' => $request->status,
                 'description' => $request->description
@@ -427,5 +433,18 @@ class ManagementFinancialController extends Controller
         ];
 
         return $colors[$type] ?? '#6B7280'; // gray-500 as fallback
+    }
+
+    /**
+     * Get default subtype based on category type
+     */
+    private function getDefaultSubtype($type)
+    {
+        $defaults = [
+            'income' => 'operating_revenue',
+            'expense' => 'operating_expense'
+        ];
+
+        return $defaults[$type] ?? 'other';
     }
 }

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\ManagementFinancial\FinancialSummary;
+use App\Models\ManagementFinancial\FinancialSimulation;
+use App\Models\ManagementFinancial\FinancialCategory;
 
 class MonthlyReportController extends Controller
 {
@@ -51,29 +53,85 @@ class MonthlyReportController extends Controller
         foreach ($months as $m) {
             $r = $rows[$m] ?? null;
 
-            $revenue = $r->total_income ?? 0.0;
-            $opex = $r->total_expense ?? 0.0;
-            $grossProfit = $r->gross_profit ?? ($revenue - $opex);
-            $netIncome = $r->net_profit ?? ($grossProfit);
+            // Query simulations untuk bulan ini berdasarkan category_subtype
+            $simulationsQuery = FinancialSimulation::with('category')
+                ->where('year', $year)
+                ->whereMonth('simulation_date', $m)
+                ->where('status', 'completed'); // hanya yang completed
+
+            if ($businessId) $simulationsQuery->where('business_background_id', $businessId);
+            if ($userId) $simulationsQuery->where('user_id', $userId);
+
+            $simulations = $simulationsQuery->get();
+
+            // Hitung berdasarkan category_subtype
+            $operatingRevenue = $simulations->filter(function ($sim) {
+                return $sim->type === 'income' &&
+                    $sim->category &&
+                    $sim->category->category_subtype === 'operating_revenue';
+            })->sum('amount');
+
+            $nonOperatingRevenue = $simulations->filter(function ($sim) {
+                return $sim->type === 'income' &&
+                    $sim->category &&
+                    $sim->category->category_subtype === 'non_operating_revenue';
+            })->sum('amount');
+
+            $cogs = $simulations->filter(function ($sim) {
+                return $sim->type === 'expense' &&
+                    $sim->category &&
+                    $sim->category->category_subtype === 'cogs';
+            })->sum('amount');
+
+            $operatingExpense = $simulations->filter(function ($sim) {
+                return $sim->type === 'expense' &&
+                    $sim->category &&
+                    $sim->category->category_subtype === 'operating_expense';
+            })->sum('amount');
+
+            $interestExpense = $simulations->filter(function ($sim) {
+                return $sim->type === 'expense' &&
+                    $sim->category &&
+                    $sim->category->category_subtype === 'interest_expense';
+            })->sum('amount');
+
+            $taxExpense = $simulations->filter(function ($sim) {
+                return $sim->type === 'expense' &&
+                    $sim->category &&
+                    $sim->category->category_subtype === 'tax_expense';
+            })->sum('amount');
+
+            // Calculate financial metrics
+            $revenue = $operatingRevenue;
+            $grossProfit = $revenue - $cogs;
+            $operatingIncome = $grossProfit - $operatingExpense;
+            $incomeBeforeTax = $operatingIncome + $nonOperatingRevenue - $interestExpense;
+            $netIncome = $incomeBeforeTax - $taxExpense;
 
             $incomeStatement[$m] = [
                 'revenue' => round($revenue, 2),
-                'cogs' => 0.0, // tidak tersedia, bisa dipisah di masa depan
+                'cogs' => round($cogs, 2),
                 'grossProfit' => round($grossProfit, 2),
-                'opex' => round($opex, 2),
-                'operatingIncome' => round($grossProfit - 0, 2),
-                'otherIncome' => 0.0,
-                'interest' => 0.0,
-                'tax' => 0.0,
+                'opex' => round($operatingExpense, 2),
+                'operatingIncome' => round($operatingIncome, 2),
+                'otherIncome' => round($nonOperatingRevenue, 2),
+                'interest' => round($interestExpense, 2),
+                'tax' => round($taxExpense, 2),
                 'netIncome' => round($netIncome, 2),
             ];
 
             $cashEnding = $r->cash_position ?? ($prevCashEnding + $netIncome);
             $cashBeginning = $prevCashEnding;
             $netChange = $cashEnding - $cashBeginning;
-            $operating = $netIncome;
-            $investing = 0.0;
-            $financing = $netChange - $operating; // agar konsisten
+            
+            // Operating activities: revenue - expenses (adjusted for non-cash items)
+            $operating = $operatingRevenue - $cogs - $operatingExpense - $taxExpense;
+            
+            // Investing activities: treat non-operating revenue as investment income
+            $investing = $nonOperatingRevenue;
+            
+            // Financing activities: interest expense represents loan costs
+            $financing = -$interestExpense;
 
             $cashFlow[$m] = [
                 'operating' => round($operating, 2),

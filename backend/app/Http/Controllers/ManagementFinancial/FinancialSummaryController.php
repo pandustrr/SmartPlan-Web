@@ -389,12 +389,12 @@ class FinancialSummaryController extends Controller
     }
 
     /**
-     * Get financial summary statistics
+     * Get financial summary statistics (auto-calculated from simulations)
      */
     public function getStatistics(Request $request)
     {
         try {
-            Log::info('FinancialSummaryController: Fetching statistics', ['request' => $request->all()]);
+            Log::info('FinancialSummaryController: Fetching statistics from simulations', ['request' => $request->all()]);
 
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required|exists:users,id',
@@ -414,32 +414,99 @@ class FinancialSummaryController extends Controller
             $business_id = $request->business_id;
             $year = $request->year ?? date('Y');
 
-            $query = FinancialSummary::where('user_id', $user_id)
-                ->where('year', $year);
+            // Query simulations (completed only)
+            $query = FinancialSimulation::where('user_id', $user_id)
+                ->where('year', $year)
+                ->where('status', 'completed');
 
             if ($business_id) {
                 $query->where('business_background_id', $business_id);
             }
 
-            $stats = $query->selectRaw('
-                COUNT(*) as total_months,
-                COALESCE(SUM(total_income), 0) as total_annual_income,
-                COALESCE(SUM(total_expense), 0) as total_annual_expense,
-                COALESCE(SUM(gross_profit), 0) as total_annual_gross_profit,
-                COALESCE(SUM(net_profit), 0) as total_annual_net_profit,
-                COALESCE(AVG(total_income), 0) as avg_monthly_income,
-                COALESCE(AVG(total_expense), 0) as avg_monthly_expense,
-                COALESCE(AVG(gross_profit), 0) as avg_monthly_gross_profit,
-                COALESCE(MAX(total_income), 0) as max_monthly_income,
-                COALESCE(MIN(total_income), 0) as min_monthly_income,
-                COALESCE(MAX(gross_profit), 0) as max_monthly_profit,
-                COALESCE(MIN(gross_profit), 0) as min_monthly_profit
-            ')->first();
+            $simulations = $query->get();
+
+            // Calculate annual totals
+            $totalIncome = $simulations->where('type', 'income')->sum('amount');
+            $totalExpense = $simulations->where('type', 'expense')->sum('amount');
+            $totalGrossProfit = $totalIncome - $totalExpense;
+            $totalNetProfit = $totalGrossProfit; // Simplified, can add deductions
+
+            // Calculate monthly averages
+            $monthsWithData = $simulations->groupBy(function($item) {
+                return \Carbon\Carbon::parse($item->simulation_date)->format('Y-m');
+            })->count();
+
+            $avgMonthlyIncome = $monthsWithData > 0 ? $totalIncome / 12 : 0;
+            $avgMonthlyExpense = $monthsWithData > 0 ? $totalExpense / 12 : 0;
+            $avgMonthlyGrossProfit = $monthsWithData > 0 ? $totalGrossProfit / 12 : 0;
+
+            // Calculate max/min monthly values
+            $monthlyIncomes = [];
+            $monthlyGrossProfits = [];
+
+            for ($month = 1; $month <= 12; $month++) {
+                $monthSimulations = $simulations->filter(function($sim) use ($month) {
+                    return \Carbon\Carbon::parse($sim->simulation_date)->month == $month;
+                });
+
+                $monthIncome = $monthSimulations->where('type', 'income')->sum('amount');
+                $monthExpense = $monthSimulations->where('type', 'expense')->sum('amount');
+                $monthGrossProfit = $monthIncome - $monthExpense;
+
+                $monthlyIncomes[] = $monthIncome;
+                $monthlyGrossProfits[] = $monthGrossProfit;
+            }
+
+            $maxMonthlyIncome = count($monthlyIncomes) > 0 ? max($monthlyIncomes) : 0;
+            $minMonthlyIncome = count($monthlyIncomes) > 0 ? min($monthlyIncomes) : 0;
+            $maxMonthlyProfit = count($monthlyGrossProfits) > 0 ? max($monthlyGrossProfits) : 0;
+            $minMonthlyProfit = count($monthlyGrossProfits) > 0 ? min($monthlyGrossProfits) : 0;
+
+            // Calculate cumulative cash position
+            $cashPosition = 0;
+
+            // Get previous year's ending cash position
+            $previousYearQuery = FinancialSimulation::where('user_id', $user_id)
+                ->where('year', '<', $year)
+                ->where('status', 'completed');
+
+            if ($business_id) {
+                $previousYearQuery->where('business_background_id', $business_id);
+            }
+
+            $previousYearSims = $previousYearQuery->get();
+            $previousYearNet = $previousYearSims->where('type', 'income')->sum('amount') -
+                              $previousYearSims->where('type', 'expense')->sum('amount');
+
+            // Calculate current year cumulative cash
+            $cashPosition = $previousYearNet + $totalNetProfit;
+
+            // Get latest month
+            $latestSimulation = $simulations->sortByDesc('simulation_date')->first();
+            $latestMonth = $latestSimulation ? \Carbon\Carbon::parse($latestSimulation->simulation_date)->month : null;
+
+            $statsArray = [
+                'total_months' => $monthsWithData,
+                'total_annual_income' => (float) $totalIncome,
+                'total_annual_expense' => (float) $totalExpense,
+                'total_annual_gross_profit' => (float) $totalGrossProfit,
+                'total_annual_net_profit' => (float) $totalNetProfit,
+                'avg_monthly_income' => (float) $avgMonthlyIncome,
+                'avg_monthly_expense' => (float) $avgMonthlyExpense,
+                'avg_monthly_gross_profit' => (float) $avgMonthlyGrossProfit,
+                'max_monthly_income' => (float) $maxMonthlyIncome,
+                'min_monthly_income' => (float) $minMonthlyIncome,
+                'max_monthly_profit' => (float) $maxMonthlyProfit,
+                'min_monthly_profit' => (float) $minMonthlyProfit,
+                'current_cash_position' => (float) $cashPosition,
+                'latest_month' => $latestMonth,
+                'latest_year' => $year,
+            ];
 
             return response()->json([
                 'status' => 'success',
-                'data' => $stats,
-                'message' => 'Statistik berhasil diambil'
+                'data' => $statsArray,
+                'message' => 'Statistik berhasil diambil dari simulasi'
             ], 200);
         } catch (\Exception $e) {
             Log::error('FinancialSummaryController: Error fetching statistics - ' . $e->getMessage(), [
@@ -454,12 +521,12 @@ class FinancialSummaryController extends Controller
     }
 
     /**
-     * Get monthly comparison data for charts
+     * Get monthly comparison data for charts (auto-calculated from simulations)
      */
     public function getMonthlyComparison(Request $request)
     {
         try {
-            Log::info('FinancialSummaryController: Fetching monthly comparison', ['request' => $request->all()]);
+            Log::info('FinancialSummaryController: Fetching monthly comparison from simulations', ['request' => $request->all()]);
 
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required|exists:users,id',
@@ -479,66 +546,54 @@ class FinancialSummaryController extends Controller
             $business_id = $request->business_id;
             $year = $request->year ?? date('Y');
 
-            $query = FinancialSummary::where('user_id', $user_id)
-                ->where('year', $year);
+            // Query all completed simulations for the year
+            $query = FinancialSimulation::where('user_id', $user_id)
+                ->where('year', $year)
+                ->where('status', 'completed');
 
             if ($business_id) {
                 $query->where('business_background_id', $business_id);
             }
 
-            $monthlyData = $query->orderBy('month')
-                ->get(['month', 'total_income', 'total_expense', 'gross_profit', 'net_profit'])
-                ->map(function ($item) {
-                    return [
-                        'month' => $item->month,
-                        'month_name' => $item->monthName,
-                        'total_income' => (float) $item->total_income,
-                        'total_expense' => (float) $item->total_expense,
-                        'gross_profit' => (float) $item->gross_profit,
-                        'net_profit' => (float) $item->net_profit,
-                        'profit_margin' => $item->profit_margin
-                    ];
-                });
+            $simulations = $query->get();
 
-            // Fill missing months with zero values
-            $completeData = [];
             $months = [
-                1 => 'Januari',
-                2 => 'Februari',
-                3 => 'Maret',
-                4 => 'April',
-                5 => 'Mei',
-                6 => 'Juni',
-                7 => 'Juli',
-                8 => 'Agustus',
-                9 => 'September',
-                10 => 'Oktober',
-                11 => 'November',
-                12 => 'Desember'
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
             ];
 
-            for ($month = 1; $month <= 12; $month++) {
-                $existingData = $monthlyData->firstWhere('month', $month);
+            $completeData = [];
 
-                if ($existingData) {
-                    $completeData[] = $existingData;
-                } else {
-                    $completeData[] = [
-                        'month' => $month,
-                        'month_name' => $months[$month],
-                        'total_income' => 0,
-                        'total_expense' => 0,
-                        'gross_profit' => 0,
-                        'net_profit' => 0,
-                        'profit_margin' => 0
-                    ];
-                }
+            for ($month = 1; $month <= 12; $month++) {
+                // Filter simulations for this month
+                $monthSimulations = $simulations->filter(function($sim) use ($month) {
+                    return \Carbon\Carbon::parse($sim->simulation_date)->month == $month;
+                });
+
+                $totalIncome = $monthSimulations->where('type', 'income')->sum('amount');
+                $totalExpense = $monthSimulations->where('type', 'expense')->sum('amount');
+                $grossProfit = $totalIncome - $totalExpense;
+                $netProfit = $grossProfit; // Simplified
+
+                // Calculate profit margin
+                $profitMargin = $totalIncome > 0 ? ($netProfit / $totalIncome) * 100 : 0;
+
+                $completeData[] = [
+                    'month' => $month,
+                    'month_name' => $months[$month],
+                    'total_income' => (float) $totalIncome,
+                    'total_expense' => (float) $totalExpense,
+                    'gross_profit' => (float) $grossProfit,
+                    'net_profit' => (float) $netProfit,
+                    'profit_margin' => round($profitMargin, 2)
+                ];
             }
 
             return response()->json([
                 'status' => 'success',
                 'data' => $completeData,
-                'message' => 'Data perbandingan bulanan berhasil diambil'
+                'message' => 'Data perbandingan bulanan berhasil diambil dari simulasi'
             ], 200);
         } catch (\Exception $e) {
             Log::error('FinancialSummaryController: Error fetching monthly comparison - ' . $e->getMessage(), [

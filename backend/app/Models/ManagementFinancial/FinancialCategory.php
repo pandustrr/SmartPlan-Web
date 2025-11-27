@@ -17,6 +17,7 @@ class FinancialCategory extends Model
         'business_background_id',
         'name',
         'type',
+        'category_subtype',
         'color',
         'status',
         'description'
@@ -77,6 +78,46 @@ class FinancialCategory extends Model
     }
 
     /**
+     * Scope by category subtype
+     */
+    public function scopeBySubtype($query, $subtype)
+    {
+        return $query->where('category_subtype', $subtype);
+    }
+
+    /**
+     * Scope for COGS categories
+     */
+    public function scopeCogs($query)
+    {
+        return $query->where('category_subtype', 'cogs');
+    }
+
+    /**
+     * Scope for operating expense categories
+     */
+    public function scopeOperatingExpense($query)
+    {
+        return $query->where('category_subtype', 'operating_expense');
+    }
+
+    /**
+     * Scope for interest expense categories
+     */
+    public function scopeInterestExpense($query)
+    {
+        return $query->where('category_subtype', 'interest_expense');
+    }
+
+    /**
+     * Scope for tax expense categories
+     */
+    public function scopeTaxExpense($query)
+    {
+        return $query->where('category_subtype', 'tax_expense');
+    }
+
+    /**
      * Get display type attribute
      */
     public function getDisplayTypeAttribute()
@@ -93,6 +134,24 @@ class FinancialCategory extends Model
     }
 
     /**
+     * Get display category subtype attribute
+     */
+    public function getDisplaySubtypeAttribute()
+    {
+        $subtypes = [
+            'operating_revenue' => 'Pendapatan Operasional',
+            'non_operating_revenue' => 'Pendapatan Lain-lain',
+            'cogs' => 'HPP / COGS',
+            'operating_expense' => 'Beban Operasional',
+            'interest_expense' => 'Beban Bunga',
+            'tax_expense' => 'Pajak Penghasilan',
+            'other' => 'Lainnya'
+        ];
+
+        return $subtypes[$this->category_subtype] ?? 'Lainnya';
+    }
+
+    /**
      * Check if category can be deleted
      */
     public function getCanDeleteAttribute()
@@ -105,5 +164,4 @@ class FinancialCategory extends Model
     {
         return $this->hasMany(FinancialSimulation::class, 'financial_category_id');
     }
-
 }
