@@ -13,6 +13,7 @@ const CategoryCreate = ({ onBack, onSuccess, selectedBusiness }) => {
     color: "#3B82F6", // Default blue
     status: "actual",
     description: "",
+    category_subtype: "other",
   });
 
   const handleInputChange = (e) => {
@@ -30,6 +31,10 @@ const CategoryCreate = ({ onBack, onSuccess, selectedBusiness }) => {
         !prev.color && {
           color: value === "income" ? "#10B981" : "#EF4444",
         }),
+      // Auto set default subtype when type changes
+      ...(name === "type" && {
+        category_subtype: value === "income" ? "operating_revenue" : "operating_expense",
+      }),
     }));
   };
 

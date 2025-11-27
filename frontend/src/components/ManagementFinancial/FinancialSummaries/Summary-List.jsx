@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { managementFinancialApi } from "../../../services/managementFinancial";
 import SummaryChart from "./SummaryChart";
 
-const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateNew, selectedYear, selectedMonth, onYearChange, onMonthChange, onBack, isLoading, error, onRetry }) => {
+const SummaryList = ({ summaries, onView, onDelete, onCreateNew, selectedYear, selectedMonth, onYearChange, onMonthChange, onBack, isLoading, error, onRetry, selectedBusiness }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [summaryToDelete, setSummaryToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -12,13 +12,16 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateN
 
   useEffect(() => {
     fetchStatistics();
-  }, [selectedYear, summaries]);
+  }, [selectedYear, summaries, selectedBusiness]);
 
   const fetchStatistics = async () => {
+    if (!selectedBusiness) return;
+
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const params = {
         user_id: user.id,
+        business_id: selectedBusiness.id,
         year: selectedYear,
       };
 
@@ -86,14 +89,14 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateN
   // Calculate stats
   const totalIncome = statistics?.total_annual_income || 0;
   const totalExpense = statistics?.total_annual_expense || 0;
+  const totalGrossProfit = statistics?.total_annual_gross_profit || 0;
   const totalProfit = statistics?.total_annual_net_profit || 0;
   const avgMonthlyIncome = statistics?.avg_monthly_income || 0;
+  const currentCashPosition = statistics?.current_cash_position || 0;
   const totalMonths = statistics?.total_months || 0;
 
   // Get current month summary based on selectedMonth
-  const currentMonthSummary = selectedMonth 
-    ? summaries.find((summary) => summary.month === selectedMonth && summary.year === selectedYear)
-    : null;
+  const currentMonthSummary = selectedMonth ? summaries.find((summary) => summary.month === selectedMonth && summary.year === selectedYear) : null;
 
   // LOADING STATE
   if (isLoading) {
@@ -179,7 +182,11 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateN
           </div>
         </div>
         <div className="flex flex-col w-full gap-3 sm:flex-row sm:w-auto sm:items-center">
-          <select value={selectedMonth || ''} onChange={(e) => onMonthChange(e.target.value ? parseInt(e.target.value) : null)} className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors dark:bg-gray-800 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+          <select
+            value={selectedMonth || ""}
+            onChange={(e) => onMonthChange(e.target.value ? parseInt(e.target.value) : null)}
+            className="px-4 py-3 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-200 rounded-lg shadow-sm dark:text-gray-300 dark:bg-gray-800 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
             <option value="">Semua Bulan</option>
             <option value={1}>Januari</option>
             <option value={2}>Februari</option>
@@ -194,16 +201,11 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateN
             <option value={11}>November</option>
             <option value={12}>Desember</option>
           </select>
-
-          <button onClick={onGenerateSummary} className="flex items-center justify-center gap-2 px-4 py-3 text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-            <RefreshCw size={20} />
-            <span>Generate dari Simulasi</span>
-          </button>
         </div>
       </div>
 
-      {/* QUICK STATS GRID */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+      {/* QUICK STATS GRID - 6 cards in 2 rows */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {/* Total Pendapatan */}
         <div className="p-6 transition-shadow bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-md">
           <div className="flex items-center justify-between">
@@ -236,18 +238,48 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateN
           </div>
         </div>
 
+        {/* Laba Kotor */}
+        <div className="p-6 transition-shadow bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Laba Kotor</p>
+              <p className={`text-2xl font-bold mt-1 ${totalGrossProfit >= 0 ? "text-teal-600 dark:text-teal-400" : "text-red-600 dark:text-red-400"}`}>{formatCurrency(totalGrossProfit)}</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {selectedYear} • {totalMonths} bulan
+              </p>
+            </div>
+            <div className="flex items-center justify-center w-12 h-12 bg-teal-100 rounded-lg dark:bg-teal-900/20">
+              <Target className="text-teal-600 dark:text-teal-400" size={24} />
+            </div>
+          </div>
+        </div>
+
         {/* Laba Bersih */}
         <div className="p-6 transition-shadow bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Laba Bersih</p>
-              <p className={`text-2xl font-bold mt-1 ${totalProfit >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>{formatCurrency(totalProfit)}</p>
+              <p className={`text-2xl font-bold mt-1 ${totalProfit >= 0 ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"}`}>{formatCurrency(totalProfit)}</p>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {selectedYear} • {totalMonths} bulan
               </p>
             </div>
             <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg dark:bg-blue-900/20">
               <DollarSign className="text-blue-600 dark:text-blue-400" size={24} />
+            </div>
+          </div>
+        </div>
+
+        {/* Cash Position */}
+        <div className="p-6 transition-shadow bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cash Position</p>
+              <p className={`text-2xl font-bold mt-1 ${currentCashPosition >= 0 ? "text-indigo-600 dark:text-indigo-400" : "text-red-600 dark:text-red-400"}`}>{formatCurrency(currentCashPosition)}</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Posisi Kas Terkini</p>
+            </div>
+            <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg dark:bg-indigo-900/20">
+              <Wallet className="text-indigo-600 dark:text-indigo-400" size={24} />
             </div>
           </div>
         </div>
@@ -406,9 +438,9 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateN
             <div className="flex flex-col">
               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Bulan Tercatat</span>
               <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                {Array.from(new Set(summaries.map(s => s.month)))
+                {Array.from(new Set(summaries.map((s) => s.month)))
                   .sort((a, b) => a - b)
-                  .map(month => {
+                  .map((month) => {
                     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
                     return monthNames[month - 1];
                   })

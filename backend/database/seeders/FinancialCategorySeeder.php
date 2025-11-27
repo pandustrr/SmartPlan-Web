@@ -18,22 +18,26 @@ class FinancialCategorySeeder extends Seeder
 
         // Kategori Income default
         $incomeCategories = [
-            ['name' => 'Penjualan Produk', 'color' => '#10B981', 'description' => 'Pendapatan dari penjualan produk utama'],
-            ['name' => 'Penjualan Jasa', 'color' => '#059669', 'description' => 'Pendapatan dari layanan jasa'],
-            ['name' => 'Pendapatan Lain-lain', 'color' => '#34D399', 'description' => 'Pendapatan di luar operasional utama'],
+            ['name' => 'Penjualan Produk', 'color' => '#10B981', 'description' => 'Pendapatan dari penjualan produk utama', 'category_subtype' => 'operating_revenue'],
+            ['name' => 'Penjualan Jasa', 'color' => '#059669', 'description' => 'Pendapatan dari layanan jasa', 'category_subtype' => 'operating_revenue'],
+            ['name' => 'Pendapatan Bunga', 'color' => '#34D399', 'description' => 'Pendapatan bunga dari investasi atau deposito', 'category_subtype' => 'non_operating_revenue'],
+            ['name' => 'Pendapatan Lain-lain', 'color' => '#22D3EE', 'description' => 'Pendapatan di luar operasional utama', 'category_subtype' => 'non_operating_revenue'],
         ];
 
         // Kategori Expense default
         $expenseCategories = [
-            ['name' => 'Pembelian Bahan Baku', 'color' => '#EF4444', 'description' => 'Pengeluaran untuk bahan baku produksi'],
-            ['name' => 'Gaji Karyawan', 'color' => '#DC2626', 'description' => 'Pengeluaran untuk gaji dan tunjangan karyawan'],
-            ['name' => 'Biaya Operasional', 'color' => '#F87171', 'description' => 'Biaya operasional harian'],
-            ['name' => 'Listrik & Air', 'color' => '#FB923C', 'description' => 'Biaya utilitas listrik dan air'],
-            ['name' => 'Sewa Tempat', 'color' => '#F59E0B', 'description' => 'Biaya sewa lokasi usaha'],
-            ['name' => 'Marketing & Promosi', 'color' => '#8B5CF6', 'description' => 'Biaya untuk iklan dan promosi'],
-            ['name' => 'Transportasi', 'color' => '#3B82F6', 'description' => 'Biaya transportasi dan distribusi'],
-            ['name' => 'Perawatan & Maintenance', 'color' => '#6366F1', 'description' => 'Biaya perawatan peralatan dan fasilitas'],
-            ['name' => 'Pengeluaran Lain-lain', 'color' => '#6B7280', 'description' => 'Pengeluaran di luar kategori utama'],
+            ['name' => 'HPP - Bahan Baku', 'color' => '#EF4444', 'description' => 'Harga Pokok Penjualan: Bahan baku produksi', 'category_subtype' => 'cogs'],
+            ['name' => 'HPP - Tenaga Kerja Langsung', 'color' => '#DC2626', 'description' => 'Harga Pokok Penjualan: Biaya tenaga kerja produksi', 'category_subtype' => 'cogs'],
+            ['name' => 'Gaji Karyawan', 'color' => '#F87171', 'description' => 'Pengeluaran untuk gaji dan tunjangan karyawan', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Biaya Operasional', 'color' => '#FB923C', 'description' => 'Biaya operasional harian', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Listrik & Air', 'color' => '#FBBF24', 'description' => 'Biaya utilitas listrik dan air', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Sewa Tempat', 'color' => '#F59E0B', 'description' => 'Biaya sewa lokasi usaha', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Marketing & Promosi', 'color' => '#8B5CF6', 'description' => 'Biaya untuk iklan dan promosi', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Transportasi', 'color' => '#3B82F6', 'description' => 'Biaya transportasi dan distribusi', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Perawatan & Maintenance', 'color' => '#6366F1', 'description' => 'Biaya perawatan peralatan dan fasilitas', 'category_subtype' => 'operating_expense'],
+            ['name' => 'Beban Bunga Pinjaman', 'color' => '#EC4899', 'description' => 'Bunga dari pinjaman bank atau kredit', 'category_subtype' => 'interest_expense'],
+            ['name' => 'Pajak Penghasilan', 'color' => '#14B8A6', 'description' => 'Pajak penghasilan badan atau pribadi', 'category_subtype' => 'tax_expense'],
+            ['name' => 'Pengeluaran Lain-lain', 'color' => '#6B7280', 'description' => 'Pengeluaran di luar kategori utama', 'category_subtype' => 'operating_expense'],
         ];
 
         foreach ($users as $user) {
@@ -47,6 +51,7 @@ class FinancialCategorySeeder extends Seeder
                     'color' => $category['color'],
                     'status' => 'actual',
                     'description' => $category['description'],
+                    'category_subtype' => $category['category_subtype'],
                 ]);
             }
 
@@ -60,6 +65,7 @@ class FinancialCategorySeeder extends Seeder
                     'color' => $category['color'],
                     'status' => 'actual',
                     'description' => $category['description'],
+                    'category_subtype' => $category['category_subtype'],
                 ]);
             }
 
@@ -72,6 +78,7 @@ class FinancialCategorySeeder extends Seeder
                 'color' => '#A855F7',
                 'status' => 'plan',
                 'description' => 'Rencana biaya untuk ekspansi bisnis',
+                'category_subtype' => 'operating_expense',
             ]);
 
             FinancialCategory::create([
@@ -82,6 +89,7 @@ class FinancialCategorySeeder extends Seeder
                 'color' => '#22C55E',
                 'status' => 'plan',
                 'description' => 'Proyeksi pendapatan dari produk baru',
+                'category_subtype' => 'operating_revenue',
             ]);
         }
     }

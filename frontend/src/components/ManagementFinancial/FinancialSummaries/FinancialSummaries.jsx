@@ -161,58 +161,6 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
     setView("view");
   };
 
-  const handleGenerateSummary = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user || !user.id) {
-        throw new Error("User data not found. Please login again.");
-      }
-
-      if (!selectedBusiness || !selectedBusiness.id) {
-        throw new Error("Business not selected. Please select a business first.");
-      }
-
-      const data = {
-        user_id: user.id,
-        business_background_id: selectedBusiness.id,
-        year: selectedYear,
-      };
-
-      console.log("Generating summary from simulations:", data);
-      const response = await managementFinancialApi.summaries.generateFromSimulations(data);
-
-      if (response.data.status === "success") {
-        toast.success(`Berhasil generate ${response.data.data.generated_count} ringkasan keuangan!`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        await fetchSummaries();
-      } else {
-        throw new Error(response.data.message || "Failed to generate summaries");
-      }
-    } catch (error) {
-      console.error("Error generating summaries:", error);
-
-      let errorMessage = "Gagal generate ringkasan keuangan";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 5000,
-      });
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDelete = async (summaryId) => {
     try {
       setError(null);
@@ -279,7 +227,6 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             summaries={summaries}
             onView={handleView}
             onDelete={handleDelete}
-            onGenerateSummary={handleGenerateSummary}
             onCreateNew={() => setView("create")}
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
@@ -289,6 +236,7 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             isLoading={isLoading}
             error={error}
             onRetry={handleRetry}
+            selectedBusiness={selectedBusiness}
           />
         );
       case "view":
@@ -299,7 +247,6 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             summaries={summaries}
             onView={handleView}
             onDelete={handleDelete}
-            onGenerateSummary={handleGenerateSummary}
             onCreateNew={() => setView("create")}
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
@@ -309,6 +256,7 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             isLoading={isLoading}
             error={error}
             onRetry={handleRetry}
+            selectedBusiness={selectedBusiness}
           />
         );
     }
