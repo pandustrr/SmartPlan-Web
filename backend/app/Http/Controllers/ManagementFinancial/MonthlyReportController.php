@@ -120,63 +120,82 @@ class MonthlyReportController extends Controller
                 'netIncome' => round($netIncome, 2),
             ];
 
-            $cashEnding = $r->cash_position ?? ($prevCashEnding + $netIncome);
-            $cashBeginning = $prevCashEnding;
-            $netChange = $cashEnding - $cashBeginning;
-            
-            // Operating activities: revenue - expenses (adjusted for non-cash items)
-            $operating = $operatingRevenue - $cogs - $operatingExpense - $taxExpense;
-            
-            // Investing activities: treat non-operating revenue as investment income
-            $investing = $nonOperatingRevenue;
-            
-            // Financing activities: interest expense represents loan costs
-            $financing = -$interestExpense;
+            // Cash Flow - Simplified approach: Cash In vs Cash Out
+            $cashBeginning = $r ? $prevCashEnding : 0.0;
+
+            // Cash In (Arus Kas Masuk)
+            $totalIncome = $operatingRevenue + $nonOperatingRevenue; // Semua pendapatan
+            $additionalCapital = $nonOperatingRevenue; // Modal tambahan dari pendapatan lain-lain
+            $cashIn = $totalIncome;
+
+            // Cash Out (Arus Kas Keluar) 
+            $totalExpenses = $cogs + $operatingExpense + $interestExpense + $taxExpense; // Semua pengeluaran
+            $cashOut = $totalExpenses;
+
+            // Net Cash Flow & Saldo Akhir
+            $netCashFlow = $cashIn - $cashOut;
+            $cashEnding = $cashBeginning + $netCashFlow;
 
             $cashFlow[$m] = [
-                'operating' => round($operating, 2),
-                'investing' => round($investing, 2),
-                'financing' => round($financing, 2),
-                'netChange' => round($netChange, 2),
+                'cashIn' => round($cashIn, 2),
+                'totalIncome' => round($totalIncome, 2),
+                'additionalCapital' => round($additionalCapital, 2),
+                'cashOut' => round($cashOut, 2),
+                'totalExpenses' => round($totalExpenses, 2),
+                'netCashFlow' => round($netCashFlow, 2),
                 'cashBeginning' => round($cashBeginning, 2),
                 'cashEnding' => round($cashEnding, 2),
-            ];
+            ];            // Balance Sheet - Simple approach
 
-            $assetsCurrent = $cashEnding; // sederhanakan: kas sebagai aset lancar utama
-            $assetsNonCurrent = 0.0;
-            $liabCurrent = 0.0; // tidak tersedia
-            $liabNonCurrent = 0.0; // tidak tersedia
-            $equityPaidIn = 0.0; // tidak tersedia
+            // ASET
+            $cash = $cashEnding; // Kas dari cash position
+
+            // Aset Tetap: dari kategori "Perawatan & Maintenance" atau estimasi dari operating expense
+            $maintenanceAssets = $simulations->filter(function ($sim) {
+                return $sim->type === 'expense' &&
+                    $sim->category &&
+                    $sim->category->name === 'Perawatan & Maintenance';
+            })->sum('amount');
+
+            // Jika tidak ada maintenance, gunakan estimasi 10% dari operating expense
+            $fixedAssets = $maintenanceAssets > 0 ? $maintenanceAssets : ($operatingExpense * 0.1);
+
+            // Piutang: untuk sementara set 0 (bisa ditambah kategori khusus nanti)
+            $receivables = 0.0;
+
+            $totalAssets = $cash + $fixedAssets + $receivables;
+
+            // LIABILITAS  
+            // Utang: dari beban bunga (indikator ada pinjaman)
+            $debt = $interestExpense > 0 ? ($interestExpense * 10) : 0.0; // Estimasi pokok utang
+
+            // Kewajiban Lain: dari pajak terutang saja (bukan estimasi)
+            $otherLiabilities = $taxExpense; // Hanya pajak yang belum dibayar
+
+            $totalLiabilities = $debt + $otherLiabilities;
+
+            // EKUITAS
             $cumRetained += $netIncome;
-            $retainedEarnings = $cumRetained;
+            $equity = $totalAssets - $totalLiabilities; // Ekuitas = Aset - Liabilitas
 
-            $assetsTotal = $assetsCurrent + $assetsNonCurrent;
-            $liabilitiesTotal = $liabCurrent + $liabNonCurrent;
-            $equityTotal = $equityPaidIn + $retainedEarnings;
-            $totalLiabilitiesEquity = $liabilitiesTotal + $equityTotal;
-
-            // Jika neraca tidak seimbang, set equity sebagai balancing figure
-            if (abs($assetsTotal - $totalLiabilitiesEquity) > 0.01) {
-                $equityTotal = $assetsTotal - $liabilitiesTotal;
-                $retainedEarnings = $equityTotal - $equityPaidIn;
-                $totalLiabilitiesEquity = $liabilitiesTotal + $equityTotal;
-            }
+            // Pastikan neraca balance
+            $totalLiabilitiesEquity = $totalLiabilities + $equity;
 
             $balanceSheet[$m] = [
                 'assets' => [
-                    'current' => round($assetsCurrent, 2),
-                    'nonCurrent' => round($assetsNonCurrent, 2),
-                    'total' => round($assetsTotal, 2),
+                    'cash' => round($cash, 2),
+                    'fixedAssets' => round($fixedAssets, 2),
+                    'receivables' => round($receivables, 2),
+                    'total' => round($totalAssets, 2),
                 ],
                 'liabilities' => [
-                    'current' => round($liabCurrent, 2),
-                    'nonCurrent' => round($liabNonCurrent, 2),
-                    'total' => round($liabilitiesTotal, 2),
+                    'debt' => round($debt, 2),
+                    'otherLiabilities' => round($otherLiabilities, 2),
+                    'total' => round($totalLiabilities, 2),
                 ],
                 'equity' => [
-                    'paidIn' => round($equityPaidIn, 2),
-                    'retainedEarnings' => round($retainedEarnings, 2),
-                    'total' => round($equityTotal, 2),
+                    'total' => round($equity, 2),
+                    'retainedEarnings' => round($cumRetained, 2),
                 ],
                 'totalLiabilitiesEquity' => round($totalLiabilitiesEquity, 2),
             ];
@@ -184,7 +203,7 @@ class MonthlyReportController extends Controller
             $trends['revenue'][$m - 1] = round($revenue, 2);
             $trends['netIncome'][$m - 1] = round($netIncome, 2);
             $trends['cashEnding'][$m - 1] = round($cashEnding, 2);
-            $trends['totalAssets'][$m - 1] = round($assetsTotal, 2);
+            $trends['totalAssets'][$m - 1] = round($totalAssets, 2);
 
             $prevCashEnding = $cashEnding;
         }
