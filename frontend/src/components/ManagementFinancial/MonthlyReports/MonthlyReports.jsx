@@ -104,7 +104,7 @@ function TableRow({ month, data, className = '' }) {
         </td>
       )) : (
         <>
-          <td className="px-4 py-3 text-left font-medium text-gray-900 dark:text-gray-100">{month}</td>
+          <td className="px-4 py-3 font-medium text-left text-gray-900 dark:text-gray-100">{month}</td>
           {data.map((cell, i) => (
             <td key={i} className={`px-4 py-3 text-right text-gray-700 dark:text-gray-300 ${i === data.length - 1 ? 'font-semibold text-gray-900 dark:text-white' : ''}`}>
               {cell}
@@ -118,7 +118,7 @@ function TableRow({ month, data, className = '' }) {
 
 function IncomeStatement({ data, filterMonth }) {
   const filteredData = filterMonth ? { [filterMonth]: data?.[filterMonth] } : data;
-  
+
   return (
     <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
       <div className="mb-4">
@@ -127,23 +127,23 @@ function IncomeStatement({ data, filterMonth }) {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Laporan Laba Rugi Bulanan</h3>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{helpers.is}</p>
           </div>
-          <Info size={18} className="text-gray-400 dark:text-gray-500 flex-shrink-0 mt-1" />
+          <Info size={18} className="flex-shrink-0 mt-1 text-gray-400 dark:text-gray-500" />
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-b-2 border-blue-200 dark:border-blue-700">
-              <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Bulan</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Pendapatan</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">HPP</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Laba Kotor</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Beban Operasional</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Laba Operasi</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Pendapatan Lain</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Beban Bunga</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Pajak</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Laba Bersih</th>
+            <tr className="border-b-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 dark:border-blue-700">
+              <th className="px-4 py-3 font-semibold text-left text-gray-900 dark:text-white">Bulan</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Pendapatan</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">HPP</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Laba Kotor</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Beban Operasional</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Laba Operasi</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Pendapatan Lain</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Beban Bunga</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Pajak</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Laba Bersih</th>
             </tr>
           </thead>
           <tbody>
@@ -178,29 +178,30 @@ function IncomeStatement({ data, filterMonth }) {
 
 function CashFlow({ data, filterMonth }) {
   const filteredData = filterMonth ? { [filterMonth]: data?.[filterMonth] } : data;
-  
+
   return (
     <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
       <div className="mb-4">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Laporan Arus Kas Bulanan</h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{helpers.cf}</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Fokus ke cash in – cash out untuk melihat kestabilan cashflow bisnis</p>
           </div>
-          <Info size={18} className="text-gray-400 dark:text-gray-500 flex-shrink-0 mt-1" />
+          <Info size={18} className="flex-shrink-0 mt-1 text-gray-400 dark:text-gray-500" />
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gradient-to-r from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 border-b-2 border-teal-200 dark:border-teal-700">
-              <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Bulan</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Operasi</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Investasi</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Pendanaan</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Perubahan Bersih</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Kas Awal</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Kas Akhir</th>
+            <tr className="border-b-2 border-teal-200 bg-gradient-to-r from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 dark:border-teal-700">
+              <th className="px-4 py-3 font-semibold text-left text-gray-900 dark:text-white">Bulan</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Kas Masuk</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Pendapatan</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Modal Tambahan</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Kas Keluar</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Net Cash Flow</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Kas Awal</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Kas Akhir</th>
             </tr>
           </thead>
           <tbody>
@@ -213,10 +214,11 @@ function CashFlow({ data, filterMonth }) {
                   key={m}
                   month={monthNames[i]}
                   data={[
-                    number(row.operating),
-                    number(row.investing),
-                    number(row.financing),
-                    number(row.netChange),
+                    number(row.cashIn),
+                    number(row.totalIncome),
+                    number(row.additionalCapital),
+                    number(row.cashOut),
+                    number(row.netCashFlow),
                     number(row.cashBeginning),
                     number(row.cashEnding),
                   ]}
@@ -232,33 +234,32 @@ function CashFlow({ data, filterMonth }) {
 
 function BalanceSheet({ data, filterMonth }) {
   const filteredData = filterMonth ? { [filterMonth]: data?.[filterMonth] } : data;
-  
+
   return (
     <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
       <div className="mb-4">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Neraca Sederhana</h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{helpers.bs}</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Versi mini dari neraca akuntansi untuk melihat posisi keuangan bisnis</p>
           </div>
-          <Info size={18} className="text-gray-400 dark:text-gray-500 flex-shrink-0 mt-1" />
+          <Info size={18} className="flex-shrink-0 mt-1 text-gray-400 dark:text-gray-500" />
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gradient-to-r from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border-b-2 border-indigo-200 dark:border-indigo-700">
-              <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Bulan</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Aset Lancar</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Aset Tidak Lancar</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Total Aset</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Liabilitas Lancar</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Liabilitas Tidak Lancar</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Total Liabilitas</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Modal Disetor</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Laba Ditahan</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Total Ekuitas</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Total Liabilitas+Ekuitas</th>
+            <tr className="border-b-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 dark:border-indigo-700">
+              <th className="px-4 py-3 font-semibold text-left text-gray-900 dark:text-white">Bulan</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Kas</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Aset Tetap</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Piutang</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Total Aset</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Utang</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Kewajiban Lain</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Total Liabilitas</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Ekuitas</th>
+              <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Laba Ditahan</th>
             </tr>
           </thead>
           <tbody>
@@ -271,16 +272,15 @@ function BalanceSheet({ data, filterMonth }) {
                   key={m}
                   month={monthNames[i]}
                   data={[
-                    number(row.assets?.current),
-                    number(row.assets?.nonCurrent),
+                    number(row.assets?.cash),
+                    number(row.assets?.fixedAssets),
+                    number(row.assets?.receivables),
                     number(row.assets?.total),
-                    number(row.liabilities?.current),
-                    number(row.liabilities?.nonCurrent),
+                    number(row.liabilities?.debt),
+                    number(row.liabilities?.otherLiabilities),
                     number(row.liabilities?.total),
-                    number(row.equity?.paidIn),
-                    number(row.equity?.retainedEarnings),
                     number(row.equity?.total),
-                    number(row.totalLiabilitiesEquity),
+                    number(row.equity?.retainedEarnings),
                   ]}
                 />
               );
@@ -295,7 +295,7 @@ function BalanceSheet({ data, filterMonth }) {
 function Trends({ trends }) {
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+      <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
         <div className="flex items-start gap-3">
           <Info size={18} className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <div>
@@ -424,7 +424,7 @@ function TrendsCharts({ trends }) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mt-4">
+    <div className="grid grid-cols-1 gap-6 mt-4 lg:grid-cols-2">
       <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 rounded-xl dark:border-gray-700">
         <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Tren Pendapatan</h3>
         <div style={{ height: '300px' }}>
@@ -521,7 +521,7 @@ export default function MonthlyReports({ selectedBusiness, onBack }) {
             <CalendarIcon size={18} className="absolute text-gray-400 -translate-y-1/2 left-3 top-1/2" />
             <input
               type="number"
-              className="w-28 pl-9 pr-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+              className="py-2 pr-3 text-gray-900 bg-white border border-gray-300 rounded-lg w-28 pl-9 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
               value={year}
               onChange={(e) => setYear(parseInt(e.target.value || new Date().getFullYear()))}
             />
@@ -537,7 +537,7 @@ export default function MonthlyReports({ selectedBusiness, onBack }) {
       {!loading && data && <Metrics data={data} />}
 
       {/* Tabs + Year Filter */}
-      <div className="flex flex-wrap items-center gap-2 justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setTab('is')} className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${tab==='is' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>Laba Rugi</button>
           <button onClick={() => setTab('cf')} className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${tab==='cf' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>Arus Kas</button>
@@ -550,7 +550,7 @@ export default function MonthlyReports({ selectedBusiness, onBack }) {
             Filter Tahun ({year})
           </button>
           {showYearFilter && (
-            <div className="absolute right-0 z-10 w-40 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 max-h-64 overflow-y-auto">
+            <div className="absolute right-0 z-10 w-40 mt-2 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 max-h-64">
               <div className="p-2">
                 {availableYears.map((y) => (
                   <button key={y} onClick={() => { setYear(y); setShowYearFilter(false); }} className={`w-full px-3 py-2 text-sm text-left rounded ${year === y ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>{y}</button>
@@ -571,7 +571,7 @@ export default function MonthlyReports({ selectedBusiness, onBack }) {
         </div>
       )}
       {error && (
-        <div className="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:text-red-300 dark:border-red-800">{error}</div>
+        <div className="p-4 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800">{error}</div>
       )}
 
       {!loading && data && (
