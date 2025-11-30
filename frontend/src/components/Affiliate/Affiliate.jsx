@@ -1,7 +1,7 @@
 import React from "react";
-import AffiliateLink from "./AffiliateLink/AffiliateLink";
-import AffiliateTracking from "./AffiliateTracking/AffiliateTracking";
-import AffiliateLeads from "./AffiliateLeads/AffiliateLeads";
+import AffiliateLink from "./AffiliateLink";
+import AffiliateTracking from "./AffiliateTracking";
+import AffiliateLeads from "./AffiliateLeads";
 
 const Affiliate = ({ activeSubSection }) => {
   const renderComponent = () => {

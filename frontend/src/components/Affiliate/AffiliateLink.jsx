@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link2, Copy, Check, Loader, Edit2, Power } from "lucide-react";
-import { affiliateLinkApi } from "../../../services/Affiliate/affiliateApi";
+import { Link2, Copy, Check, Loader, Edit2, Power, ExternalLink } from "lucide-react";
+import { affiliateLinkApi } from "../../services/Affiliate/affiliateApi";
 import { toast } from "react-toastify";
 
 const AffiliateLink = () => {
@@ -152,15 +152,23 @@ const AffiliateLink = () => {
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               URL Affiliate Anda
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-col sm:flex-row">
               <div className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between">
                 <code className="text-sm text-gray-700 dark:text-gray-300 font-mono break-all">
                   {affiliateLink?.full_url}
                 </code>
               </div>
               <button
+                onClick={() => window.open(affiliateLink?.full_url, '_blank')}
+                className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 whitespace-nowrap"
+                title="Buka link di tab baru"
+              >
+                <ExternalLink size={18} />
+                Buka Tab Baru
+              </button>
+              <button
                 onClick={handleCopyLink}
-                className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 whitespace-nowrap"
               >
                 {copied ? <Check size={18} /> : <Copy size={18} />}
                 {copied ? "Disalin" : "Salin"}

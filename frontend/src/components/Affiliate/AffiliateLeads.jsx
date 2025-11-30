@@ -12,7 +12,7 @@ import {
   Clock,
   Target,
 } from "lucide-react";
-import { affiliateLeadApi } from "../../../services/Affiliate/affiliateApi";
+import { affiliateLeadApi } from "../../services/Affiliate/affiliateApi";
 import { toast } from "react-toastify";
 
 const AffiliateLeads = () => {

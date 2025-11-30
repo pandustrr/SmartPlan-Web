@@ -15,7 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { affiliateTrackingApi } from "../../../services/Affiliate/affiliateApi";
+import { affiliateTrackingApi } from "../../services/Affiliate/affiliateApi";
 import { toast } from "react-toastify";
 
 const AffiliateTracking = () => {
