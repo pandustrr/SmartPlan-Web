@@ -43,13 +43,21 @@ class AffiliateLeadController extends Controller
             ->limit(6)
             ->get()
             ->map(function($product) {
+                $imageUrl = null;
+                if ($product->image_path) {
+                    if (filter_var($product->image_path, FILTER_VALIDATE_URL)) {
+                        $imageUrl = $product->image_path;
+                    } else {
+                        $imageUrl = asset('storage/' . $product->image_path);
+                    }
+                }
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'description' => $product->description,
                     'type' => $product->type,
                     'price' => $product->price,
-                    'image_url' => $product->image_path,
+                    'image_url' => $imageUrl,
                 ];
             })
             ->toArray();
@@ -60,11 +68,19 @@ class AffiliateLeadController extends Controller
             ->limit(5)
             ->get()
             ->map(function($member) {
+                $photoUrl = null;
+                if ($member->photo) {
+                    if (filter_var($member->photo, FILTER_VALIDATE_URL)) {
+                        $photoUrl = $member->photo;
+                    } else {
+                        $photoUrl = asset('storage/' . $member->photo);
+                    }
+                }
                 return [
                     'id' => $member->id,
                     'name' => $member->member_name,
                     'position' => $member->position,
-                    'photo_url' => $member->photo,
+                    'photo_url' => $photoUrl,
                     'experience' => $member->experience,
                 ];
             })
@@ -72,6 +88,19 @@ class AffiliateLeadController extends Controller
 
         // Count team
         $teamCount = TeamStructure::where('user_id', $user->id)->count();
+
+        // Prepare logo URL
+        $logoPath = $businessBackground?->logo ?? $user->business_logo ?? null;
+        $logoUrl = null;
+        if ($logoPath) {
+            // Check if logo is already a full URL
+            if (filter_var($logoPath, FILTER_VALIDATE_URL)) {
+                $logoUrl = $logoPath;
+            } else {
+                // Convert relative path to full URL
+                $logoUrl = asset('storage/' . $logoPath);
+            }
+        }
 
         // Prepare response data
         return response()->json([
@@ -81,7 +110,7 @@ class AffiliateLeadController extends Controller
                 'tagline' => $user->business_tagline ?? 'Solusi bisnis terpercaya',
                 'description' => $businessBackground?->description ?? $user->business_description ?? 'Kami menyediakan solusi terbaik untuk kebutuhan bisnis Anda',
                 'category' => $businessBackground?->category ?? 'Umum',
-                'logo_url' => $businessBackground?->logo ?? $user->business_logo ?? null,
+                'logo_url' => $logoUrl,
                 'vision' => $businessBackground?->vision ?? null,
                 'mission' => $businessBackground?->mission ?? null,
                 'values' => $businessBackground?->values ? json_decode($businessBackground->values, true) : [],

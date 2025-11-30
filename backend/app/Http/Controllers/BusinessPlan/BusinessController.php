@@ -11,6 +11,83 @@ use Illuminate\Support\Facades\Storage;
 
 class BusinessController extends Controller
 {
+    /**
+     * Resize image to optimal size maintaining aspect ratio
+     * @param string $sourcePath
+     * @param int $maxSize
+     * @return string|null PNG encoded binary or null
+     */
+    private function resizeImage($sourcePath, $maxSize = 200)
+    {
+        // Get image info
+        $imageInfo = @getimagesize($sourcePath);
+        if (!$imageInfo) {
+            return null;
+        }
+
+        list($width, $height, $type) = $imageInfo;
+
+        // Create image resource based on type
+        $image = null;
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $image = @imagecreatefromjpeg($sourcePath);
+                break;
+            case IMAGETYPE_PNG:
+                $image = @imagecreatefrompng($sourcePath);
+                break;
+            case IMAGETYPE_GIF:
+                $image = @imagecreatefromgif($sourcePath);
+                break;
+            case IMAGETYPE_WEBP:
+                $image = @imagecreatefromwebp($sourcePath);
+                break;
+            default:
+                return null;
+        }
+
+        if (!$image) {
+            return null;
+        }
+
+        // Calculate new dimensions
+        $newWidth = $width;
+        $newHeight = $height;
+
+        if ($width > $maxSize || $height > $maxSize) {
+            if ($width > $height) {
+                $newWidth = $maxSize;
+                $newHeight = intval($height * ($maxSize / $width));
+            } else {
+                $newHeight = $maxSize;
+                $newWidth = intval($width * ($maxSize / $height));
+            }
+        }
+
+        // Create new image
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preserve transparency for PNG
+        if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_GIF) {
+            imagecolortransparent($newImage, imagecolorallocatealpha($newImage, 0, 0, 0, 127));
+            imagealphablending($newImage, false);
+            imagesavealpha($newImage, true);
+        }
+
+        // Resize
+        imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Get PNG output
+        ob_start();
+        imagepng($newImage);
+        $output = ob_get_clean();
+
+        // Clean up
+        imagedestroy($image);
+        imagedestroy($newImage);
+
+        return $output;
+    }
     // BusinessBackground
     public function index()
     {
@@ -71,7 +148,18 @@ class BusinessController extends Controller
         try {
             $logoPath = null;
             if ($request->hasFile('logo')) {
-                $logoPath = $request->file('logo')->store('logos', 'public');
+                $logoFile = $request->file('logo');
+                $sourcePath = $logoFile->getPathname();
+
+                // Resize image
+                $resizedImage = $this->resizeImage($sourcePath, 200);
+
+                if ($resizedImage) {
+                    // Save resized image
+                    $filename = 'logo_' . time() . '_' . uniqid() . '.png';
+                    $logoPath = 'logos/' . $filename;
+                    Storage::disk('public')->put($logoPath, $resizedImage);
+                }
             }
 
             $business = BusinessBackground::create([
@@ -141,9 +229,19 @@ class BusinessController extends Controller
         try {
             // Handle logo update
             if ($request->hasFile('logo')) {
-                // Upload logo baru
-                $path = $request->file('logo')->store('logos', 'public');
-                $validated['logo'] = $path;
+                $logoFile = $request->file('logo');
+                $sourcePath = $logoFile->getPathname();
+
+                // Resize image
+                $resizedImage = $this->resizeImage($sourcePath, 200);
+
+                if ($resizedImage) {
+                    // Save resized image
+                    $filename = 'logo_' . time() . '_' . uniqid() . '.png';
+                    $path = 'logos/' . $filename;
+                    Storage::disk('public')->put($path, $resizedImage);
+                    $validated['logo'] = $path;
+                }
 
                 // Hapus logo lama jika ada
                 if ($business->logo) {
