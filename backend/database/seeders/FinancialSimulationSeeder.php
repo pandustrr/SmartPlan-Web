@@ -11,21 +11,6 @@ use Carbon\Carbon;
 
 class FinancialSimulationSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     * 
-     * Membuat simulasi transaksi keuangan yang KONSISTEN dengan ringkasan:
-     * 
-     * Breakdown per user:
-     * - Income categories: 3 kategori × 10 simulasi = 30 simulasi
-     * - Expense categories: 9 kategori × 10 simulasi = 90 simulasi
-     * - Recurring transactions: 3 (Gaji, Sewa, Listrik) = 3 simulasi
-     * 
-     * TOTAL = 30 + 90 + 3 = 123 simulasi per user
-     * 
-     * Jika ada 1 user, maka total = 123 financial simulations
-     * Jika ada 2 users, maka total = 246 financial simulations, dst
-     */
     public function run(): void
     {
         // Truncate untuk bisa run berulang kali
@@ -122,10 +107,10 @@ class FinancialSimulationSeeder extends Seeder
             $recurringIndex = 0;
             foreach ($recurringCategories as $categoryName => $amount) {
                 $category = $categories->firstWhere('name', $categoryName);
-                
+
                 if ($category) {
                     $recurringSimulationCode = 'SIM' . Carbon::now()->format('YmdHis') . str_pad($recurringIndex, 3, '0', STR_PAD_LEFT) . 'REC' . $user->id;
-                    
+
                     FinancialSimulation::create([
                         'user_id' => $user->id,
                         'business_background_id' => 1,
