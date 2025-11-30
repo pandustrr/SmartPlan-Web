@@ -286,7 +286,7 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
         {/* Additional Info - Desktop */}
         <div className="hidden sm:block text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            © 2024 PlanWeb. All rights reserved.
+            © 2025 Grapadi Strategix. All rights reserved.
           </p>
         </div>
       </div>

@@ -44,7 +44,7 @@ const AffiliateLandingPage = () => {
     useEffect(() => {
         // Set document title and favicon when business data is loaded
         if (businessData?.business_name) {
-            document.title = `SmartPlan - ${businessData.business_name}`;
+            document.title = `Grapadi Strategix - ${businessData.business_name}`;
             
             // Set favicon dynamically
             if (businessData?.logo_url) {

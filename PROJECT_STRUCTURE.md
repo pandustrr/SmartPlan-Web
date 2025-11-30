@@ -1,9 +1,9 @@
-# SmartPlan-Web Project Structure - Dokumentasi Lengkap
+# Grapadi Strategix Project Structure - Dokumentasi Lengkap
 
 ## 📁 Struktur Project Umum
 
 ```
-SmartPlan-Web/
+Grapadi Strategix/
 ├── backend/            # Laravel API Backend
 ├── frontend/           # React + Vite Frontend
 └── PROJECT_STRUCTURE.md # File dokumentasi ini
@@ -813,7 +813,7 @@ frontend/
 
 **Current Version**: v1.1  
 **Release Date**: November 29, 2025  
-**Repository**: SmartPlan-Web  
+**Repository**: Grapadi Strategix  
 **Owner**: pandustrr  
 **Current Branch**: branch-pandu  
 **Default Branch**: main

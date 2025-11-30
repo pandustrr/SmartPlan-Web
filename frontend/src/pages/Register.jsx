@@ -154,7 +154,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                             Buat Akun Baru
                         </h2>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Bergabunglah dengan PlanWeb dan mulai kelola bisnis Anda.
+                            Bergabunglah dengan Grapadi Strategix dan mulai kelola bisnis Anda.
                         </p>
                     </div>
 
@@ -402,7 +402,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                 {/* Additional Info - Desktop */}
                 <div className="hidden sm:block text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                        © 2024 PlanWeb. All rights reserved.
+                        © 2025 Grapadi Strategix. All rights reserved.
                     </p>
                 </div>
             </div>

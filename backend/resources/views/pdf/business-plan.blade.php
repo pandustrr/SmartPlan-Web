@@ -185,7 +185,7 @@
 
 <body>
     @if ($mode === 'free')
-        <div class="watermark">SMARTPLAN - FREE VERSION</div>
+        <div class="watermark">GRAPADI STRATEGIX - FREE VERSION</div>
     @endif
 
     <!-- Cover Page -->
@@ -211,7 +211,7 @@
 
         <div style="position: absolute; bottom: 50px; left: 0; right: 0; text-align: center;">
             <p style="font-size: 12px; color: #666;">
-                Dokumen ini dibuat secara otomatis oleh SMARTPLAN-WEB System
+                Dokumen ini dibuat secara otomatis oleh GRAPADI STRATEGIX System
             </p>
         </div>
     </div>

@@ -220,9 +220,9 @@ const Sidebar = ({
                 <div className={`${!isOpen && "lg:hidden"}`}>
                   <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                     <span className="text-green-600 dark:text-green-400">
-                      Smart
+                      Grapadi
                     </span>
-                    Plan
+                    Strategix
                   </h1>
                   <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1 lg:block hidden">
                     Business Management

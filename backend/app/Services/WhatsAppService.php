@@ -26,7 +26,7 @@ class WhatsAppService
             $formattedPhone = $this->formatPhoneNumber($phone);
 
             // Pesan OTP
-            $message = "Kode verifikasi SmartPlan Anda: *{$otp}*\n\nKode ini berlaku selama 10 menit.\nJangan berikan kode ini kepada siapapun.";
+            $message = "Kode verifikasi Grapadi Strategix Anda: *{$otp}*\n\nKode ini berlaku selama 10 menit.\nJangan berikan kode ini kepada siapapun.";
 
             Log::info("Sending WhatsApp OTP to {$formattedPhone}: {$otp}");
 
@@ -69,7 +69,7 @@ class WhatsAppService
         try {
             $formattedPhone = $this->formatPhoneNumber($phone);
 
-            $message = "Kode reset password PlanWeb Anda: *{$otp}*\n\nKode ini berlaku selama 10 menit.\nJika Anda tidak meminta reset password, abaikan pesan ini.";
+            $message = "Kode reset password Grapadi Strategix Anda: *{$otp}*\n\nKode ini berlaku selama 10 menit.\nJika Anda tidak meminta reset password, abaikan pesan ini.";
 
             Log::info("Sending WhatsApp Reset OTP to {$formattedPhone}: {$otp}");
 

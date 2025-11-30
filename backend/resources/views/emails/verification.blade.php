@@ -56,14 +56,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">PlanWeb</div>
+            <div class="logo">Grapadi Strategix</div>
             <h2>Verifikasi Email Anda</h2>
         </div>
 
         <div class="content">
             <p>Halo <strong>{{ $user->name }}</strong>,</p>
 
-            <p>Terima kasih telah mendaftar di PlanWeb. Untuk mengaktifkan akun Anda, silakan verifikasi alamat email Anda dengan mengklik tombol di bawah ini:</p>
+            <p>Terima kasih telah mendaftar di Grapadi Strategix. Untuk mengaktifkan akun Anda, silakan verifikasi alamat email Anda dengan mengklik tombol di bawah ini:</p>
 
             <div style="text-align: center;">
                 <a href="{{ $verificationUrl }}" class="button">Verifikasi Email Saya</a>
@@ -76,11 +76,11 @@
 
             <p>Link verifikasi ini akan kedaluwarsa dalam 24 jam.</p>
 
-            <p>Jika Anda tidak merasa mendaftar di PlanWeb, Anda dapat mengabaikan email ini.</p>
+            <p>Jika Anda tidak merasa mendaftar di Grapadi Strategix, Anda dapat mengabaikan email ini.</p>
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} PlanWeb. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Grapadi Strategix. All rights reserved.</p>
             <p>Email ini dikirim secara otomatis, mohon tidak membalas email ini.</p>
         </div>
     </div>

@@ -7,7 +7,7 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div>
                         <h3 className="text-2xl font-bold mb-4">
-                            <span className="text-green-400">Plan</span>Web
+                            <span className="text-green-400">Grapadi</span> Strategix
                         </h3>
                         <p className="text-gray-400 leading-relaxed">
                             Platform manajemen bisnis all-in-one untuk pertumbuhan yang berkelanjutan 
@@ -47,7 +47,7 @@ const Footer = () => {
                 </div>
                 
                 <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-                    <p>&copy; 2024 PlanWeb. All rights reserved. | Built with ❤️ for business growth</p>
+                    <p>&copy; 2025 Grapadi Strategix. All rights reserved. | Built with ❤️ for business growth</p>
                 </div>
             </div>
         </footer>

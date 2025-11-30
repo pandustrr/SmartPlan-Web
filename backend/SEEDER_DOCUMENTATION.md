@@ -1,7 +1,7 @@
 # Database Seeder Documentation
 
 ## Overview
-Dokumentasi lengkap untuk semua seeder di SmartPlan-Web. Seeder dirancang untuk membuat data sample yang konsisten dan realistic untuk testing.
+Dokumentasi lengkap untuk semua seeder di Grapadi Strategix. Seeder dirancang untuk membuat data sample yang konsisten dan realistic untuk testing.
 
 ## Urutan Eksekusi (PENTING!)
 
