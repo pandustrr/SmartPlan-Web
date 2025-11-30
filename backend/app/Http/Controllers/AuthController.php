@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Affiliate\AffiliateLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,14 +11,17 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
 use App\Services\WhatsAppService;
+use App\Services\AffiliateService;
 
 class AuthController extends Controller
 {
     protected $whatsappService;
+    protected $affiliateService;
 
-    public function __construct(WhatsAppService $whatsappService)
+    public function __construct(WhatsAppService $whatsappService, AffiliateService $affiliateService)
     {
         $this->whatsappService = $whatsappService;
+        $this->affiliateService = $affiliateService;
     }
 
     public function register(Request $request)
@@ -129,6 +133,21 @@ class AuthController extends Controller
 
         // Verifikasi berhasil
         $user->markPhoneAsVerified();
+
+        // Create affiliate link automatically for new verified user
+        $affiliateLink = AffiliateLink::where('user_id', $user->id)->first();
+        if (!$affiliateLink) {
+            $slug = $this->affiliateService->generateInitialSlug($user);
+            AffiliateLink::create([
+                'user_id' => $user->id,
+                'slug' => $slug,
+                'original_slug' => $slug,
+                'is_custom' => false,
+                'change_count' => 0,
+                'max_changes' => 999,
+                'is_active' => true,
+            ]);
+        }
 
         // Auto login setelah verifikasi
         Auth::login($user);

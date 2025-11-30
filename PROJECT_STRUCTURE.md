@@ -30,15 +30,19 @@ backend/
 │   │   │   │   ├── ProductServiceController.php        # Products/Services
 │   │   │   │   ├── TeamStructureController.php         # Team Structure
 │   │   │   │   └── PdfBusinessPlanController.php       # PDF Generation
-│   │   │   └── ManagementFinancial/
-│   │   │       ├── ManagementFinancialController.php   # Financial Management
-│   │   │       ├── FinancialSimulationController.php   # Simulations
-│   │   │       ├── FinancialSummaryController.php      # Financial Summaries
-│   │   │       └── MonthlyReportController.php         # Monthly Reports (NEW)
+│   │   │   ├── ManagementFinancial/
+│   │   │   │   ├── ManagementFinancialController.php   # Financial Management
+│   │   │   │   ├── FinancialSimulationController.php   # Simulations
+│   │   │   │   ├── FinancialSummaryController.php      # Financial Summaries
+│   │   │   │   └── MonthlyReportController.php         # Monthly Reports
+│   │   │   └── Affiliate/
+│   │   │       ├── AffiliateLinkController.php         # Affiliate Link Management
+│   │   │       ├── AffiliateTrackController.php        # Click Tracking & Analytics
+│   │   │       └── AffiliateLeadController.php         # Lead Capture & Management
 │   │   └── Middleware/
 │   │       └── CorsMiddleware.php                      # CORS Configuration
 │   │
-│   ├── Models/
+│   │   ├── Models/
 │   │   ├── User.php                                    # User Model
 │   │   ├── BusinessBackground.php                      # Business Info
 │   │   ├── FinancialPlan.php                           # Financial Plans
@@ -48,6 +52,10 @@ backend/
 │   │   ├── OperationalPlan.php                         # Operations
 │   │   ├── ProductService.php                          # Products/Services
 │   │   ├── TeamStructure.php                           # Team
+│   │   ├── Affiliate/
+│   │   │   ├── AffiliateLink.php                       # Affiliate Links (NEW)
+│   │   │   ├── AffiliateTrack.php                      # Affiliate Tracking (NEW)
+│   │   │   └── AffiliateLead.php                       # Affiliate Leads (NEW)
 │   │   └── ManagementFinancial/
 │   │       ├── FinancialCategory.php                   # Categories
 │   │       ├── FinancialSimulation.php                 # Simulations
@@ -59,7 +67,8 @@ backend/
 │   │
 │   └── Services/
 │       ├── WhatsAppService.php                         # WhatsApp API Integration
-│       └── WorkflowDiagramService.php                  # Workflow Diagrams
+│       ├── WorkflowDiagramService.php                  # Workflow Diagrams
+│       └── AffiliateService.php                        # Affiliate Logic (NEW)
 │
 ├── bootstrap/
 │   ├── app.php                                         # Bootstrap App
@@ -171,6 +180,9 @@ backend/
 - `financial_categories` - Financial categories
 - `financial_simulations` - What-if simulations
 - `financial_summaries` - Financial summaries
+- `affiliate_links` - Affiliate links (NEW)
+- `affiliate_tracks` - Click tracking (NEW)
+- `affiliate_leads` - Lead capture (NEW)
 
 ---
 
@@ -361,17 +373,44 @@ frontend/
 - Financial summaries
 - PDF report generation
 
-### 4. Forecasting & Analysis
+### 4. Affiliate & Lead Generation (NEW)
+- **Affiliate Link Management**:
+  - Auto-generated slug dari nama user
+  - Custom slug editor (max 2x perubahan)
+  - Full affiliate URL: `domain.com/affiliate/{slug}`
+  - Toggle link active/inactive
+  
+- **Traffic Tracking**:
+  - Track setiap klik affiliate link
+  - Device detection (mobile, tablet, desktop)
+  - Browser & OS tracking
+  - Referrer tracking
+  - Monthly breakdown
+  
+- **Lead Capture**:
+  - Lead form di landing page
+  - Capture: nama, email, WA, interest, notes
+  - Auto-assign ke affiliate pemilik link
+  - Lead status management (baru, dihubungi, closing)
+  
+- **Analytics Dashboard**:
+  - Total clicks & leads
+  - Conversion rate (leads/clicks)
+  - Device breakdown chart
+  - Monthly trend chart
+  - Lead statistics by status
+
+### 5. Forecasting & Analysis
 - ARIMA-based time series forecasting
 - Data visualization
 - Predictive analytics
 
-### 5. Integration Services
+### 6. Integration Services
 - WhatsApp notifications
 - PDF generation
 - Workflow diagrams
 
-### 6. Dashboard
+### 7. Dashboard
 - KPI visualization
 - Business metrics
 - Financial summaries
@@ -436,7 +475,7 @@ FinancialSimulation (1)
 ### Backend Config
 - **auth.php** - Authentication guards (Sanctum)
 - **cors.php** - Cross-origin requests
-- **database.php** - Database connections
+- **database.php** - Database connections 
 - **mail.php** - Email configuration
 - **queue.php** - Job queues
 - **cache.php** - Cache drivers
@@ -517,14 +556,278 @@ FinancialSimulation (1)
 
 ---
 
-## 📋 Current Branch Info
+## 🗂️ Complete Directory Tree
 
-- **Repository**: SmartPlan-Web
-- **Owner**: pandustrr
-- **Current Branch**: branch-pandu
-- **Default Branch**: main
+### Backend Complete Structure
+```
+backend/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Controller.php
+│   │   │   ├── AuthController.php
+│   │   │   ├── UserController.php
+│   │   │   ├── BusinessPlan/
+│   │   │   │   ├── BusinessController.php
+│   │   │   │   ├── FinancialPlanController.php
+│   │   │   │   ├── MarketAnalysisController.php
+│   │   │   │   ├── MarketingStrategyController.php
+│   │   │   │   ├── OperationalPlanController.php
+│   │   │   │   ├── ProductServiceController.php
+│   │   │   │   ├── TeamStructureController.php
+│   │   │   │   └── PdfBusinessPlanController.php
+│   │   │   └── ManagementFinancial/
+│   │   │       ├── ManagementFinancialController.php
+│   │   │       ├── FinancialSimulationController.php
+│   │   │       ├── FinancialSummaryController.php
+│   │   │       └── MonthlyReportController.php
+│   │   └── Middleware/
+│   │       └── CorsMiddleware.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── BusinessBackground.php
+│   │   ├── FinancialPlan.php
+│   │   ├── MarketAnalysis.php
+│   │   ├── MarketAnalysisCompetitor.php
+│   │   ├── MarketingStrategy.php
+│   │   ├── OperationalPlan.php
+│   │   ├── ProductService.php
+│   │   ├── TeamStructure.php
+│   │   └── ManagementFinancial/
+│   │       ├── FinancialCategory.php
+│   │       ├── FinancialSimulation.php
+│   │       └── FinancialSummary.php
+│   ├── Providers/
+│   │   ├── AppServiceProvider.php
+│   │   └── PdfServiceProvider.php
+│   └── Services/
+│       ├── WhatsAppService.php
+│       └── WorkflowDiagramService.php
+├── bootstrap/
+│   ├── app.php
+│   ├── providers.php
+│   └── cache/
+│       ├── packages.php
+│       └── services.php
+├── config/
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── cors.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── queue.php
+│   ├── sanctum.php
+│   ├── services.php
+│   └── session.php
+├── database/
+│   ├── factories/
+│   │   └── UserFactory.php
+│   ├── migrations/
+│   │   ├── 0001_01_01_000000_create_users_table.php
+│   │   ├── 0001_01_01_000001_create_cache_table.php
+│   │   ├── 0001_01_01_000002_create_jobs_table.php
+│   │   ├── 2025_11_05_225908_create_personal_access_tokens_table.php
+│   │   ├── 2025_11_06_005444_create_sessions_table.php
+│   │   ├── 2025_11_07_111922_create_password_reset_tokens_table.php
+│   │   ├── 2025_11_07_173204_create_business_backgrounds_table.php
+│   │   ├── 2025_11_07_202516_create_market_analyses_table.php
+│   │   ├── 2025_11_08_152551_create_product_services_table.php
+│   │   ├── 2025_11_08_162434_create_marketing_strategies_table.php
+│   │   ├── 2025_11_08_183358_create_operational_plans_table.php
+│   │   ├── 2025_11_09_155228_create_team_structures_table.php
+│   │   ├── 2025_11_11_174135_create_financial_plans_table.php
+│   │   ├── 2025_11_13_073205_add_fields_to_users_table.php
+│   │   ├── 2025_11_23_233153_create_financial_categories_table.php
+│   │   ├── 2025_11_24_030540_create_financial_simulations_table.php
+│   │   ├── 2025_11_25_004624_create_financial_summaries_table.php
+│   │   └── 2025_11_26_000000_add_year_to_financial_simulations_table.php
+│   └── seeders/
+│       └── BusinessBackgroundSeeder.php
+├── public/
+│   ├── index.php
+│   ├── robots.txt
+│   └── storage/
+├── resources/
+│   ├── css/
+│   ├── js/
+│   └── views/
+├── routes/
+│   ├── api.php
+│   ├── console.php
+│   └── web.php
+├── storage/
+│   ├── app/
+│   ├── framework/
+│   └── logs/
+├── tests/
+│   ├── TestCase.php
+│   ├── Feature/
+│   └── Unit/
+├── vendor/
+├── artisan
+├── composer.json
+├── composer.lock
+├── package.json
+├── phpunit.xml
+├── postcss.config.js
+├── tailwind.config.js
+├── vite.config.js
+└── README.md
+```
+
+### Frontend Complete Structure
+```
+frontend/
+├── src/
+│   ├── App.jsx
+│   ├── App.css
+│   ├── main.jsx
+│   ├── index.css
+│   ├── assets/
+│   ├── components/
+│   │   ├── BusinessPlan/
+│   │   │   ├── BusinessBackground/
+│   │   │   │   ├── BusinessBackground.jsx
+│   │   │   │   ├── BusinessBackground-List.jsx
+│   │   │   │   ├── BusinessBackground-Create.jsx
+│   │   │   │   ├── BusinessBackground-Edit.jsx
+│   │   │   │   └── BusinessBackground-View.jsx
+│   │   │   ├── FinancialPlan/
+│   │   │   ├── MarketAnalysis/
+│   │   │   ├── MarketingStrategies/
+│   │   │   ├── OperationalPlan/
+│   │   │   ├── ProductService/
+│   │   │   ├── TeamStructure/
+│   │   │   └── PdfBusinessPlan/
+│   │   ├── ManagementFinancial/
+│   │   │   ├── FinancialCategories/
+│   │   │   │   ├── FinancialCategories.jsx
+│   │   │   │   ├── Category-List.jsx
+│   │   │   │   ├── Category-Create.jsx
+│   │   │   │   ├── Category-Edit.jsx
+│   │   │   │   └── Category-View.jsx
+│   │   │   ├── FinancialSimulation/
+│   │   │   │   ├── FinancialSimulation.jsx
+│   │   │   │   ├── Simulation-Dashboard.jsx
+│   │   │   │   ├── Simulation-List.jsx
+│   │   │   │   ├── Simulation-Create.jsx
+│   │   │   │   ├── Simulation-Edit.jsx
+│   │   │   │   ├── Simulation-View.jsx
+│   │   │   │   ├── Simulation-Form.jsx
+│   │   │   │   └── Year-Management.jsx
+│   │   │   ├── FinancialSummaries/
+│   │   │   │   ├── FinancialSummaries.jsx
+│   │   │   │   ├── Summary-List.jsx
+│   │   │   │   ├── Summary-View.jsx
+│   │   │   │   ├── Summary-Create.jsx
+│   │   │   │   ├── Summary-Edit.jsx
+│   │   │   │   ├── Summary-Form.jsx
+│   │   │   │   ├── SummaryChart.jsx
+│   │   │   │   └── Year-Display.jsx
+│   │   │   └── MonthlyReports/
+│   │   │       ├── MonthlyReports.jsx
+│   │   │       ├── MonthlyReports-View.jsx
+│   │   │       ├── IncomeStatement.jsx
+│   │   │       ├── CashFlow.jsx
+│   │   │       ├── BalanceSheet.jsx
+│   │   │       └── TrendCharts.jsx
+│   │   ├── Dashboard/
+│   │   ├── Forecast/
+│   │   ├── Layout/
+│   │   ├── Public/
+│   │   └── UserProfile/
+│   ├── contexts/
+│   │   └── AuthContext.jsx
+│   ├── pages/
+│   │   ├── BusinessPlan.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── ManagementFinancial.jsx
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   ├── ForgotPassword.jsx
+│   │   ├── ResetPassword.jsx
+│   │   ├── OtpVerification.jsx
+│   │   └── LandingPage.jsx
+│   ├── services/
+│   │   ├── businessPlan/
+│   │   │   ├── businessPlanApi.js
+│   │   │   ├── marketAnalysisApi.js
+│   │   │   ├── financialPlanApi.js
+│   │   │   ├── marketingStrategyApi.js
+│   │   │   └── productServiceApi.js
+│   │   ├── ManagementFinancial/
+│   │   │   ├── financialCategoryApi.js
+│   │   │   ├── financialSimulationApi.js
+│   │   │   ├── financialSummaryApi.js
+│   │   │   └── monthlyReportApi.js
+│   │   ├── authApi.js
+│   │   └── userApi.js
+│   └── utils/
+│       ├── chartCapture.js
+│       ├── dateHelpers.js
+│       ├── validators.js
+│       ├── formatters.js
+│       └── constants.js
+├── public/
+├── index.html
+├── package.json
+├── package-lock.json
+├── vite.config.js
+├── tailwind.config.js
+├── eslint.config.js
+└── README.md
+```
 
 ---
 
-*Generated on: 2025-11-26*
-*Last Updated: Dokumentasi Lengkap v1.1 - Monthly Reports & Improvements*
+## 📋 File Count Summary
+- **Backend Controllers**: 16 files
+- **Backend Models**: 12 files
+- **Frontend Components**: ~85 files
+- **Frontend Pages**: 9 files
+- **API Service Files**: 11 files
+- **Utility Files**: 5+ files
+- **Database Migrations**: 18 files
+
+---
+
+## 📌 Key Statistics
+
+| Metric | Count |
+|--------|-------|
+| Backend Files | ~45 |
+| Frontend Components | ~85 |
+| API Endpoints | ~60+ |
+| Database Tables | 17 |
+| Controllers | 16 |
+| Models | 12 |
+| Pages | 9 |
+| Service Files | 11 |
+
+---
+
+## ✅ Version Info
+
+**Current Version**: v1.1  
+**Release Date**: November 29, 2025  
+**Repository**: SmartPlan-Web  
+**Owner**: pandustrr  
+**Current Branch**: branch-pandu  
+**Default Branch**: main
+
+### v1.1 New Features
+- ✅ Monthly Financial Reports module
+- ✅ Income Statement (Laporan Laba Rugi)
+- ✅ Cash Flow Report (Laporan Arus Kas)
+- ✅ Balance Sheet (Neraca Sederhana)
+- ✅ Trend Charts (Grafik Tren Bulanan)
+- ✅ Improved year management system
+- ✅ Read-only year selector in Financial Summaries
+- ✅ KPI metrics display
+- ✅ Print functionality for reports
+- ✅ Dark mode support
+
+**Last Updated**: November 29, 2025

@@ -16,7 +16,6 @@ class User extends Authenticatable
         'username',
         'phone',
         'password',
-        'password',
         'profile_photo',
         'account_status',
         'otp_code',

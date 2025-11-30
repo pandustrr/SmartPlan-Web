@@ -14,6 +14,9 @@ use App\Http\Controllers\ManagementFinancial\ManagementFinancialController;
 use App\Http\Controllers\ManagementFinancial\FinancialCategoryController;
 use App\Http\Controllers\ManagementFinancial\FinancialSimulationController;
 use App\Http\Controllers\ManagementFinancial\FinancialSummaryController;
+use App\Http\Controllers\Affiliate\AffiliateLinkController;
+use App\Http\Controllers\Affiliate\AffiliateTrackController;
+use App\Http\Controllers\Affiliate\AffiliateLeadController;
 use App\Http\Controllers\UserController;
 
 // =====================================
@@ -183,6 +186,27 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::delete('/{id}', [FinancialSimulationController::class, 'destroy']);
         });
     });
+
+    // Affiliate Routes (Authenticated)
+    Route::prefix('affiliate')->group(function () {
+        Route::get('/my-link', [AffiliateLinkController::class, 'getMyLink']);
+        Route::put('/slug', [AffiliateLinkController::class, 'updateSlug']);
+        Route::patch('/{affiliateLink}/toggle-active', [AffiliateLinkController::class, 'toggleActive']);
+
+        Route::prefix('tracking')->group(function () {
+            Route::get('/statistics', [AffiliateTrackController::class, 'getStatistics']);
+            Route::get('/tracks', [AffiliateTrackController::class, 'getTracks']);
+            Route::get('/device-breakdown', [AffiliateTrackController::class, 'getDeviceBreakdown']);
+            Route::get('/monthly-breakdown', [AffiliateTrackController::class, 'getMonthlyBreakdown']);
+        });
+
+        Route::prefix('leads')->group(function () {
+            Route::get('/my-leads', [AffiliateLeadController::class, 'getMyLeads']);
+            Route::get('/statistics', [AffiliateLeadController::class, 'getStatistics']);
+            Route::get('/{lead}', [AffiliateLeadController::class, 'show']);
+            Route::patch('/{lead}/status', [AffiliateLeadController::class, 'updateStatus']);
+        });
+    });
 });
 
 // =====================================
@@ -193,4 +217,18 @@ Route::prefix('user')->group(function () {
     Route::put('/{id}', [UserController::class, 'update']);
     Route::put('/{id}/password', [UserController::class, 'updatePassword']);
     Route::put('/{id}/status', [UserController::class, 'updateStatus']);
+});
+
+// =====================================
+// Public Affiliate Routes (NO AUTH REQUIRED)
+// =====================================
+Route::prefix('affiliate/public')->group(function () {
+    // Get landing page data
+    Route::get('/landing/{slug}', [AffiliateLeadController::class, 'getLandingPage']);
+
+    // Track affiliate click
+    Route::post('/track/{slug}', [AffiliateTrackController::class, 'track']);
+
+    // Submit lead from landing page
+    Route::post('/leads/{slug}/submit', [AffiliateLeadController::class, 'submit']);
 });

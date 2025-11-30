@@ -12,7 +12,8 @@ import Register from "./pages/Register";
 import LandingPage from "./pages/LandingPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import OtpVerification from "./pages/OtpVerification"; 
+import OtpVerification from "./pages/OtpVerification";
+import AffiliateLandingPage from "./components/Affiliate/AffiliateLandingPage";
 
 // 🔔 Import react-toastify
 import { ToastContainer } from "react-toastify";
@@ -106,6 +107,12 @@ function AppContent() {
                 toggleDarkMode={toggleDarkMode}
               />
             }
+          />
+
+          {/* 🔗 Affiliate Landing Page Route */}
+          <Route
+            path="/affiliate/:slug"
+            element={<AffiliateLandingPage />}
           />
 
           <Route

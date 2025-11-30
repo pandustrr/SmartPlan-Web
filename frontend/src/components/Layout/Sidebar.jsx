@@ -19,6 +19,9 @@ import {
   Folder,
   Calendar,
   Wallet,
+  Link2,
+  BarChart2,
+  Users2,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -122,16 +125,34 @@ const Sidebar = ({
     },
     
     {
+      id: "affiliate",
+      label: "Affiliate & Lead",
+      icon: Link2,
+      description: "Kelola link affiliate dan lead",
+      subItems: [
+        {
+          id: "affiliate-link",
+          label: "Link Affiliate",
+          icon: Link2,
+        },
+        {
+          id: "affiliate-tracking",
+          label: "Tracking & Analytics",
+          icon: BarChart2,
+        },
+        {
+          id: "affiliate-leads",
+          label: "Lead Management",
+          icon: Users2,
+        },
+      ],
+    },
+
+    {
       id: "forecast",
       label: "Forecast",
       icon: TrendingUp,
       description: "Prediksi dan perencanaan masa depan",
-    },
-    {
-      id: "analytics",
-      label: "Analisis & Grafik",
-      icon: BarChart3,
-      description: "Analisis data bisnis",
     },
     {
       id: "profile",
