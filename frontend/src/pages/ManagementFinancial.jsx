@@ -8,6 +8,7 @@ import FinancialCategories from "../components/ManagementFinancial/FinancialCate
 import FinancialSummaries from "../components/ManagementFinancial/FinancialSummaries/FinancialSummaries";
 import FinancialSimulation from "../components/ManagementFinancial/FinancialSimulation/FinancialSimulation";
 import MonthlyReports from "../components/ManagementFinancial/MonthlyReports/MonthlyReports";
+import FinancialProjections from "../components/ManagementFinancial/FinancialProjections/FinancialProjections";
 
 const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
   const { user } = useAuth();
@@ -220,7 +221,7 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
           </div>
 
           {/* Menu Grid */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             {/* Kategori Keuangan Card */}
             <div
               className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-sm cursor-pointer dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-lg group hover:border-blue-300 dark:hover:border-blue-600"
@@ -269,6 +270,42 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
               <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">Lihat ringkasan pendapatan, pengeluaran, dan laba bulanan dengan grafik analisis</p>
               <div className="flex items-center text-sm font-medium text-teal-600 dark:text-teal-400">
                 <span>Lihat Ringkasan</span>
+                <svg className="w-4 h-4 ml-1 transition-transform transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Laporan Bulanan Card */}
+            <div
+              className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-sm cursor-pointer dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-lg group hover:border-orange-300 dark:hover:border-orange-600"
+              onClick={() => handleSubSectionClick("monthly-reports")}
+            >
+              <div className="flex items-center justify-center w-12 h-12 mb-4 transition-transform duration-300 bg-orange-100 rounded-lg dark:bg-orange-900/20 group-hover:scale-110">
+                <FileText className="text-orange-600 dark:text-orange-400" size={24} />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Laporan Bulanan</h3>
+              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">Laporan arus kas dan neraca keuangan dengan format investor-friendly</p>
+              <div className="flex items-center text-sm font-medium text-orange-600 dark:text-orange-400">
+                <span>Lihat Laporan</span>
+                <svg className="w-4 h-4 ml-1 transition-transform transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Proyeksi Keuangan 5 Tahun Card */}
+            <div
+              className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-sm cursor-pointer dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-lg group hover:border-emerald-300 dark:hover:border-emerald-600"
+              onClick={() => handleSubSectionClick("financial-projections")}
+            >
+              <div className="flex items-center justify-center w-12 h-12 mb-4 transition-transform duration-300 bg-emerald-100 rounded-lg dark:bg-emerald-900/20 group-hover:scale-110">
+                <Calculator className="text-emerald-600 dark:text-emerald-400" size={24} />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Proyeksi Keuangan 5 Tahun</h3>
+              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">Buat proyeksi masa depan dengan analisis ROI, NPV, IRR dan Payback Period</p>
+              <div className="flex items-center text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                <span>Buat Proyeksi</span>
                 <svg className="w-4 h-4 ml-1 transition-transform transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -324,6 +361,8 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
         return <FinancialSummaries onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
       case "monthly-reports":
         return <MonthlyReports onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
+      case "financial-projections":
+        return <FinancialProjections onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
       default:
         return renderMainView();
     }

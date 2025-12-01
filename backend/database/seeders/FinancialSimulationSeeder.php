@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\ManagementFinancial\FinancialCategory;
+use App\Models\BusinessBackground;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -17,118 +18,175 @@ class FinancialSimulationSeeder extends Seeder
         DB::table('financial_simulations')->delete();
 
         $users = User::all();
-        $paymentMethods = ['cash', 'bank_transfer', 'credit_card', 'digital_wallet'];
+        $paymentMethods = ['cash', 'bank_transfer', 'credit_card', 'digital_wallet', 'other'];
         $statuses = ['completed', 'completed', 'completed', 'completed', 'planned']; // 80% completed
 
-        // 3 bulan terakhir
-        $startDate = Carbon::now()->subMonths(3)->startOfMonth();
+        // Data untuk 2 tahun terakhir (2024-2025) untuk testing proyeksi
+        $startDate = Carbon::create(2024, 1, 1);
         $endDate = Carbon::now();
 
         foreach ($users as $user) {
+            // Ambil business background milik user ini
+            $businessBackground = BusinessBackground::where('user_id', $user->id)->first();
+
+            if (!$businessBackground) {
+                continue; // Skip jika user tidak punya business background
+            }
+
             // Ambil kategori milik user ini (hanya yang actual)
             $categories = FinancialCategory::where('user_id', $user->id)
                 ->where('status', 'actual')
                 ->get();
 
-            foreach ($categories as $category) {
-                // Exactly 10 simulasi per kategori (KONSISTEN)
-                for ($i = 0; $i < 10; $i++) {
-                    // Random tanggal dalam 3 bulan terakhir
-                    $randomDate = Carbon::createFromTimestamp(
-                        rand($startDate->timestamp, $endDate->timestamp)
-                    );
-
-                    // Amount berdasarkan tipe kategori
-                    if ($category->type === 'income') {
-                        // Income: 500rb - 10jt
-                        $amount = rand(500000, 10000000);
-                        $descriptions = [
-                            'Penjualan harian',
-                            'Transaksi pelanggan',
-                            'Pembayaran dari klien',
-                            'Penjualan online',
-                            'Pendapatan cabang',
-                        ];
-                    } else {
-                        // Expense: variasi berdasarkan nama kategori
-                        if (str_contains($category->name, 'Gaji')) {
-                            $amount = rand(3000000, 15000000); // 3jt - 15jt
-                        } elseif (str_contains($category->name, 'Sewa')) {
-                            $amount = rand(2000000, 8000000); // 2jt - 8jt
-                        } elseif (str_contains($category->name, 'Listrik')) {
-                            $amount = rand(500000, 2000000); // 500rb - 2jt
-                        } elseif (str_contains($category->name, 'Bahan Baku')) {
-                            $amount = rand(1000000, 5000000); // 1jt - 5jt
-                        } else {
-                            $amount = rand(100000, 3000000); // 100rb - 3jt
-                        }
-
-                        $descriptions = [
-                            'Pembayaran ' . strtolower($category->name),
-                            'Pengeluaran ' . strtolower($category->name),
-                            'Biaya ' . strtolower($category->name),
-                            'Transaksi ' . strtolower($category->name),
-                        ];
+            // Generate simulasi untuk beberapa bulan dalam 2 tahun terakhir (untuk proyeksi 5 tahun)
+            $months = [];
+            for ($year = 2024; $year <= 2025; $year++) {
+                for ($month = 1; $month <= 12; $month++) {
+                    if ($year == 2025 && $month > Carbon::now()->month) {
+                        break; // Tidak generate bulan future di tahun 2025
                     }
-
-                    // Random status (mayoritas completed)
-                    $status = $statuses[array_rand($statuses)];
-
-                    // Generate unique simulation code: SIM + date + index + user_id
-                    $simulationCode = 'SIM' . $randomDate->format('YmdHis') . str_pad($i, 3, '0', STR_PAD_LEFT) . $user->id;
-
-                    FinancialSimulation::create([
-                        'user_id' => $user->id,
-                        'business_background_id' => 1,
-                        'financial_category_id' => $category->id,
-                        'simulation_code' => $simulationCode,
-                        'type' => $category->type,
-                        'amount' => $amount,
-                        'simulation_date' => $randomDate,
-                        'description' => $descriptions[array_rand($descriptions)],
-                        'payment_method' => $paymentMethods[array_rand($paymentMethods)],
-                        'status' => $status,
-                        'is_recurring' => false,
-                        'recurring_frequency' => null,
-                        'recurring_end_date' => null,
-                        'notes' => $status === 'planned' ? 'Simulasi yang direncanakan' : null,
-                    ]);
+                    $months[] = ['year' => $year, 'month' => $month];
                 }
             }
 
-            // Tambahkan 3 recurring simulation (Gaji Karyawan, Sewa Tempat, Listrik & Air)
-            // Total simulasi per user = (3 income + 9 expense) × 10 + 3 recurring = 123
-            $recurringCategories = [
-                'Gaji Karyawan' => 5000000,
-                'Sewa Tempat' => 3000000,
-                'Listrik & Air' => 1000000,
-            ];
+            foreach ($categories as $category) {
+                // Generate simulasi untuk setiap bulan
+                foreach ($months as $monthData) {
+                    $year = $monthData['year'];
+                    $month = $monthData['month'];
 
-            $recurringIndex = 0;
-            foreach ($recurringCategories as $categoryName => $amount) {
-                $category = $categories->firstWhere('name', $categoryName);
+                    // 2-5 transaksi per kategori per bulan
+                    $transactionCount = rand(2, 5);
 
-                if ($category) {
-                    $recurringSimulationCode = 'SIM' . Carbon::now()->format('YmdHis') . str_pad($recurringIndex, 3, '0', STR_PAD_LEFT) . 'REC' . $user->id;
+                    for ($i = 0; $i < $transactionCount; $i++) {
+                        // Random tanggal dalam bulan tersebut
+                        $randomDay = rand(1, Carbon::create($year, $month, 1)->daysInMonth);
+                        $randomDate = Carbon::create($year, $month, $randomDay);
 
-                    FinancialSimulation::create([
-                        'user_id' => $user->id,
-                        'business_background_id' => 1,
-                        'financial_category_id' => $category->id,
-                        'simulation_code' => $recurringSimulationCode,
-                        'type' => 'expense',
-                        'amount' => $amount,
-                        'simulation_date' => Carbon::now()->startOfMonth(),
-                        'description' => 'Biaya bulanan ' . strtolower($categoryName),
-                        'payment_method' => 'bank_transfer',
-                        'status' => 'completed',
-                        'is_recurring' => true,
-                        'recurring_frequency' => 'monthly',
-                        'recurring_end_date' => Carbon::now()->addYear(),
-                        'notes' => 'Pembayaran otomatis setiap bulan',
-                    ]);
-                    $recurringIndex++;
+                        // Skip jika tanggal future
+                        if ($randomDate->isFuture()) {
+                            continue;
+                        }
+
+                        // Amount berdasarkan category_subtype dan tipe kategori
+                        if ($category->type === 'income') {
+                            if ($category->category_subtype === 'operating_revenue') {
+                                $amount = rand(1000000, 15000000); // 1jt - 15jt
+                            } else { // non_operating_revenue
+                                $amount = rand(100000, 2000000); // 100rb - 2jt
+                            }
+
+                            $descriptions = [
+                                'Penjualan harian ' . $category->name,
+                                'Transaksi pelanggan ' . $category->name,
+                                'Pembayaran dari klien ' . $category->name,
+                                'Penjualan online ' . $category->name,
+                                'Pendapatan ' . $category->name,
+                            ];
+                        } else {
+                            // Expense amounts berdasarkan category_subtype
+                            switch ($category->category_subtype) {
+                                case 'cogs':
+                                    $amount = rand(2000000, 8000000); // 2jt - 8jt
+                                    break;
+                                case 'operating_expense':
+                                    if (str_contains(strtolower($category->name), 'gaji')) {
+                                        $amount = rand(3000000, 15000000); // 3jt - 15jt
+                                    } elseif (str_contains(strtolower($category->name), 'sewa')) {
+                                        $amount = rand(2000000, 8000000); // 2jt - 8jt
+                                    } elseif (str_contains(strtolower($category->name), 'listrik')) {
+                                        $amount = rand(500000, 2000000); // 500rb - 2jt
+                                    } else {
+                                        $amount = rand(500000, 5000000); // 500rb - 5jt
+                                    }
+                                    break;
+                                case 'interest_expense':
+                                    $amount = rand(200000, 1500000); // 200rb - 1.5jt
+                                    break;
+                                case 'tax_expense':
+                                    $amount = rand(500000, 3000000); // 500rb - 3jt
+                                    break;
+                                default: // other
+                                    $amount = rand(100000, 2000000); // 100rb - 2jt
+                            }
+
+                            $descriptions = [
+                                'Pembayaran ' . strtolower($category->name),
+                                'Pengeluaran ' . strtolower($category->name),
+                                'Biaya ' . strtolower($category->name),
+                                'Transaksi ' . strtolower($category->name),
+                            ];
+                        }
+
+                        // Random status (mayoritas completed)
+                        $status = $statuses[array_rand($statuses)];
+
+                        // Generate unique simulation code with timestamp + random
+                        $simulationCode = 'SIM' . $randomDate->format('YmdHis') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+
+                        FinancialSimulation::create([
+                            'user_id' => $user->id,
+                            'business_background_id' => $businessBackground->id,
+                            'financial_category_id' => $category->id,
+                            'simulation_code' => $simulationCode,
+                            'type' => $category->type,
+                            'amount' => $amount,
+                            'simulation_date' => $randomDate,
+                            'year' => $year, // Explicit set year
+                            'description' => $descriptions[array_rand($descriptions)],
+                            'payment_method' => $paymentMethods[array_rand($paymentMethods)],
+                            'status' => $status,
+                            'is_recurring' => false,
+                            'recurring_frequency' => null,
+                            'recurring_end_date' => null,
+                            'notes' => $status === 'planned' ? 'Simulasi yang direncanakan untuk ' . $randomDate->format('F Y') : null,
+                        ]);
+
+                        // Small delay to ensure unique simulation codes
+                        usleep(1000); // 1ms delay
+                    }
                 }
+            }
+
+            // Tambahkan beberapa recurring simulation untuk pengeluaran rutin
+            $recurringCategories = $categories->where('type', 'expense')
+                ->where('category_subtype', 'operating_expense')
+                ->take(3);
+
+            foreach ($recurringCategories as $category) {
+                // Recurring simulation untuk tahun 2025
+                $recurringAmount = 0;
+                if (str_contains(strtolower($category->name), 'gaji')) {
+                    $recurringAmount = 5000000; // 5jt
+                } elseif (str_contains(strtolower($category->name), 'sewa')) {
+                    $recurringAmount = 3000000; // 3jt
+                } elseif (str_contains(strtolower($category->name), 'listrik')) {
+                    $recurringAmount = 1000000; // 1jt
+                } else {
+                    $recurringAmount = 2000000; // 2jt default
+                }
+
+                $simulationCode = 'SIM' . Carbon::now()->format('YmdHis') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+
+                FinancialSimulation::create([
+                    'user_id' => $user->id,
+                    'business_background_id' => $businessBackground->id,
+                    'financial_category_id' => $category->id,
+                    'simulation_code' => $simulationCode,
+                    'type' => 'expense',
+                    'amount' => $recurringAmount,
+                    'simulation_date' => Carbon::now()->startOfMonth(),
+                    'year' => Carbon::now()->year,
+                    'description' => 'Biaya bulanan ' . strtolower($category->name),
+                    'payment_method' => 'bank_transfer',
+                    'status' => 'completed',
+                    'is_recurring' => true,
+                    'recurring_frequency' => 'monthly',
+                    'recurring_end_date' => Carbon::now()->addYear(),
+                    'notes' => 'Pembayaran otomatis setiap bulan untuk ' . $category->name,
+                ]);
+
+                usleep(1000); // Small delay for unique codes
             }
         }
     }

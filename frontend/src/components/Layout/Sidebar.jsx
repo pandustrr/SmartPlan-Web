@@ -19,25 +19,13 @@ import {
   Folder,
   Calendar,
   Wallet,
+  Calculator,
   Link2,
   BarChart2,
   Users2,
-  TrendingUpIcon,
 } from "lucide-react";
 
-const Sidebar = ({
-  activeSection,
-  setActiveSection,
-  activeSubSection,
-  setActiveSubSection,
-  isOpen,
-  onToggle,
-  onClose,
-  isMobile,
-  isDarkMode,
-  onLogout,
-  user,
-}) => {
+const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveSubSection, isOpen, onToggle, onClose, isMobile, isDarkMode, onLogout, user }) => {
   const menuItems = [
     {
       id: "dashboard",
@@ -121,7 +109,11 @@ const Sidebar = ({
           label: "Laporan Bulanan",
           icon: FileText,
         },
-        // Tambahkan sub items lainnya nanti
+        {
+          id: "financial-projections",
+          label: "Proyeksi Keuangan 5 Tahun",
+          icon: Calculator,
+        },
       ],
     },
 
@@ -148,7 +140,7 @@ const Sidebar = ({
         },
       ],
     },
-    
+
     {
       id: "affiliate",
       label: "Affiliate & Lead",
@@ -219,57 +211,30 @@ const Sidebar = ({
           bg-white dark:bg-gray-800 shadow-lg lg:shadow-xl min-h-screen
           transition-all duration-300 ease-in-out
           border-r border-gray-200 dark:border-gray-700
-          ${
-            isOpen
-              ? "w-64 translate-x-0"
-              : "-translate-x-full lg:translate-x-0 lg:w-20"
-          }
+          ${isOpen ? "w-64 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-20"}
           flex flex-col
         `}
       >
         {/* Logo Section */}
-        <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800">
+        <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200 lg:p-6 dark:border-gray-700 dark:bg-gray-800">
           {isOpen || !isMobile ? (
-            <div
-              className={`flex items-center justify-between w-full ${
-                !isOpen && "lg:justify-center"
-              }`}
-            >
-              {(isOpen || !isMobile) && (
-                <div className={`${!isOpen && "lg:hidden"}`}>
-                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-                    <span className="text-green-600 dark:text-green-400">
-                      Grapadi
-                    </span>
-                    Strategix
-                  </h1>
-                  <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1 lg:block hidden">
-                    Business Management
-                  </p>
-                </div>
-              )}
-
-              {/* Toggle Button */}
-              <button
-                onClick={onToggle}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 text-gray-600 dark:text-gray-300"
-              >
-                {isOpen ? (
-                  <ChevronLeft size={20} />
-                ) : (
-                  <ChevronRight
-                    size={20}
-                    className="text-gray-600 dark:text-gray-300 lg:block hidden"
-                  />
-                )}
+            <div className={`flex items-center justify-between w-full ${!isOpen && "lg:justify-center"}`}>
+                {(isOpen || !isMobile) && (
+                  <div className={`${!isOpen && "lg:hidden"}`}>
+                    <h1 className="text-xl font-bold text-gray-900 lg:text-2xl dark:text-white">
+                      <span className="text-green-600 dark:text-green-400">Grapadi</span>
+                      Strategix
+                    </h1>
+                    <p className="hidden mt-1 text-xs text-gray-500 lg:text-sm dark:text-gray-400 lg:block">Business Management</p>
+                  </div>
+                )}              {/* Toggle Button */}
+              <button onClick={onToggle} className="p-2 text-gray-600 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">
+                {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} className="hidden text-gray-600 dark:text-gray-300 lg:block" />}
               </button>
 
               {/* Close button for mobile */}
               {isMobile && isOpen && (
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 lg:hidden text-gray-600 dark:text-gray-300"
-                >
+                <button onClick={onClose} className="p-2 text-gray-600 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden dark:text-gray-300">
                   <X size={20} />
                 </button>
               )}
@@ -278,13 +243,12 @@ const Sidebar = ({
         </div>
 
         {/* Menu Items */}
-        <nav className="p-2 lg:p-4 space-y-1 lg:space-y-2 flex-1 overflow-y-auto">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto lg:p-4 lg:space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.id;
             const hasSubItems = item.subItems && item.subItems.length > 0;
-            const hasActiveSubItem =
-              hasSubItems && isAnySubItemActive(item.subItems);
+            const hasActiveSubItem = hasSubItems && isAnySubItemActive(item.subItems);
 
             return (
               <div key={item.id} className="space-y-1">
@@ -297,53 +261,30 @@ const Sidebar = ({
                       : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <Icon
-                    size={20}
-                    className={`shrink-0 ${
-                      isActive || (hasSubItems && hasActiveSubItem)
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-gray-500 dark:text-gray-400"
-                    }`}
-                  />
+                  <Icon size={20} className={`shrink-0 ${isActive || (hasSubItems && hasActiveSubItem) ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`} />
 
                   {/* Menu Text */}
                   <div
                     className={`
                       text-left ml-3 flex-1
                       transition-all duration-200
-                      ${
-                        isOpen
-                          ? "opacity-100 block"
-                          : "lg:opacity-0 lg:absolute lg:-left-96"
-                      }
+                      ${isOpen ? "opacity-100 block" : "lg:opacity-0 lg:absolute lg:-left-96"}
                     `}
                   >
-                    <div className="font-medium text-sm">{item.label}</div>
-                    {isOpen && item.description && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {item.description}
-                      </div>
-                    )}
+                    <div className="text-sm font-medium">{item.label}</div>
+                    {isOpen && item.description && <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.description}</div>}
                   </div>
 
                   {/* Tooltip for collapsed state */}
                   {!isOpen && !isMobile && (
-                    <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 shadow-lg border border-gray-700">
+                    <div className="absolute z-50 px-3 py-2 ml-2 text-sm text-white transition-opacity duration-200 bg-gray-900 border border-gray-700 rounded-lg shadow-lg opacity-0 left-full dark:bg-gray-700 dark:text-gray-200 group-hover:opacity-100 whitespace-nowrap">
                       <div className="font-medium">{item.label}</div>
-                      {item.description && (
-                        <div className="text-gray-300 text-xs mt-1 max-w-xs">
-                          {item.description}
-                        </div>
-                      )}
+                      {item.description && <div className="max-w-xs mt-1 text-xs text-gray-300">{item.description}</div>}
                     </div>
                   )}
 
                   {/* Active indicator for collapsed state */}
-                  {(isActive || (hasSubItems && hasActiveSubItem)) &&
-                    !isOpen &&
-                    !isMobile && (
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-green-600 dark:bg-green-400 rounded-r"></div>
-                    )}
+                  {(isActive || (hasSubItems && hasActiveSubItem)) && !isOpen && !isMobile && <div className="absolute left-0 w-1 h-6 transform -translate-y-1/2 bg-green-600 rounded-r top-1/2 dark:bg-green-400"></div>}
 
                   {/* Chevron for items with submenus */}
                   {hasSubItems && (
@@ -351,11 +292,7 @@ const Sidebar = ({
                       size={16}
                       className={`
                         shrink-0 transition-transform duration-200 ml-2
-                        ${
-                          isActive || hasActiveSubItem
-                            ? "text-green-600 dark:text-green-400 rotate-90"
-                            : "text-gray-400 dark:text-gray-500"
-                        }
+                        ${isActive || hasActiveSubItem ? "text-green-600 dark:text-green-400 rotate-90" : "text-gray-400 dark:text-gray-500"}
                         ${isOpen ? "opacity-100" : "lg:opacity-0"}
                       `}
                     />
@@ -363,85 +300,56 @@ const Sidebar = ({
                 </button>
 
                 {/* Sub Menu Items - Show when parent is active and sidebar is open */}
-                {hasSubItems &&
-                  (isActive || hasActiveSubItem) &&
-                  isOpen && (
-                    <div className="ml-4 pl-3 border-l border-gray-200 dark:border-gray-600 space-y-1">
-                      {item.subItems.map((subItem) => {
-                        const SubIcon = subItem.icon;
-                        const isSubActive = activeSubSection === subItem.id;
+                {hasSubItems && (isActive || hasActiveSubItem) && isOpen && (
+                  <div className="pl-3 ml-4 space-y-1 border-l border-gray-200 dark:border-gray-600">
+                    {item.subItems.map((subItem) => {
+                      const SubIcon = subItem.icon;
+                      const isSubActive = activeSubSection === subItem.id;
 
-                        return (
-                          <button
-                            key={subItem.id}
-                            onClick={(e) => handleSubMenuClick(subItem.id, e, item.id)}
-                            className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${
-                              isSubActive
-                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
-                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
-                            }`}
-                          >
-                            <SubIcon
-                              size={16}
-                              className={`shrink-0 mr-3 ${
-                                isSubActive
-                                  ? "text-blue-600 dark:text-blue-400"
-                                  : "text-gray-500 dark:text-gray-400"
-                              }`}
-                            />
-                            <span className="text-left truncate flex-1">
-                              {subItem.label}
-                            </span>
+                      return (
+                        <button
+                          key={subItem.id}
+                          onClick={(e) => handleSubMenuClick(subItem.id, e, item.id)}
+                          className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${
+                            isSubActive
+                              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
+                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
+                          }`}
+                        >
+                          <SubIcon size={16} className={`shrink-0 mr-3 ${isSubActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`} />
+                          <span className="flex-1 text-left truncate">{subItem.label}</span>
 
-                            {/* Active indicator for sub menu */}
-                            {isSubActive && (
-                              <div className="ml-2 w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                          {/* Active indicator for sub menu */}
+                          {isSubActive && <div className="w-2 h-2 ml-2 bg-blue-600 rounded-full dark:bg-blue-400"></div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
         </nav>
 
         {/* User Info & Logout Section */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="p-4 bg-white border-t border-gray-200 dark:border-gray-700 dark:bg-gray-800">
           {/* User Info */}
-          <div
-            className={`flex items-center mb-4 ${
-              !isOpen && "lg:justify-center"
-            }`}
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-            </div>
+          <div className={`flex items-center mb-4 ${!isOpen && "lg:justify-center"}`}>
+            <div className="flex items-center justify-center w-10 h-10 text-sm font-semibold text-white rounded-full shadow-sm bg-gradient-to-br from-green-500 to-green-600">{user?.name ? user.name.charAt(0).toUpperCase() : "U"}</div>
             {isOpen && (
-              <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {user?.name || "User"}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {user?.email || "user@example.com"}
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-0.5">
-                  {user?.business_name || "Business Owner"}
-                </p>
+              <div className="flex-1 min-w-0 ml-3">
+                <p className="text-sm font-medium text-gray-900 truncate dark:text-white">{user?.name || "User"}</p>
+                <p className="text-xs text-gray-500 truncate dark:text-gray-400">{user?.email || "user@example.com"}</p>
+                <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-0.5">{user?.business_name || "Business Owner"}</p>
               </div>
             )}
 
             {/* User Tooltip for collapsed state */}
             {!isOpen && !isMobile && (
-              <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 shadow-lg border border-gray-700">
+              <div className="absolute z-50 px-3 py-2 ml-2 text-sm text-white transition-opacity duration-200 bg-gray-900 border border-gray-700 rounded-lg shadow-lg opacity-0 left-full dark:bg-gray-700 dark:text-gray-200 group-hover:opacity-100 whitespace-nowrap">
                 <div className="font-medium">{user?.name || "User"}</div>
-                <div className="text-gray-300 text-xs mt-1">
-                  {user?.email || "user@example.com"}
-                </div>
-                <div className="text-green-400 text-xs font-medium mt-1">
-                  {user?.business_name || "Business Owner"}
-                </div>
+                <div className="mt-1 text-xs text-gray-300">{user?.email || "user@example.com"}</div>
+                <div className="mt-1 text-xs font-medium text-green-400">{user?.business_name || "Business Owner"}</div>
               </div>
             )}
           </div>
@@ -458,13 +366,9 @@ const Sidebar = ({
             {/* Logout Text */}
             <span
               className={`
-                font-medium text-left ml-3 
+                font-medium text-left ml-3
                 transition-all duration-200
-                ${
-                  isOpen
-                    ? "opacity-100 block"
-                    : "lg:opacity-0 lg:absolute lg:-left-96"
-                }
+                ${isOpen ? "opacity-100 block" : "lg:opacity-0 lg:absolute lg:-left-96"}
               `}
             >
               Keluar
@@ -472,7 +376,7 @@ const Sidebar = ({
 
             {/* Tooltip for collapsed state */}
             {!isOpen && !isMobile && (
-              <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 shadow-lg border border-gray-700">
+              <div className="absolute z-50 px-3 py-2 ml-2 text-sm text-white transition-opacity duration-200 bg-gray-900 border border-gray-700 rounded-lg shadow-lg opacity-0 left-full dark:bg-gray-700 dark:text-gray-200 group-hover:opacity-100 whitespace-nowrap">
                 Keluar
               </div>
             )}
@@ -484,23 +388,15 @@ const Sidebar = ({
       {!isOpen && !isMobile && (
         <button
           onClick={onToggle}
-          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 hidden lg:flex items-center justify-center border border-gray-200 dark:border-gray-600"
+          className="fixed z-40 items-center justify-center hidden p-2 transition-colors duration-200 bg-white border border-gray-200 rounded-lg shadow-lg top-6 left-6 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 lg:flex dark:border-gray-600"
           aria-label="Buka sidebar"
         >
-          <ChevronRight
-            size={20}
-            className="text-gray-600 dark:text-gray-300"
-          />
+          <ChevronRight size={20} className="text-gray-600 dark:text-gray-300" />
         </button>
       )}
 
       {/* Overlay for mobile */}
-      {isOpen && isMobile && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      {isOpen && isMobile && <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={onClose} />}
     </>
   );
 };

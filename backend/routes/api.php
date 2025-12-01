@@ -189,7 +189,16 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::delete('/{id}', [FinancialSimulationController::class, 'destroy']);
         });
 
-        // Forecast Routes (NEW)
+        // Financial Projections Routes
+        Route::prefix('projections')->group(function () {
+            Route::get('/baseline', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'getBaselineData']);
+            Route::get('/', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'index']);
+            Route::get('/{id}', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'show']);
+            Route::post('/', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'store']);
+            Route::delete('/{id}', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'destroy']);
+        });
+
+        // Forecast Routes
         Route::prefix('forecast')->group(function () {
             Route::get('/available-years', [ForecastResultController::class, 'getAvailableYears']);
             Route::get('/simulation-years', [ForecastDataController::class, 'getAvailableSimulationYears']);
