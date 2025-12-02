@@ -134,11 +134,6 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           icon: FileText,
         },
         {
-          id: "buat-forecast",
-          label: "Buat Forecast Baru",
-          icon: TrendingUp,
-        },
-        {
           id: "hasil-forecast",
           label: "Hasil & Insights",
           icon: BarChart3,

@@ -10,12 +10,12 @@ class ForecastService
 {
     /**
      * Generate forecast menggunakan metode ARIMA atau exponential smoothing
-     * $forecastMonths default 12 (1 tahun), bisa diset 60 untuk 5 tahun
+     * $forecastMonths default 12 (1 tahun), bisa diset 120 untuk 10 tahun
      */
     public function generateForecast(ForecastData $forecastData, string $method = 'auto', int $forecastMonths = 12)
     {
-        // Limit forecast months (max 60 untuk 5 tahun)
-        $forecastMonths = min($forecastMonths, 60);
+        // Limit forecast months (max 120 untuk 10 tahun)
+        $forecastMonths = min($forecastMonths, 120);
 
         $historicalData = $forecastData->toArray();
 

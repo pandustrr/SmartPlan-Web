@@ -254,7 +254,7 @@ class ForecastDataController extends Controller
     {
         $validated = $request->validate([
             'financial_simulation_id' => 'required|exists:financial_simulations,id',
-            'forecast_months' => 'nullable|integer|min:1|max:36',
+            'forecast_months' => 'nullable|integer|min:1|max:120',
             'method' => 'nullable|in:auto,arima,exponential_smoothing',
             'year' => 'nullable|integer',
             'month' => 'nullable|integer|min:1|max:12',
@@ -278,7 +278,8 @@ class ForecastDataController extends Controller
 
             // Extract year from simulation
             $baseYear = $validated['year'] ?? $simulation->year;
-            $baseMonth = $validated['month'] ?? 1;
+            // If month is explicitly null (forecast per tahun), keep it null. Otherwise use provided value or default to 1
+            $baseMonth = array_key_exists('month', $validated) ? $validated['month'] : 1;
 
             // Aggregate all financial simulations by month for the user and year
             $allSimulations = \App\Models\ManagementFinancial\FinancialSimulation::where('user_id', $userId)
@@ -311,20 +312,24 @@ class ForecastDataController extends Controller
             $avgMonthlyIncome = $totalIncome / $monthCount;
             $avgMonthlyExpense = $totalExpense / $monthCount;
 
-            // Create or get forecast data record using aggregated values
-            $forecastData = ForecastData::firstOrCreate([
-                'user_id' => $userId,
-                'financial_simulation_id' => $simulationId,
-                'year' => $baseYear,
-                'month' => $baseMonth,
-            ], [
-                'income_sales' => $avgMonthlyIncome,
-                'income_other' => 0,
-                'expense_operational' => $avgMonthlyExpense,
-                'expense_other' => 0,
-                'seasonal_factor' => 1.0,
-                'notes' => 'Generated from Financial Simulation ID: ' . $simulationId . ' (Aggregated from ' . count($allSimulations) . ' transactions)',
-            ]);
+            // Create or update forecast data record using aggregated values
+            // Use updateOrCreate to prevent duplicate key constraint violations
+            $forecastData = ForecastData::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'financial_simulation_id' => $simulationId,
+                    'year' => $baseYear,
+                    'month' => $baseMonth,
+                ],
+                [
+                    'income_sales' => $avgMonthlyIncome,
+                    'income_other' => 0,
+                    'expense_operational' => $avgMonthlyExpense,
+                    'expense_other' => 0,
+                    'seasonal_factor' => 1.0,
+                    'notes' => 'Generated from Financial Simulation ID: ' . $simulationId . ' (Aggregated from ' . count($allSimulations) . ' transactions)',
+                ]
+            );
 
             // Generate forecast using ForecastService
             $results = $this->forecastService->generateForecast(
