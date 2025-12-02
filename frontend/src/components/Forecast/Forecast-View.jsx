@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { AlertCircle, TrendingUp, TrendingDown, AlertTriangle, Zap, DollarSign, Percent } from 'lucide-react';
+import ForecastExportPDF from './Forecast-ExportPDF';
 
 const ForecastView = ({ forecastData, generatedResults, onBack }) => {
     const [results, setResults] = useState(null);
@@ -8,6 +9,11 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
     const [annualSummary, setAnnualSummary] = useState(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('results');
+    const chartRefs = {
+        income: useRef(null),
+        expense: useRef(null),
+        profit: useRef(null)
+    };
 
     useEffect(() => {
         if (generatedResults) {
@@ -55,12 +61,19 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                         Data historis: Pendapatan Rp {parseFloat(forecastData.income_sales).toLocaleString('id-ID')} | Pengeluaran Rp {parseFloat(forecastData.expense_operational).toLocaleString('id-ID')}
                     </p>
                 </div>
-                <button
-                    onClick={onBack}
-                    className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-2"
-                >
-                    ← Kembali
-                </button>
+                <div className="flex items-center gap-3">
+                    <ForecastExportPDF 
+                        forecastData={forecastData}
+                        generatedResults={generatedResults}
+                        chartRefs={chartRefs}
+                    />
+                    <button
+                        onClick={onBack}
+                        className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-2"
+                    >
+                        ← Kembali
+                    </button>
+                </div>
             </div>
 
             {/* Loading State */}
@@ -126,7 +139,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                     {/* Charts Grid */}
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Income Chart */}
-                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+                                        <div ref={chartRefs.income} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
                                             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Prediksi Pendapatan</h3>
                                             <ResponsiveContainer width="100%" height={250}>
                                                 <LineChart data={results}>
@@ -140,7 +153,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                         </div>
 
                                         {/* Expense Chart */}
-                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+                                        <div ref={chartRefs.expense} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
                                             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Prediksi Pengeluaran</h3>
                                             <ResponsiveContainer width="100%" height={250}>
                                                 <LineChart data={results}>
@@ -154,7 +167,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                         </div>
 
                                         {/* Profit Chart */}
-                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+                                        <div ref={chartRefs.profit} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
                                             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Prediksi Laba</h3>
                                             <ResponsiveContainer width="100%" height={250}>
                                                 <BarChart data={results}>

@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Layout/Sidebar";
 import Header from "../components/Layout/Header";
-import StatCards from "../components/Dashboard/StatCards";
-import RecentPlans from "../components/Dashboard/RecentPlans";
 import QuickActions from "../components/Dashboard/QuickActions";
 import BusinessPlan from "./BusinessPlan";
 import ManagementFinancial from "./ManagementFinancial";
 import Forecast from "./Forecast"; // ← NEW: Import Forecast
 import Affiliate from "./Affiliate";
-import { FileText } from "lucide-react";
+import { FileText, BarChart3, TrendingUp } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfile from "../components/UserProfile/UserProfileView";
 import UserProfileEdit from "../components/UserProfile/UserProfileEdit";
@@ -105,18 +103,119 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       case "dashboard":
         return (
           <div className="space-y-6">
+            {/* Welcome Header */}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Dashboard Utama
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Selamat datang! Lihat ringkasan bisnis Anda.
+                Selamat datang kembali! Kelola semua aspek bisnis Anda dari satu tempat.
               </p>
             </div>
 
-            <StatCards />
-            <RecentPlans />
-            <QuickActions />
+            {/* Module Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Business Plan Module */}
+              <button
+                onClick={() => {
+                  setActiveSection("business-plan");
+                  setActiveSubSection("business-background");
+                }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md hover:scale-105 transition-all duration-200 text-left group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                    <FileText size={20} className="text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                    8 Sub-modul
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Business Plan
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Buat rencana bisnis profesional
+                </p>
+              </button>
+
+              {/* Financial Management Module */}
+              <button
+                onClick={() => {
+                  setActiveSection("management-financial");
+                  setActiveSubSection("financial-simulation");
+                }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md hover:scale-105 transition-all duration-200 text-left group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+                    <BarChart3 size={20} className="text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded">
+                    6 Sub-modul
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Financial Management
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Kelola keuangan dan laporan
+                </p>
+              </button>
+
+              {/* Forecast Module */}
+              <button
+                onClick={() => {
+                  setActiveSection("forecast");
+                  setActiveSubSection("daftar-forecast");
+                }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md hover:scale-105 transition-all duration-200 text-left group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
+                    <TrendingUp size={20} className="text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">
+                    2 Modul
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Forecast Keuangan
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Prediksi masa depan bisnis
+                </p>
+              </button>
+
+              {/* Affiliate Module */}
+              <button
+                onClick={() => {
+                  setActiveSection("affiliate");
+                  setActiveSubSection("affiliate-link");
+                }}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md hover:scale-105 transition-all duration-200 text-left group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center group-hover:bg-orange-200 dark:group-hover:bg-orange-900/50 transition-colors">
+                    <FileText size={20} className="text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-1 rounded">
+                    3 Sub-modul
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Affiliate & Lead
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Kelola link affiliate
+                </p>
+              </button>
+            </div>
+
+            {/* Recent Plans & Quick Actions */}
+            <div className="lg:col-span-2">
+              <QuickActions />
+            </div>
           </div>
         );
 

@@ -1,93 +1,121 @@
 import React from 'react'
-import { Plus, FileText, BarChart3, TrendingUp, Download, Share2 } from 'lucide-react'
+import { Plus, FileText, BarChart3, TrendingUp, Download, Share2, BookOpen, Zap } from 'lucide-react'
 
 const QuickActions = () => {
-    const actions = [
-        {
-            icon: Plus,
-            label: 'Buat Rencana Baru',
-            description: 'Mulai perencanaan bisnis baru',
-            color: 'bg-green-500 hover:bg-green-600',
-            onClick: () => console.log('Buat rencana baru')
+    const quickLinks = [
+        { 
+            icon: Plus, 
+            label: 'Buat Business Plan', 
+            description: 'Mulai rencana bisnis baru',
+            color: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100',
+            action: 'business-plan'
         },
-        {
-            icon: FileText,
-            label: 'Modul Keuangan',
-            description: 'Kelola keuangan bisnis',
-            color: 'bg-blue-500 hover:bg-blue-600',
-            onClick: () => console.log('Buka modul keuangan')
+        { 
+            icon: FileText, 
+            label: 'Simulasi Keuangan', 
+            description: 'Tambah simulasi keuangan baru',
+            color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100',
+            action: 'financial-simulation'
         },
-        {
-            icon: BarChart3,
-            label: 'Analisis Bisnis',
-            description: 'Lihat analisis mendalam',
-            color: 'bg-purple-500 hover:bg-purple-600',
-            onClick: () => console.log('Buka analisis')
+        { 
+            icon: TrendingUp, 
+            label: 'Generate Forecast', 
+            description: 'Buat forecast baru',
+            color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100',
+            action: 'forecast'
         },
-        {
-            icon: TrendingUp,
-            label: 'Forecast',
-            description: 'Prediksi masa depan bisnis',
-            color: 'bg-orange-500 hover:bg-orange-600',
-            onClick: () => console.log('Buka forecast')
+        { 
+            icon: BarChart3, 
+            label: 'Lihat Laporan', 
+            description: 'Analisis data terbaru',
+            color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100',
+            action: 'reports'
         }
     ]
 
-    const quickLinks = [
-        { icon: Download, label: 'Export Laporan', color: 'text-gray-600' },
-        { icon: Share2, label: 'Bagikan Dashboard', color: 'text-gray-600' }
+    const features = [
+        { 
+            icon: BookOpen, 
+            label: 'Dokumentasi', 
+            description: 'Panduan lengkap penggunaan' 
+        },
+        { 
+            icon: Download, 
+            label: 'Export Laporan', 
+            description: 'Download laporan PDF' 
+        },
+        { 
+            icon: Share2, 
+            label: 'Bagikan', 
+            description: 'Bagikan rencana dengan tim' 
+        },
+        { 
+            icon: Zap, 
+            label: 'Tips & Trik', 
+            description: 'Maksimalkan penggunaan' 
+        }
     ]
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
             {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Aksi Cepat</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {actions.map((action, index) => {
-                        const Icon = action.icon
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Aksi Cepat</h2>
+                <div className="space-y-2">
+                    {quickLinks.map((link, index) => {
+                        const Icon = link.icon
                         return (
                             <button
                                 key={index}
-                                onClick={action.onClick}
-                                className={`flex items-center space-x-3 p-4 text-white rounded-lg transition-all duration-200 transform hover:scale-105 ${action.color}`}
+                                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${link.color}`}
                             >
                                 <Icon size={20} />
-                                <div className="text-left">
-                                    <p className="font-medium">{action.label}</p>
-                                    <p className="text-sm opacity-90">{action.description}</p>
+                                <div className="text-left flex-1">
+                                    <p className="font-medium text-sm">{link.label}</p>
+                                    <p className="text-xs opacity-75">{link.description}</p>
                                 </div>
+                                <span className="text-lg">→</span>
                             </button>
                         )
                     })}
                 </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Tautan Cepat</h2>
-                <div className="space-y-3">
-                    {quickLinks.map((link, index) => {
-                        const Icon = link.icon
+            {/* Features */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Fitur Lainnya</h2>
+                <div className="grid grid-cols-2 gap-2">
+                    {features.map((feature, index) => {
+                        const Icon = feature.icon
                         return (
                             <button
                                 key={index}
-                                className="w-full flex items-center space-x-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                className="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center"
                             >
-                                <Icon size={20} className={link.color} />
-                                <span className="font-medium">{link.label}</span>
+                                <Icon size={24} className="text-gray-600 dark:text-gray-400 mb-2" />
+                                <p className="text-xs font-medium text-gray-900 dark:text-white">{feature.label}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{feature.description}</p>
                             </button>
                         )
                     })}
                 </div>
+            </div>
 
-                {/* Recent Activity */}
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                    <h3 className="font-medium text-gray-900 mb-3">Aktivitas Terbaru</h3>
-                    <div className="space-y-2">
-                        <p className="text-sm text-gray-600">• Rencana "Ekspansi 2024" diperbarui</p>
-                        <p className="text-sm text-gray-600">• Laporan keuangan November diunggah</p>
-                        <p className="text-sm text-gray-600">• Forecast Q4 diselesaikan</p>
+            {/* Status Summary */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Status Ringkas</h2>
+                <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Business Plan Aktif</span>
+                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">Siap</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Simulasi Terbaru</span>
+                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">Dec 2025</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Forecast Tersimpan</span>
+                        <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">5 Items</span>
                     </div>
                 </div>
             </div>

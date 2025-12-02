@@ -1,13 +1,15 @@
 // frontend/src/components/ManagementFinancial/FinancialSimulation/Simulation-Create.jsx
 
 import { useState } from "react";
-import { Save } from "lucide-react";
+import { Save, AlertCircle } from "lucide-react";
 import SimulationForm from "./Simulation-Form";
 import { managementFinancialApi } from "../../../services/managementFinancial";
 import { toast } from "react-toastify";
 
 const SimulationCreate = ({ categories, onBack, onSuccess, selectedBusiness }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState({ title: "", message: "", type: "info" });
 
   const [formData, setFormData] = useState({
     type: "",
@@ -48,19 +50,33 @@ const SimulationCreate = ({ categories, onBack, onSuccess, selectedBusiness }) =
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validasi business
+    if (!selectedBusiness || !selectedBusiness.id) {
+      setModalData({
+        title: "Bisnis Tidak Dipilih",
+        message: "Silakan pilih bisnis terlebih dahulu sebelum membuat simulasi keuangan.",
+        type: "warning",
+      });
+      setShowModal(true);
+      return;
+    }
+
+    // Validasi user
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.id) {
+      setModalData({
+        title: "Data Pengguna Tidak Ditemukan",
+        message: "Terjadi kesalahan saat mengambil data pengguna. Silakan login kembali.",
+        type: "error",
+      });
+      setShowModal(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
-
-      if (!user || !user.id) {
-        throw new Error("User data not found");
-      }
-
-      if (!selectedBusiness || !selectedBusiness.id) {
-        throw new Error("Business not selected");
-      }
-
       const submitData = {
         ...formData,
         user_id: user.id,
@@ -101,21 +117,57 @@ const SimulationCreate = ({ categories, onBack, onSuccess, selectedBusiness }) =
   };
 
   return (
-    <SimulationForm
-      title="Tambah Simulasi Keuangan"
-      subtitle="Buat simulasi baru untuk mengelola arus kas"
-      formData={formData}
-      isLoading={isLoading}
-      categories={categories}
-      onInputChange={handleInputChange}
-      onSelectChange={handleSelectChange}
-      onCheckboxChange={handleCheckboxChange}
-      onSubmit={handleSubmit}
-      onBack={onBack}
-      submitButtonText="Simpan Simulasi"
-      submitButtonIcon={<Save size={16} />}
-      mode="create"
-    />
+    <>
+      <SimulationForm
+        title="Tambah Simulasi Keuangan"
+        subtitle="Buat simulasi baru untuk mengelola arus kas"
+        formData={formData}
+        isLoading={isLoading}
+        categories={categories}
+        onInputChange={handleInputChange}
+        onSelectChange={handleSelectChange}
+        onCheckboxChange={handleCheckboxChange}
+        onSubmit={handleSubmit}
+        onBack={onBack}
+        submitButtonText="Simpan Simulasi"
+        submitButtonIcon={<Save size={16} />}
+        mode="create"
+      />
+
+      {/* Simple Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-start gap-3 mb-4">
+              <AlertCircle 
+                size={24} 
+                className={
+                  modalData.type === "error" ? "text-red-500" :
+                  modalData.type === "warning" ? "text-yellow-500" :
+                  "text-blue-500"
+                }
+              />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {modalData.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">
+                  {modalData.message}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors font-medium text-sm"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
