@@ -284,6 +284,14 @@
                 <li>Tren Bulanan</li>
                 <li>Proyeksi Keuangan 5 Tahun</li>
             </ol>
+
+            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 3: LAPORAN FORECAST
+                ({{ $period_label }})</h3>
+            <ol style="line-height: 2; font-size: 14px;" start="13">
+                <li>Ringkasan Eksekutif Forecast</li>
+                <li>Detail Proyeksi Bulanan</li>
+                <li>Auto Insights & Analisis</li>
+            </ol>
         </div>
     </div>
 
@@ -609,64 +617,74 @@
                         </table>
 
                         <!-- Business Model Canvas (BMC) -->
-                        @if ($product->bmc_alignment)
+                        @if (
+                            $product->bmc_alignment &&
+                                (!empty($product->bmc_alignment['value_proposition']) ||
+                                    !empty($product->bmc_alignment['customer_segment']) ||
+                                    !empty($product->bmc_alignment['channels']) ||
+                                    !empty($product->bmc_alignment['customer_relationships']) ||
+                                    !empty($product->bmc_alignment['revenue_streams']) ||
+                                    !empty($product->bmc_alignment['key_resources']) ||
+                                    !empty($product->bmc_alignment['key_activities']) ||
+                                    !empty($product->bmc_alignment['key_partnerships']) ||
+                                    !empty($product->bmc_alignment['cost_structure'])))
                             <div style="margin-top: 15px;">
                                 <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2c5aa0;">
                                     Business Model Canvas Alignment
                                 </h4>
                                 <table class="table">
-                                    @if ($product->bmc_value_proposition)
+                                    @if (!empty($product->bmc_alignment['value_proposition']))
                                         <tr>
                                             <td style="width: 30%;"><strong>Value Proposition</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_value_proposition)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['value_proposition'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_customer_segments)
+                                    @if (!empty($product->bmc_alignment['customer_segment']))
                                         <tr>
                                             <td><strong>Customer Segments</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_customer_segments)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['customer_segment'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_channels)
+                                    @if (!empty($product->bmc_alignment['channels']))
                                         <tr>
                                             <td><strong>Channels</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_channels)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['channels'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_customer_relationships)
+                                    @if (!empty($product->bmc_alignment['customer_relationships']))
                                         <tr>
                                             <td><strong>Customer Relationships</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_customer_relationships)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['customer_relationships'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_revenue_streams)
+                                    @if (!empty($product->bmc_alignment['revenue_streams']))
                                         <tr>
                                             <td><strong>Revenue Streams</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_revenue_streams)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['revenue_streams'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_key_resources)
+                                    @if (!empty($product->bmc_alignment['key_resources']))
                                         <tr>
                                             <td><strong>Key Resources</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_key_resources)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['key_resources'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_key_activities)
+                                    @if (!empty($product->bmc_alignment['key_activities']))
                                         <tr>
                                             <td><strong>Key Activities</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_key_activities)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['key_activities'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_key_partnerships)
+                                    @if (!empty($product->bmc_alignment['key_partnerships']))
                                         <tr>
                                             <td><strong>Key Partnerships</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_key_partnerships)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['key_partnerships'])) !!}</td>
                                         </tr>
                                     @endif
-                                    @if ($product->bmc_cost_structure)
+                                    @if (!empty($product->bmc_alignment['cost_structure']))
                                         <tr>
                                             <td><strong>Cost Structure</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_cost_structure)) !!}</td>
+                                            <td>{!! nl2br(e($product->bmc_alignment['cost_structure'])) !!}</td>
                                         </tr>
                                     @endif
                                 </table>
@@ -1457,6 +1475,209 @@
                             </table>
                         </div>
                     @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ========================================
+         BAGIAN 3: LAPORAN FORECAST
+         Forecast Report Section
+    ========================================= --}}
+
+    <!-- Separator: BAGIAN 3 -->
+    <div class="page">
+        <div class="separator-page">
+            <div class="separator-title">BAGIAN 3</div>
+            <div class="separator-subtitle">LAPORAN FORECAST</div>
+            <p style="font-size: 16px; color: #666; margin-top: 20px;">Periode: {{ $period_label }}</p>
+        </div>
+    </div>
+
+    @if ($has_forecast)
+        <!-- Forecast Executive Summary -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">13. RINGKASAN EKSEKUTIF FORECAST</div>
+            </div>
+
+            <div class="section">
+                <div
+                    style="background: #f3f4f6; padding: 15px; border-left: 4px solid #2563eb; border-radius: 4px; line-height: 1.8; margin-bottom: 20px;">
+                    {!! nl2br(e($forecast_summary)) !!}
+                </div>
+
+                <!-- Statistik Utama -->
+                <div style="margin-top: 20px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Statistik
+                        Utama</h4>
+                    <table class="table">
+                        <tr>
+                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
+                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">TOTAL PENDAPATAN</div>
+                                <div style="font-size: 14px; font-weight: bold; color: #2563eb;">
+                                    Rp {{ number_format($forecast_statistics['total_income'], 0, ',', '.') }}
+                                </div>
+                            </td>
+                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
+                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">TOTAL PENGELUARAN</div>
+                                <div style="font-size: 14px; font-weight: bold; color: #2563eb;">
+                                    Rp {{ number_format($forecast_statistics['total_expense'], 0, ',', '.') }}
+                                </div>
+                            </td>
+                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
+                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">TOTAL LABA</div>
+                                <div
+                                    style="font-size: 14px; font-weight: bold; color: {{ $forecast_statistics['total_profit'] >= 0 ? '#10b981' : '#ef4444' }};">
+                                    Rp {{ number_format($forecast_statistics['total_profit'], 0, ',', '.') }}
+                                </div>
+                            </td>
+                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
+                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">RATA-RATA MARGIN</div>
+                                <div style="font-size: 14px; font-weight: bold; color: #2563eb;">
+                                    {{ number_format($forecast_statistics['avg_margin'], 2) }}%
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Detail Results -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">14. DETAIL PROYEKSI BULANAN</div>
+            </div>
+
+            <div class="section">
+                <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Tabel Detail
+                    Prediksi Bulanan</h4>
+
+                @if ($forecast_results && count($forecast_results) > 0)
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th class="text-right">Pendapatan</th>
+                                <th class="text-right">Pengeluaran</th>
+                                <th class="text-right">Laba</th>
+                                <th class="text-right">Margin %</th>
+                                <th class="text-right">Confidence %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($forecast_results as $result)
+                                <tr>
+                                    <td>Bulan {{ $result['month'] ?? '-' }}</td>
+                                    <td class="text-right">Rp
+                                        {{ number_format($result['forecast_income'] ?? 0, 0, ',', '.') }}</td>
+                                    <td class="text-right">Rp
+                                        {{ number_format($result['forecast_expense'] ?? 0, 0, ',', '.') }}</td>
+                                    <td
+                                        class="text-right {{ ($result['forecast_profit'] ?? 0) >= 0 ? 'text-green' : 'text-red' }}">
+                                        Rp {{ number_format($result['forecast_profit'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-right">{{ number_format($result['forecast_margin'] ?? 0, 2) }}%
+                                    </td>
+                                    <td class="text-right">{{ number_format($result['confidence_level'] ?? 0, 2) }}%
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <p style="color: #999; font-style: italic; text-align: center; padding: 20px;">Tidak ada data
+                        proyeksi yang tersedia.</p>
+                @endif
+
+                <!-- Performance Metrics -->
+                <div style="margin-top: 20px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Metrik
+                        Performa</h4>
+                    <table class="table">
+                        <tr>
+                            <td style="width: 40%; font-weight: bold;">Rata-rata Kepercayaan Prediksi</td>
+                            <td class="text-right">{{ number_format($forecast_statistics['avg_confidence'], 2) }}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Tingkat Pertumbuhan</td>
+                            <td class="text-right">{{ number_format($forecast_statistics['growth_rate'], 2) }}%</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Pendapatan Tertinggi</td>
+                            <td class="text-right">Bulan {{ $forecast_statistics['highest_income_month'] ?? '-' }}
+                                (Rp
+                                {{ number_format($forecast_statistics['highest_income_value'] ?? 0, 0, ',', '.') }})
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Laba Tertinggi</td>
+                            <td class="text-right">Bulan {{ $forecast_statistics['highest_profit_month'] ?? '-' }}
+                                (Rp
+                                {{ number_format($forecast_statistics['highest_profit_value'] ?? 0, 0, ',', '.') }})
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Insights -->
+        @if ($forecast_insights && count($forecast_insights) > 0)
+            <div class="page">
+                <div class="header">
+                    <div class="company-name">{{ $data['business_background']->name }}</div>
+                    <div class="document-title">15. AUTO INSIGHTS & ANALISIS</div>
+                </div>
+
+                <div class="section">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Insight
+                        Otomatis Sistem</h4>
+
+                    @foreach ($forecast_insights as $insight)
+                        @php
+                            $severityColor = match (strtolower($insight['severity'] ?? 'info')) {
+                                'critical' => ['border' => '#ef4444', 'bg' => '#fef2f2'],
+                                'warning' => ['border' => '#f59e0b', 'bg' => '#fffbeb'],
+                                'positive' => ['border' => '#10b981', 'bg' => '#f0fdf4'],
+                                default => ['border' => '#2563eb', 'bg' => '#eff6ff'],
+                            };
+                        @endphp
+                        <div
+                            style="margin-bottom: 15px; padding: 12px; border-left: 3px solid {{ $severityColor['border'] }}; background: {{ $severityColor['bg'] }}; font-size: 11px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">{{ $insight['title'] ?? 'Insight' }}
+                            </div>
+                            <div>{{ $insight['description'] ?? '-' }}</div>
+                            @if (isset($insight['value']) && $insight['value'])
+                                <div style="margin-top: 5px; color: #666;">
+                                    <strong>Nilai:</strong> {{ $insight['value'] }}
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    @else
+        <!-- No Forecast Data Available -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">13. LAPORAN FORECAST</div>
+            </div>
+
+            <div class="section">
+                <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 8px;">
+                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;">📊</div>
+                    <h3 style="font-size: 18px; color: #666; margin-bottom: 10px;">Data Forecast Belum Tersedia</h3>
+                    <p style="font-size: 12px; color: #999;">
+                        Belum ada data forecast untuk periode {{ $period_label }}.<br>
+                        Silakan buat forecast terlebih dahulu untuk melihat proyeksi keuangan.
+                    </p>
                 </div>
             </div>
         </div>

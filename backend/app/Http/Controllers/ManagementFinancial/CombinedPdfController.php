@@ -17,6 +17,9 @@ use App\Models\FinancialPlan;
 use App\Models\ManagementFinancial\FinancialCategory;
 use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\ManagementFinancial\FinancialProjection;
+use App\Models\Forecast\ForecastData;
+use App\Models\Forecast\ForecastResult;
+use App\Models\Forecast\ForecastInsight;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -147,8 +150,22 @@ class CombinedPdfController extends Controller
                 'chart_keys' => array_keys($financialCharts)
             ]);
 
-            // 7. Generate Combined PDF
-            Log::info('📄 Step 7: Generating PDF Document...');
+            // 7. Get Forecast Data
+            Log::info('📈 Step 7: Fetching Forecast Data...');
+            $forecastData = $this->getForecastData($userId, $periodType, $periodValue);
+
+            $hasForecast = !empty($forecastData['forecast_data']);
+            $forecastExecutiveSummary = $hasForecast ? $this->generateForecastExecutiveSummary($forecastData) : null;
+            $forecastStatistics = $hasForecast ? $this->calculateForecastStatistics($forecastData) : null;
+
+            Log::info('✅ Forecast Data Retrieved', [
+                'has_forecast' => $hasForecast,
+                'forecast_results_count' => $hasForecast ? count($forecastData['results']) : 0,
+                'forecast_insights_count' => $hasForecast ? count($forecastData['insights']) : 0
+            ]);
+
+            // 8. Generate Combined PDF
+            Log::info('📄 Step 8: Generating PDF Document...');
 
             // Log all data being passed to view
             Log::info('🔍 Data being passed to PDF view:', [
@@ -178,6 +195,14 @@ class CombinedPdfController extends Controller
                 'charts' => $businessPlanCharts,  // Business Plan charts (6 charts) - untuk Section 8
                 'financialCharts' => $financialCharts,  // Financial Report charts (4 charts) - untuk BAGIAN 2
                 'workflows' => $workflows,  // Workflow diagrams for operational plans - untuk Section 6
+                // Forecast data - untuk BAGIAN 3
+                'forecast_data' => $forecastData['forecast_data'] ?? null,
+                'forecast_results' => $forecastData['results'] ?? [],
+                'forecast_insights' => $forecastData['insights'] ?? [],
+                'forecast_summary' => $forecastExecutiveSummary,
+                'forecast_statistics' => $forecastStatistics,
+                'has_forecast' => $hasForecast,
+                // Common data
                 'mode' => $mode,
                 'period_type' => $periodType,
                 'period_label' => $this->getPeriodLabel($periodType, $periodValue),
@@ -1178,5 +1203,212 @@ class CombinedPdfController extends Controller
         }
 
         return $workflows;
+    }
+
+    /**
+     * Get Forecast Data based on user and period
+     */
+    private function getForecastData($userId, $periodType, $periodValue)
+    {
+        try {
+            $periodInfo = $this->parsePeriod($periodType, $periodValue);
+            $year = $periodInfo['year'];
+            $month = $periodInfo['month'];
+
+            // Fetch ForecastData untuk user dan periode tertentu
+            $forecastDataQuery = ForecastData::where('user_id', $userId)
+                ->where('year', $year);
+
+            if ($month) {
+                $forecastDataQuery->where('month', $month);
+            }
+
+            $forecastData = $forecastDataQuery->with(['forecastResults', 'insights'])
+                ->latest()
+                ->first();
+
+            if (!$forecastData) {
+                Log::info('⚠️ No forecast data found for period', [
+                    'user_id' => $userId,
+                    'year' => $year,
+                    'month' => $month
+                ]);
+
+                return [
+                    'forecast_data' => null,
+                    'results' => [],
+                    'insights' => []
+                ];
+            }
+
+            // Get forecast results (hasil prediksi bulanan)
+            $results = $forecastData->forecastResults()
+                ->orderBy('month', 'asc')
+                ->get()
+                ->toArray();
+
+            // Get forecast insights
+            $insights = $forecastData->insights()
+                ->orderBy('severity', 'desc') // Critical first
+                ->get()
+                ->toArray();
+
+            Log::info('✅ Forecast data found', [
+                'forecast_data_id' => $forecastData->id,
+                'year' => $forecastData->year,
+                'month' => $forecastData->month,
+                'results_count' => count($results),
+                'insights_count' => count($insights)
+            ]);
+
+            return [
+                'forecast_data' => $forecastData,
+                'results' => $results,
+                'insights' => $insights
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Forecast data fetch error: ' . $e->getMessage(), [
+                'user_id' => $userId,
+                'period_type' => $periodType,
+                'period_value' => $periodValue,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return [
+                'forecast_data' => null,
+                'results' => [],
+                'insights' => []
+            ];
+        }
+    }
+
+    /**
+     * Generate executive summary untuk forecast
+     */
+    private function generateForecastExecutiveSummary($forecastData)
+    {
+        if (empty($forecastData['forecast_data']) || empty($forecastData['results'])) {
+            return 'Data forecast tidak tersedia untuk periode ini.';
+        }
+
+        $data = $forecastData['forecast_data'];
+        $results = $forecastData['results'];
+
+        $stats = $this->calculateForecastStatistics($forecastData);
+
+        $year = $data->year;
+        $monthText = $data->month ? "bulan {$data->month} tahun {$year}" : "tahun {$year}";
+
+        $totalIncome = number_format($stats['total_income'], 0, ',', '.');
+        $totalExpense = number_format($stats['total_expense'], 0, ',', '.');
+        $totalProfit = number_format(abs($stats['total_profit']), 0, ',', '.');
+        $profitStatus = $stats['total_profit'] >= 0 ? 'keuntungan' : 'kerugian';
+
+        $avgMargin = number_format($stats['avg_margin'], 2);
+        $avgConfidence = number_format($stats['avg_confidence'], 2);
+        $growthRate = number_format($stats['growth_rate'], 2);
+
+        $highestIncomeMonth = $stats['highest_income_month'];
+        $highestProfitMonth = $stats['highest_profit_month'];
+
+        $summary = "Laporan proyeksi keuangan untuk {$monthText} menunjukkan prediksi total pendapatan sebesar Rp {$totalIncome} dengan total pengeluaran Rp {$totalExpense}, menghasilkan proyeksi {$profitStatus} sebesar Rp {$totalProfit}.\n\n";
+
+        $summary .= "Margin keuntungan rata-rata diproyeksikan sebesar {$avgMargin}% dengan tingkat kepercayaan prediksi rata-rata {$avgConfidence}%. ";
+        $summary .= "Tingkat pertumbuhan diperkirakan mencapai {$growthRate}%.\n\n";
+
+        $summary .= "Pendapatan tertinggi diprediksi terjadi pada bulan {$highestIncomeMonth}, ";
+        $summary .= "sedangkan laba tertinggi diperkirakan pada bulan {$highestProfitMonth}. ";
+
+        $summary .= "Proyeksi ini dibuat menggunakan metode " . (strtoupper($results[0]['method'] ?? 'ARIMA')) . " dengan mempertimbangkan data historis dan tren pasar.";
+
+        return $summary;
+    }
+
+    /**
+     * Calculate statistics dari forecast results
+     */
+    private function calculateForecastStatistics($forecastData)
+    {
+        if (empty($forecastData['results'])) {
+            return [
+                'total_income' => 0,
+                'total_expense' => 0,
+                'total_profit' => 0,
+                'avg_margin' => 0,
+                'avg_confidence' => 0,
+                'growth_rate' => 0,
+                'highest_income_month' => '-',
+                'highest_income_value' => 0,
+                'highest_profit_month' => '-',
+                'highest_profit_value' => 0
+            ];
+        }
+
+        $results = $forecastData['results'];
+
+        $totalIncome = 0;
+        $totalExpense = 0;
+        $totalProfit = 0;
+        $totalMargin = 0;
+        $totalConfidence = 0;
+        $count = count($results);
+
+        $highestIncome = ['month' => null, 'value' => 0];
+        $highestProfit = ['month' => null, 'value' => PHP_FLOAT_MIN];
+
+        foreach ($results as $result) {
+            $income = floatval($result['forecast_income'] ?? 0);
+            $expense = floatval($result['forecast_expense'] ?? 0);
+            $profit = floatval($result['forecast_profit'] ?? 0);
+            $margin = floatval($result['forecast_margin'] ?? 0);
+            $confidence = floatval($result['confidence_level'] ?? 0);
+
+            $totalIncome += $income;
+            $totalExpense += $expense;
+            $totalProfit += $profit;
+            $totalMargin += $margin;
+            $totalConfidence += $confidence;
+
+            // Track highest income
+            if ($income > $highestIncome['value']) {
+                $highestIncome = [
+                    'month' => $result['month'] ?? '-',
+                    'value' => $income
+                ];
+            }
+
+            // Track highest profit
+            if ($profit > $highestProfit['value']) {
+                $highestProfit = [
+                    'month' => $result['month'] ?? '-',
+                    'value' => $profit
+                ];
+            }
+        }
+
+        // Calculate growth rate (simple: compare last vs first month)
+        $growthRate = 0;
+        if ($count >= 2) {
+            $firstProfit = floatval($results[0]['forecast_profit'] ?? 0);
+            $lastProfit = floatval($results[$count - 1]['forecast_profit'] ?? 0);
+
+            if ($firstProfit != 0) {
+                $growthRate = (($lastProfit - $firstProfit) / abs($firstProfit)) * 100;
+            }
+        }
+
+        return [
+            'total_income' => $totalIncome,
+            'total_expense' => $totalExpense,
+            'total_profit' => $totalProfit,
+            'avg_margin' => $count > 0 ? ($totalMargin / $count) : 0,
+            'avg_confidence' => $count > 0 ? ($totalConfidence / $count) : 0,
+            'growth_rate' => $growthRate,
+            'highest_income_month' => $highestIncome['month'] ?? '-',
+            'highest_income_value' => $highestIncome['value'],
+            'highest_profit_month' => $highestProfit['month'] ?? '-',
+            'highest_profit_value' => $highestProfit['value']
+        ];
     }
 }
