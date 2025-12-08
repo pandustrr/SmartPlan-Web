@@ -21,7 +21,7 @@
 ## 🎓 Konsep Dasar
 
 ### Apa itu Singapay B2B?
-Payment Gateway yang memungkinkan bisnis Anda menerima pembayaran dari pelanggan melalui berbagai metode:
+Payment Gateway yang memungkinkan bisnis menerima pembayaran dari pelanggan melalui berbagai metode:
 - **Virtual Account (VA)** - Transfer bank langsung
 - **QRIS** - QR Code pembayaran
 - **E-wallet** - Dompet digital
@@ -872,4 +872,3 @@ Disbursement: 60+ banks including BRI, BNI, Mandiri, BCA, CIMB, etc.
 
 **Last Updated**: December 1, 2025  
 **Version**: 1.0  
-**untuk**: SmartPlan-Web Project
