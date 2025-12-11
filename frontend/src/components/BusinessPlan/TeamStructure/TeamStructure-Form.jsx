@@ -50,7 +50,7 @@ const TeamStructureForm = ({
 
     const validateField = (name, value) => {
         const newErrors = { ...errors };
-        
+
         if (name === 'member_name' && !value.trim()) {
             newErrors.member_name = 'Nama anggota wajib diisi';
         } else if (name === 'member_name') {
@@ -124,7 +124,7 @@ const TeamStructureForm = ({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Final validation
         const finalErrors = {};
         if (!formData.member_name?.trim()) finalErrors.member_name = 'Nama anggota wajib diisi';
@@ -153,7 +153,7 @@ const TeamStructureForm = ({
                     </svg>
                     Kembali
                 </button>
-                
+
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
                     <p className="text-gray-600 dark:text-gray-400">{subtitle}</p>
@@ -162,7 +162,7 @@ const TeamStructureForm = ({
 
             <form onSubmit={handleSubmit}>
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-                    
+
                     {/* Pilih Bisnis */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -272,6 +272,24 @@ const TeamStructureForm = ({
                         </div>
                     </div>
 
+                    {/* Job Desk */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Job Desk / Deskripsi Tugas (Opsional)
+                        </label>
+                        <textarea
+                            name="jobdesk"
+                            value={formData.jobdesk || ''}
+                            onChange={(e) => handleInputChangeWrapper('jobdesk', e.target.value)}
+                            rows={4}
+                            placeholder="Deskripsi tugas dan tanggung jawab sehari-hari, misalnya: Mengelola tim, membuat laporan, menangani customer service, dll."
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Jelaskan tugas dan tanggung jawab utama yang dikerjakan
+                        </p>
+                    </div>
+
                     {/* Kategori Tim & Urutan */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -321,14 +339,14 @@ const TeamStructureForm = ({
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Foto Anggota (Opsional)
                         </label>
-                        
+
                         <div className="space-y-4">
                             {/* Photo Preview */}
                             {photoPreview && (
                                 <div className="flex items-center gap-4">
-                                    <img 
-                                        src={photoPreview} 
-                                        alt="Preview" 
+                                    <img
+                                        src={photoPreview}
+                                        alt="Preview"
                                         className="w-24 h-24 rounded-lg object-cover border border-gray-300 dark:border-gray-600"
                                     />
                                     <button
@@ -344,8 +362,8 @@ const TeamStructureForm = ({
 
                             {/* Upload Area */}
                             <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                                errors.photo 
-                                    ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20' 
+                                errors.photo
+                                    ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20'
                                     : 'border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
                             }`}>
                                 <input

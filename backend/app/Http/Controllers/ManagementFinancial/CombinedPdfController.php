@@ -129,6 +129,14 @@ class CombinedPdfController extends Controller
                 'workflows_count' => count($workflows)
             ]);
 
+            // 4b. Generate Organization Charts (QuickChart Mermaid)
+            Log::info('📊 Step 4b: Generating Organization Charts...');
+            $orgCharts = $this->generateOrganizationCharts($businessPlanData['team_structures']);
+
+            Log::info('✅ Organization Charts Generated', [
+                'org_charts_count' => count($orgCharts)
+            ]);
+
             // 5. Generate Business Plan Charts (6 charts untuk Financial Plans)
             Log::info('📊 Step 5: Generating Business Plan Charts...');
             $businessPlanCharts = [];
@@ -195,6 +203,7 @@ class CombinedPdfController extends Controller
                 'charts' => $businessPlanCharts,  // Business Plan charts (6 charts) - untuk Section 8
                 'financialCharts' => $financialCharts,  // Financial Report charts (4 charts) - untuk BAGIAN 2
                 'workflows' => $workflows,  // Workflow diagrams for operational plans - untuk Section 6
+                'orgCharts' => $orgCharts,  // Organization charts for team structures - untuk Section 7
                 // Forecast data - untuk BAGIAN 3
                 'forecast_data' => $forecastData['forecast_data'] ?? null,
                 'forecast_results' => $forecastData['results'] ?? [],
@@ -209,8 +218,8 @@ class CombinedPdfController extends Controller
                 'generated_at' => now()->format('d F Y H:i:s')
             ]);
 
-            // Konfigurasi PDF (Landscape untuk tabel lebar)
-            $pdf->setPaper('A4', 'landscape');
+            // Konfigurasi PDF (Portrait)
+            $pdf->setPaper('A4', 'portrait');
             $pdf->setOptions([
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
@@ -663,7 +672,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 800, 400);
+        return $this->getQuickChartUrl($chartConfig, 600, 300);
     }
 
     /**
@@ -701,13 +710,13 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 600, 400);
+        return $this->getQuickChartUrl($chartConfig, 500, 300);
     }
 
     /**
      * Generate QuickChart URL
      */
-    private function getQuickChartUrl($config, $width = 800, $height = 400)
+    private function getQuickChartUrl($config, $width = 600, $height = 300)
     {
         try {
             $baseUrl = 'https://quickchart.io/chart';
@@ -913,7 +922,8 @@ class CombinedPdfController extends Controller
         }
 
         return $charts;
-    }    /**
+    }
+    /**
      * Generate Capital Sources Chart
      */
     private function generateCapitalSourcesChart($plan)
@@ -950,7 +960,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 600, 400);
+        return $this->getQuickChartUrl($chartConfig, 500, 300);
     }
 
     /**
@@ -968,7 +978,8 @@ class CombinedPdfController extends Controller
         foreach ($projections as $item) {
             $labels[] = $item['product'] ?? 'Unknown';
             $data[] = $item['monthly_income'] ?? 0;
-        }        $chartConfig = [
+        }
+        $chartConfig = [
             'type' => 'line',
             'data' => [
                 'labels' => $labels,
@@ -994,7 +1005,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 800, 400);
+        return $this->getQuickChartUrl($chartConfig, 600, 300);
     }
 
     /**
@@ -1012,7 +1023,8 @@ class CombinedPdfController extends Controller
         foreach ($opexItems as $item) {
             $labels[] = $item['category'] ?? 'Unknown';
             $data[] = $item['amount'] ?? 0;
-        }        $chartConfig = [
+        }
+        $chartConfig = [
             'type' => 'bar',
             'data' => [
                 'labels' => $labels,
@@ -1035,7 +1047,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 800, 400);
+        return $this->getQuickChartUrl($chartConfig, 600, 300);
     }
 
     /**
@@ -1058,7 +1070,8 @@ class CombinedPdfController extends Controller
             $revenue[] = $monthlyRevenue;
             $expense[] = $monthlyExpense;
             $profit[] = $monthlyProfit;
-        }        $chartConfig = [
+        }
+        $chartConfig = [
             'type' => 'line',
             'data' => [
                 'labels' => $labels,
@@ -1096,7 +1109,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 800, 400);
+        return $this->getQuickChartUrl($chartConfig, 600, 300);
     }
 
     /**
@@ -1131,7 +1144,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 600, 400);
+        return $this->getQuickChartUrl($chartConfig, 500, 300);
     }
 
     /**
@@ -1152,7 +1165,8 @@ class CombinedPdfController extends Controller
         for ($i = 0; $i < 5; $i++) {
             $labels[] = 'Tahun ' . ($currentYear + $i);
             $data[] = $yearlyIncome * pow($growthRate, $i);
-        }        $chartConfig = [
+        }
+        $chartConfig = [
             'type' => 'line',
             'data' => [
                 'labels' => $labels,
@@ -1178,7 +1192,7 @@ class CombinedPdfController extends Controller
             ]
         ];
 
-        return $this->getQuickChartUrl($chartConfig, 800, 400);
+        return $this->getQuickChartUrl($chartConfig, 600, 300);
     }
 
     /**
@@ -1203,6 +1217,147 @@ class CombinedPdfController extends Controller
         }
 
         return $workflows;
+    }
+
+    /**
+     * Generate Organization Charts using QuickChart with Mermaid
+     */
+    private function generateOrganizationCharts($teamStructures)
+    {
+        $orgCharts = [];
+
+        if ($teamStructures->isEmpty()) {
+            return $orgCharts;
+        }
+
+        try {
+            // Group by team category
+            $groupedTeams = $teamStructures->groupBy('team_category');
+
+            foreach ($groupedTeams as $category => $members) {
+                // Helper function to determine hierarchy level
+                $getHierarchyLevel = function ($position) {
+                    $pos = strtolower($position);
+
+                    // Level 1: Top Management
+                    if (
+                        stripos($pos, 'ceo') !== false ||
+                        stripos($pos, 'direktur') !== false ||
+                        stripos($pos, 'owner') !== false ||
+                        stripos($pos, 'founder') !== false ||
+                        stripos($pos, 'presiden') !== false ||
+                        stripos($pos, 'pimpinan') !== false
+                    ) {
+                        return 1;
+                    }
+
+                    // Level 2: Middle Management
+                    if (
+                        stripos($pos, 'manager') !== false ||
+                        stripos($pos, 'head') !== false ||
+                        stripos($pos, 'lead') !== false ||
+                        stripos($pos, 'supervisor') !== false ||
+                        stripos($pos, 'koordinator') !== false ||
+                        stripos($pos, 'kepala') !== false
+                    ) {
+                        return 2;
+                    }
+
+                    // Level 3: Staff/Team Members
+                    return 3;
+                };
+
+                // Sort members by hierarchy level
+                $hierarchyLevels = collect($members)->groupBy(function ($member) use ($getHierarchyLevel) {
+                    return $getHierarchyLevel($member->position);
+                })->sortKeys();
+
+                // Build Mermaid diagram
+                $mermaid = "graph TD\n";
+                $nodeId = 0;
+                $previousLevelNodes = [];
+
+                // Process each level
+                foreach ($hierarchyLevels as $level => $levelMembers) {
+                    $currentLevelNodes = [];
+
+                    foreach ($levelMembers as $member) {
+                        $nodeId++;
+                        $nodeName = "node" . $nodeId;
+                        $currentLevelNodes[] = $nodeName;
+
+                        // Clean and truncate name for display
+                        $displayName = str_replace(['"', "'"], '', $member->member_name);
+                        $displayPosition = str_replace(['"', "'"], '', $member->position);
+
+                        // Style based on level
+                        if ($level == 1) {
+                            $mermaid .= "    {$nodeName}[\"👑 {$displayName}<br/>{$displayPosition}\"]:::level1\n";
+                        } elseif ($level == 2) {
+                            $mermaid .= "    {$nodeName}[\"⭐ {$displayName}<br/>{$displayPosition}\"]:::level2\n";
+                        } else {
+                            $mermaid .= "    {$nodeName}[\"👤 {$displayName}<br/>{$displayPosition}\"]:::level3\n";
+                        }
+                    }
+
+                    // Connect to previous level
+                    if (!empty($previousLevelNodes)) {
+                        foreach ($previousLevelNodes as $parentNode) {
+                            foreach ($currentLevelNodes as $childNode) {
+                                $mermaid .= "    {$parentNode} --> {$childNode}\n";
+                            }
+                        }
+                    }
+
+                    $previousLevelNodes = $currentLevelNodes;
+                }
+
+                // Add styling
+                $mermaid .= "    classDef level1 fill:#1e40af,stroke:#1e3a8a,stroke-width:3px,color:#fff\n";
+                $mermaid .= "    classDef level2 fill:#7c3aed,stroke:#6d28d9,stroke-width:2px,color:#fff\n";
+                $mermaid .= "    classDef level3 fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff\n";
+
+                // Generate chart URL using QuickChart
+                $chartUrl = $this->getMermaidChartUrl($mermaid, 800, 600);
+
+                if ($chartUrl) {
+                    $orgCharts[$category] = $chartUrl;
+                    Log::info('✅ Organization chart generated for category: ' . $category);
+                } else {
+                    Log::warning('⚠️ Failed to generate organization chart for category: ' . $category);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Organization chart generation error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+
+        return $orgCharts;
+    }
+
+    /**
+     * Generate Mermaid Chart URL using QuickChart
+     */
+    private function getMermaidChartUrl($mermaid, $width = 800, $height = 600)
+    {
+        try {
+            $baseUrl = 'https://quickchart.io/chart';
+
+            $params = [
+                'chart' => $mermaid,
+                'width' => $width,
+                'height' => $height,
+                'format' => 'png',
+                'backgroundColor' => 'white'
+            ];
+
+            $queryString = http_build_query($params);
+            return $baseUrl . '?' . $queryString;
+        } catch (\Exception $e) {
+            Log::error('Mermaid Chart URL generation error: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -1266,7 +1421,6 @@ class CombinedPdfController extends Controller
                 'results' => $results,
                 'insights' => $insights
             ];
-
         } catch (\Exception $e) {
             Log::error('Forecast data fetch error: ' . $e->getMessage(), [
                 'user_id' => $userId,

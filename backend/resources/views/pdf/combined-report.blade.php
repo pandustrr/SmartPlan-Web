@@ -14,9 +14,9 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #333;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         /* Watermark untuk mode gratis */
@@ -94,14 +94,15 @@
             width: 100%;
             border-collapse: collapse;
             margin: 10px 0;
-            font-size: 10px;
+            font-size: 9px;
         }
 
         .table th,
         .table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 6px 4px;
             text-align: left;
+            word-wrap: break-word;
         }
 
         .table th {
@@ -153,14 +154,14 @@
         /* Chart images */
         .chart-image {
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             height: auto;
             margin: 10px auto;
             display: block;
             page-break-inside: avoid;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px;
             background: #ffffff;
         }
 
@@ -498,18 +499,20 @@
                             <tr>
                                 <th>Nama Kompetitor</th>
                                 <th>Tipe</th>
-                                <th>Perkiraan Penjualan Tahunan</th>
+                                <th>Alamat</th>
+                                <th>Penjualan Tahunan</th>
                                 <th>Harga Jual</th>
-                                <th>Kekuatan</th>
-                                <th>Kelemahan</th>
+                                <th>Kelebihan</th>
+                                <th>Kekurangan</th>
                             </tr>
                             @foreach ($data['market_analysis']->competitors as $competitor)
                                 <tr>
-                                    <td>{{ $competitor->name }}</td>
-                                    <td>{{ $competitor->type ?? '-' }}</td>
+                                    <td>{{ $competitor->competitor_name }}</td>
+                                    <td>{{ $competitor->type === 'ownshop' ? 'Usaha Sendiri' : 'Kompetitor' }}</td>
+                                    <td>{{ $competitor->address ?? '-' }}</td>
                                     <td>
-                                        @if ($competitor->estimated_annual_sales)
-                                            Rp {{ number_format($competitor->estimated_annual_sales, 0, ',', '.') }}
+                                        @if ($competitor->annual_sales_estimate)
+                                            Rp {{ number_format($competitor->annual_sales_estimate, 0, ',', '.') }}
                                         @else
                                             -
                                         @endif
@@ -521,8 +524,8 @@
                                             -
                                         @endif
                                     </td>
-                                    <td>{!! nl2br(e($competitor->strengths ?? '-')) !!}</td>
-                                    <td>{!! nl2br(e($competitor->weaknesses ?? '-')) !!}</td>
+                                    <td style="font-size: 8px;">{!! nl2br(e($competitor->strengths ?? '-')) !!}</td>
+                                    <td style="font-size: 8px;">{!! nl2br(e($competitor->weaknesses ?? '-')) !!}</td>
                                 </tr>
                             @endforeach
                         </table>
@@ -825,22 +828,87 @@
             </div>
 
             <div class="section">
-                <table class="table">
-                    <tr>
-                        <th>Kategori Tim</th>
-                        <th>Nama Anggota</th>
-                        <th>Posisi</th>
-                        <th>Pengalaman</th>
-                    </tr>
-                    @foreach ($data['team_structures'] as $member)
-                        <tr>
-                            <td>{{ $member->team_category }}</td>
-                            <td>{{ $member->member_name }}</td>
-                            <td>{{ $member->position }}</td>
-                            <td>{!! nl2br(e($member->experience)) !!}</td>
-                        </tr>
-                    @endforeach
-                </table>
+                @php
+                    $groupedTeams = $data['team_structures']->groupBy('team_category');
+                @endphp
+
+                @foreach ($groupedTeams as $category => $members)
+                    <div style="margin-bottom: 30px; page-break-inside: avoid;">
+                        <!-- Category Header -->
+                        <div
+                            style="background: linear-gradient(135deg, #2c5aa0 0%, #4a7cc4 100%); color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="font-size: 14px; font-weight: bold; margin: 0;">
+                                {{ $category }} ({{ $members->count() }} Anggota)
+                            </h3>
+                        </div>
+
+                        <!-- Organization Chart (if available) -->
+                        @if (isset($orgCharts[$category]))
+                            <div
+                                style="margin-bottom: 20px; text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                <h4 style="font-size: 12px; font-weight: bold; color: #2c5aa0; margin-bottom: 10px;">
+                                    Struktur Organisasi Hierarki
+                                </h4>
+                                <img src="{{ $orgCharts[$category] }}"
+                                    alt="Organization Chart - {{ $category }}"
+                                    style="max-width: 100%; height: auto; border-radius: 8px;">
+                            </div>
+                        @endif
+
+                        <!-- Member Details Table -->
+                        <div style="margin-top: 15px;">
+                            <h4 style="font-size: 11px; font-weight: bold; color: #2c5aa0; margin-bottom: 8px;">
+                                Detail Anggota Tim
+                            </h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 5%;">No</th>
+                                        <th style="width: 20%;">Nama</th>
+                                        <th style="width: 15%;">Posisi</th>
+                                        <th style="width: 30%;">Job Desk</th>
+                                        <th style="width: 30%;">Pengalaman</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($members as $index => $member)
+                                        <tr>
+                                            <td style="text-align: center;">{{ $index + 1 }}</td>
+                                            <td style="font-weight: bold;">{{ $member->member_name }}</td>
+                                            <td style="font-style: italic;">{{ $member->position }}</td>
+                                            <td style="font-size: 8px;">{!! nl2br(e($member->jobdesk ?? '-')) !!}</td>
+                                            <td style="font-size: 8px;">{!! nl2br(e($member->experience ?? '-')) !!}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endforeach
+
+                <!-- Summary Statistics -->
+                <div
+                    style="margin-top: 20px; background: #eff6ff; border: 1px solid #2c5aa0; border-radius: 6px; padding: 12px;">
+                    <h4 style="font-size: 11px; font-weight: bold; color: #2c5aa0; margin-bottom: 8px;">📊 Statistik
+                        Tim</h4>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: bold; color: #2c5aa0;">
+                                {{ $data['team_structures']->count() }}</div>
+                            <div style="font-size: 8px; color: #666;">Total Anggota</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: bold; color: #2c5aa0;">
+                                {{ $groupedTeams->count() }}</div>
+                            <div style="font-size: 8px; color: #666;">Kategori Tim</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: bold; color: #10b981;">
+                                {{ $data['team_structures']->where('status', 'active')->count() }}</div>
+                            <div style="font-size: 8px; color: #666;">Anggota Aktif</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     @endif
@@ -1069,10 +1137,7 @@
                             <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Proyeksi Keuangan Masa
                                 Depan</h4>
 
-                            @if (
-                                $financial->cash_flow_simulation &&
-                                    is_array($financial->cash_flow_simulation) &&
-                                    count($financial->cash_flow_simulation) > 0)
+                            @if ($financial->cash_flow_simulation && is_array($financial->cash_flow_simulation) && count($financial->cash_flow_simulation) > 0)
                                 <table class="table" style="margin-bottom: 15px;">
                                     <tr>
                                         <th>Periode</th>

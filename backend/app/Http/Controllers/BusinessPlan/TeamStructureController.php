@@ -42,7 +42,6 @@ class TeamStructureController extends Controller
                 'status' => 'success',
                 'data' => $formattedTeams
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching team structures: ' . $e->getMessage());
             return response()->json([
@@ -71,7 +70,6 @@ class TeamStructureController extends Controller
                 'status' => 'success',
                 'data' => $formattedTeam
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching team structure: ' . $e->getMessage());
             return response()->json([
@@ -90,6 +88,7 @@ class TeamStructureController extends Controller
             'team_category' => 'required|string|max:100',
             'member_name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
+            'jobdesk' => 'nullable|string',
             'experience' => 'required|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Konsisten 2MB max
             'sort_order' => 'nullable|integer|min:0',
@@ -122,6 +121,7 @@ class TeamStructureController extends Controller
                 'team_category' => $request->team_category,
                 'member_name' => $request->member_name,
                 'position' => $request->position,
+                'jobdesk' => $request->jobdesk,
                 'experience' => $request->experience,
                 'photo' => $photoPath,
                 'sort_order' => $request->sort_order ?? 0,
@@ -139,7 +139,6 @@ class TeamStructureController extends Controller
                 'message' => 'Team structure created successfully',
                 'data' => $formattedTeam
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Error creating team structure: ' . $e->getMessage());
             return response()->json([
@@ -172,6 +171,7 @@ class TeamStructureController extends Controller
             'team_category' => 'required|string|max:100',
             'member_name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
+            'jobdesk' => 'nullable|string',
             'experience' => 'required|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Konsisten 2MB max
             'sort_order' => 'nullable|integer|min:0',
@@ -190,6 +190,7 @@ class TeamStructureController extends Controller
                 'team_category' => $request->team_category,
                 'member_name' => $request->member_name,
                 'position' => $request->position,
+                'jobdesk' => $request->jobdesk,
                 'experience' => $request->experience,
                 'sort_order' => $request->sort_order ?? $team->sort_order,
                 'status' => $request->status ?? $team->status,
@@ -234,7 +235,6 @@ class TeamStructureController extends Controller
                 'message' => 'Team structure updated successfully',
                 'data' => $formattedTeam
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error updating team structure: ' . $e->getMessage());
             return response()->json([
@@ -275,7 +275,6 @@ class TeamStructureController extends Controller
                 'status' => 'success',
                 'message' => 'Team structure deleted successfully'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error deleting team structure: ' . $e->getMessage());
             return response()->json([
@@ -325,7 +324,6 @@ class TeamStructureController extends Controller
                 'message' => 'Photo uploaded successfully',
                 'data' => $formattedTeam
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error uploading team photo: ' . $e->getMessage());
             return response()->json([
