@@ -229,11 +229,8 @@
                 {{ $data['business_background']->name }}
             </h1>
             <h2 style="font-size: 24px; color: #666; margin-bottom: 10px;">
-                BUSINESS PLAN & LAPORAN KEUANGAN
+                BUSINESS PLAN & PROYEKSI KEUANGAN
             </h2>
-            <p style="font-size: 16px; color: #888; margin-bottom: 10px;">
-                Periode: {{ $period_label }}
-            </p>
             <p style="font-size: 14px; color: #888;">
                 Disusun pada: {{ $generated_at }}
             </p>
@@ -278,7 +275,7 @@
                 {{-- <li>Rencana Keuangan</li> --}}
             </ol>
 
-            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 2: LAPORAN KEUANGAN
+            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 2: PROYEKSI KEUANGAN
                 ({{ $period_label }})</h3>
             <ol style="line-height: 2; font-size: 14px;" start="9">
                 <li>Ringkasan Eksekutif Keuangan</li>
@@ -459,7 +456,8 @@
                         <!-- TAM/SAM/SOM Pie Chart -->
                         @if (isset($marketAnalysisCharts['tam_sam_som']))
                             <div style="margin-top: 15px; text-align: center;">
-                                <img src="{{ $marketAnalysisCharts['tam_sam_som'] }}" alt="TAM/SAM/SOM Chart" class="chart-image">
+                                <img src="{{ $marketAnalysisCharts['tam_sam_som'] }}" alt="TAM/SAM/SOM Chart"
+                                    class="chart-image">
                             </div>
                         @endif
                     </div>
@@ -1237,7 +1235,7 @@
     <div class="page">
         <div class="separator-page">
             <div class="separator-title">BAGIAN 2</div>
-            <div class="separator-subtitle">LAPORAN KEUANGAN</div>
+            <div class="separator-subtitle">PROYEKSI KEUANGAN</div>
             <p style="font-size: 16px; color: #666; margin-top: 20px;">Periode: {{ $period_label }}</p>
         </div>
     </div>
