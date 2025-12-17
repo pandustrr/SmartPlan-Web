@@ -107,6 +107,44 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
         
         // Gunakan submitData jika ada (dari form), atau formData jika tidak
         const dataToSubmit = submitData || formData;
+        const workflowImageFile = submitData?.workflowImageFile;
+
+        // Jika hanya upload gambar (workflow image file ada tapi form tidak submit dengan daily_workflow)
+        if (workflowImageFile && (!submitData || !submitData.daily_workflow?.trim())) {
+            setIsLoading(true);
+            try {
+                const uploadResponse = await operationalPlanApi.uploadWorkflowImage(plan.id, workflowImageFile);
+                if (uploadResponse.data?.status === 'success') {
+                    toast.success('Gambar workflow berhasil diupload!');
+                    
+                    // Fetch detail plan terbaru untuk mendapatkan workflow_image_url
+                    try {
+                        const planDetailResponse = await operationalPlanApi.getById(plan.id);
+                        if (planDetailResponse.data?.status === 'success') {
+                            const updatedPlan = planDetailResponse.data.data;
+                            onSuccess(updatedPlan);
+                        } else {
+                            // Jika fetch detail gagal, gunakan response data dari upload
+                            onSuccess(uploadResponse.data?.data || { ...plan, workflow_image_url: uploadResponse.data?.data?.workflow_image_url });
+                        }
+                    } catch (fetchError) {
+                        console.error('Error fetching updated plan:', fetchError);
+                        onSuccess(uploadResponse.data?.data || plan);
+                    }
+                } else {
+                    toast.error(uploadResponse.data?.message || 'Gagal mengunggah gambar workflow');
+                }
+            } catch (uploadError) {
+                console.error('Error uploading workflow image:', uploadError);
+                const errorMsg = uploadError.response?.data?.errors?.workflow_image?.[0] || 
+                                uploadError.response?.data?.message ||
+                                'Gagal mengunggah gambar workflow';
+                toast.error(errorMsg);
+            } finally {
+                setIsLoading(false);
+            }
+            return;
+        }
         
         console.log('🚀 Submitting update data:', {
             plan_id: plan.id,
@@ -164,7 +202,7 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
                 employees: dataToSubmit.employees,
                 operational_hours: dataToSubmit.operational_hours,
                 suppliers: dataToSubmit.suppliers,
-                workflow_diagram: dataToSubmit.workflow_diagram, // Pastikan ini ada
+                workflow_diagram: dataToSubmit.workflow_diagram,
                 user_id: user.id
             };
 
@@ -174,8 +212,40 @@ const OperationalPlanEdit = ({ plan, onBack, onSuccess }) => {
 
             if (response.data.status === 'success') {
                 console.log('✅ Update successful:', response.data);
-                toast.success('Rencana operasional berhasil diperbarui!');
-                onSuccess(response.data.data); // Kirim data terbaru ke parent
+                
+                // Upload workflow image jika ada
+                if (workflowImageFile) {
+                    try {
+                        const uploadResponse = await operationalPlanApi.uploadWorkflowImage(plan.id, workflowImageFile);
+                        if (uploadResponse.data?.status === 'success') {
+                            toast.success('Rencana operasional dan gambar workflow berhasil diperbarui!');
+                            
+                            // Fetch detail plan terbaru untuk mendapatkan workflow_image_url yang baru
+                            try {
+                                const planDetailResponse = await operationalPlanApi.getById(plan.id);
+                                if (planDetailResponse.data?.status === 'success') {
+                                    onSuccess(planDetailResponse.data.data);
+                                } else {
+                                    onSuccess(response.data.data);
+                                }
+                            } catch (fetchError) {
+                                console.error('Error fetching updated plan:', fetchError);
+                                onSuccess(response.data.data);
+                            }
+                            return;
+                        } else {
+                            toast.warning('Rencana operasional berhasil diperbarui, namun gambar workflow gagal diupload');
+                        }
+                    } catch (uploadError) {
+                        console.error('Error uploading workflow image:', uploadError);
+                        // Don't fail the whole submission
+                        toast.warning('Rencana operasional berhasil diperbarui, namun gambar workflow gagal diupload');
+                    }
+                } else {
+                    toast.success('Rencana operasional berhasil diperbarui!');
+                }
+                
+                onSuccess(response.data.data);
             } else {
                 throw new Error(response.data.message || 'Terjadi kesalahan');
             }

@@ -82,9 +82,8 @@ class BusinessController extends Controller
         imagepng($newImage);
         $output = ob_get_clean();
 
-        // Clean up
-        imagedestroy($image);
-        imagedestroy($newImage);
+        // Note: imagedestroy() is deprecated in PHP 8.0+
+        // Garbage collection will automatically handle resource cleanup
 
         return $output;
     }
@@ -125,6 +124,9 @@ class BusinessController extends Controller
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:100',
             'description' => 'required|string',
+            'business_overview' => 'nullable|string',
+            'business_legality' => 'nullable|string',
+            'business_objectives' => 'nullable|string',
             'purpose' => 'nullable|string',
             'location' => 'nullable|string|max:255',
             'business_type' => 'nullable|string|max:50',
@@ -178,6 +180,9 @@ class BusinessController extends Controller
                 'name' => $request->name,
                 'category' => $request->category,
                 'description' => $request->description,
+                'business_overview' => $request->business_overview,
+                'business_legality' => $request->business_legality,
+                'business_objectives' => $request->business_objectives,
                 'purpose' => $request->purpose,
                 'location' => $request->location,
                 'business_type' => $request->business_type,
@@ -227,6 +232,9 @@ class BusinessController extends Controller
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
             'description' => 'required|string',
+            'business_overview' => 'nullable|string',
+            'business_legality' => 'nullable|string',
+            'business_objectives' => 'nullable|string',
             'purpose' => 'nullable|string',
             'location' => 'required|string|max:255',
             'business_type' => 'required|string|max:50',

@@ -296,6 +296,27 @@
                 <p>{!! nl2br(e($data['business_background']->description)) !!}</p>
             </div>
 
+            @if ($data['business_background']->business_overview)
+                <div class="subsection">
+                    <div class="subsection-title">Gambaran Umum Usaha</div>
+                    <p>{!! nl2br(e($data['business_background']->business_overview)) !!}</p>
+                </div>
+            @endif
+
+            @if ($data['business_background']->business_legality)
+                <div class="subsection">
+                    <div class="subsection-title">Legalitas Usaha</div>
+                    <p>{!! nl2br(e($data['business_background']->business_legality)) !!}</p>
+                </div>
+            @endif
+
+            @if ($data['business_background']->business_objectives)
+                <div class="subsection">
+                    <div class="subsection-title">Maksud & Tujuan Pendirian Usaha</div>
+                    <p>{!! nl2br(e($data['business_background']->business_objectives)) !!}</p>
+                </div>
+            @endif
+
             @if ($data['business_background']->purpose)
                 <div class="subsection">
                     <div class="subsection-title">Tujuan Bisnis</div>
@@ -738,10 +759,19 @@
 
                         @if (isset($workflows[$plan->id]))
                             <div style="margin-top: 15px;">
-                                <h3 style="margin: 10px 0; font-size: 14px; font-weight: bold;">Diagram Alur Kerja</h3>
+                                <h3 style="margin: 10px 0; font-size: 14px; font-weight: bold;">Diagram Alur Kerja (Generated)</h3>
                                 <img src="{{ $workflows[$plan->id] }}"
                                     style="width: 100%; max-width: 120px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #ffffff;"
                                     alt="Workflow Diagram {{ $plan->business_location }}" />
+                            </div>
+                        @endif
+
+                        @if ($plan->workflow_image_url)
+                            <div style="margin-top: 15px;">
+                                <h3 style="margin: 10px 0; font-size: 14px; font-weight: bold;">Gambar Diagram Alur Kerja</h3>
+                                <img src="{{ $plan->workflow_image_url }}"
+                                    style="width: 100%; max-width: 200px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #ffffff;"
+                                    alt="Workflow Image {{ $plan->business_location }}" />
                             </div>
                         @endif
                     </div>

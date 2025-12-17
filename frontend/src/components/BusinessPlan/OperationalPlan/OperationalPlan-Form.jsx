@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Building, Loader, Plus, Trash2, Clock, Users, Truck, Workflow, Eye, Download, RefreshCw } from 'lucide-react';
+import { Building, Loader, Plus, Trash2, Clock, Users, Truck, Workflow, Eye, Download, RefreshCw, Upload, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { operationalPlanApi } from '../../../services/businessPlan';
 
@@ -25,13 +25,25 @@ const OperationalPlanForm = ({
     const [showWorkflowPreview, setShowWorkflowPreview] = useState(false);
     const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
     const [workflowDiagram, setWorkflowDiagram] = useState(null);
+    const [workflowImageFile, setWorkflowImageFile] = useState(null);
+    const [workflowImagePreview, setWorkflowImagePreview] = useState(null);
+    const [isUploadingWorkflowImage, setIsUploadingWorkflowImage] = useState(false);
 
-    // Load existing workflow diagram jika mode edit
+    // Load existing workflow diagram dan image jika mode edit
     useEffect(() => {
-        if (mode === 'edit' && existingPlan?.workflow_diagram) {
-            setWorkflowDiagram(existingPlan.workflow_diagram);
+        if (mode === 'edit' && existingPlan) {
+            if (existingPlan?.workflow_diagram) {
+                setWorkflowDiagram(existingPlan.workflow_diagram);
+            }
+            // Update workflow image preview setiap kali existingPlan berubah
+            if (existingPlan?.workflow_image_url) {
+                setWorkflowImagePreview(existingPlan.workflow_image_url);
+            } else {
+                // Clear preview jika tidak ada image
+                setWorkflowImagePreview(null);
+            }
         }
-    }, [mode, existingPlan]);
+    }, [mode, existingPlan?.id, existingPlan?.workflow_diagram, existingPlan?.workflow_image_url]);
 
     const validateField = (name, value) => {
         const newErrors = { ...errors };
@@ -144,6 +156,79 @@ const OperationalPlanForm = ({
             edges,
             generated_at: new Date().toISOString()
         };
+    };
+
+    // Handler untuk file upload workflow image
+    const handleWorkflowImageChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validasi file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error('Format file tidak didukung. Gunakan JPG, PNG, GIF, atau SVG.');
+                return;
+            }
+
+            // Validasi file size (max 2MB)
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            if (file.size > maxSize) {
+                toast.error('Ukuran file terlalu besar. Maksimal 2MB.');
+                return;
+            }
+
+            setWorkflowImageFile(file);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setWorkflowImagePreview(event.target?.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Handler untuk clear workflow image
+    const handleClearWorkflowImage = () => {
+        setWorkflowImageFile(null);
+        setWorkflowImagePreview(null);
+        // Clear file input
+        const fileInput = document.getElementById('workflow-image-input');
+        if (fileInput) fileInput.value = '';
+    };
+
+    // Handler untuk upload workflow image
+    const handleUploadWorkflowImage = async () => {
+        if (!workflowImageFile || !existingPlan?.id) {
+            toast.error('Pilih gambar dan rencana operasional terlebih dahulu.');
+            return;
+        }
+
+        setIsUploadingWorkflowImage(true);
+        try {
+            const response = await operationalPlanApi.uploadWorkflowImage(
+                existingPlan.id,
+                workflowImageFile
+            );
+
+            if (response.data?.status === 'success') {
+                toast.success('Gambar workflow berhasil diunggah!');
+                setWorkflowImageFile(null);
+                // Keep preview showing the uploaded image
+                if (response.data?.data?.workflow_image_url) {
+                    setWorkflowImagePreview(response.data.data.workflow_image_url);
+                }
+            } else {
+                toast.error(response.data?.message || 'Gagal mengunggah gambar workflow');
+            }
+        } catch (error) {
+            console.error('Error uploading workflow image:', error);
+            const errorMsg = error.response?.data?.errors?.workflow_image?.[0] ||
+                            error.response?.data?.message ||
+                            'Gagal mengunggah gambar workflow';
+            toast.error(errorMsg);
+        } finally {
+            setIsUploadingWorkflowImage(false);
+        }
     };
 
     const detectStepType = (description) => {
@@ -330,7 +415,7 @@ const OperationalPlanForm = ({
         onSuppliersChange(newSuppliers);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         // Final validation
@@ -348,7 +433,8 @@ const OperationalPlanForm = ({
         // Sertakan workflow diagram dalam data yang dikirim
         const submitData = {
             ...formData,
-            workflow_diagram: workflowDiagram
+            workflow_diagram: workflowDiagram,
+            workflowImageFile: workflowImageFile // Pass file ke parent
         };
 
         onSubmit(e, submitData);
@@ -879,6 +965,122 @@ Contoh:
                                 </div>
                             )}
                         </div>
+
+                        {/* Upload Workflow Image - Hanya tampilkan jika belum ada gambar atau sedang upload */}
+                        {!workflowImagePreview && !existingPlan?.workflow_image_url && (
+                            <div className="mb-4">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h4 className="font-medium text-gray-700 dark:text-gray-300">
+                                        Upload Gambar Diagram (Opsional)
+                                    </h4>
+                                </div>
+                                
+                                {/* File Input */}
+                                <div className="mb-3">
+                                    <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <Upload size={20} className="text-gray-400 mb-1" />
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                Klik untuk upload atau drag & drop
+                                            </span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                                JPG, PNG, GIF, SVG (Max 2MB)
+                                            </span>
+                                        </div>
+                                        <input
+                                            id="workflow-image-input"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/gif,image/svg+xml"
+                                            onChange={handleWorkflowImageChange}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Preview & Actions - Tampilkan jika ada preview atau sudah ada gambar */}
+                        {(workflowImagePreview || existingPlan?.workflow_image_url) && (
+                            <div className="mb-4">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h4 className="font-medium text-gray-700 dark:text-gray-300">
+                                        Gambar Diagram Alur Kerja
+                                    </h4>
+                                    {!workflowImageFile && existingPlan?.workflow_image_url && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setWorkflowImageFile(null);
+                                                setWorkflowImagePreview(null);
+                                                const fileInput = document.getElementById('workflow-image-input-replace');
+                                                if (fileInput) fileInput.click();
+                                            }}
+                                            className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                                        >
+                                            Ganti Gambar
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                <div className="relative bg-gray-100 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                                    <img
+                                        src={workflowImagePreview || existingPlan?.workflow_image_url}
+                                        alt="Workflow Diagram"
+                                        className="max-h-48 mx-auto rounded"
+                                    />
+                                    {workflowImageFile && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearWorkflowImage}
+                                            disabled={isUploadingWorkflowImage}
+                                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 disabled:opacity-50"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Upload Button (hanya untuk file baru di mode edit) */}
+                                {workflowImageFile && mode === 'edit' && existingPlan?.id && (
+                                    <button
+                                        type="button"
+                                        onClick={handleUploadWorkflowImage}
+                                        disabled={isUploadingWorkflowImage}
+                                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                                    >
+                                        {isUploadingWorkflowImage ? (
+                                            <>
+                                                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                                Uploading...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={16} />
+                                                Upload Gambar
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+
+                                {/* Info: For new plans, image will be uploaded with form submission */}
+                                {workflowImageFile && mode === 'create' && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mt-2">
+                                        <p className="text-blue-800 dark:text-blue-300 text-xs">
+                                            Gambar akan diupload saat Anda menyimpan rencana operasional.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Hidden file input untuk "Ganti Gambar" button */}
+                                <input
+                                    id="workflow-image-input-replace"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/gif,image/svg+xml"
+                                    onChange={handleWorkflowImageChange}
+                                    className="hidden"
+                                />
+                            </div>
+                        )}
 
                         {/* Workflow Diagram Preview */}
                         {renderWorkflowPreview()}

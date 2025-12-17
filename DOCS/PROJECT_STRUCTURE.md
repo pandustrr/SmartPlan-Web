@@ -36,6 +36,7 @@ backend/
 │   │   │   │   ├── FinancialSummaryController.php      # Financial Summaries
 │   │   │   │   ├── FinancialProjectionController.php   # Financial Projections (NEW)
 │   │   │   │   ├── PdfFinancialReportController.php    # PDF Report Export (NEW)
+│   │   │   │   ├── CombinedPdfController.php          # Combined PDF Export (NEW - v1.3)
 │   │   │   │   └── MonthlyReportController.php         # Monthly Reports
 │   │   │   └── Affiliate/
 │   │   │       ├── AffiliateLinkController.php         # Affiliate Link Management
@@ -76,7 +77,8 @@ backend/
 │       ├── WhatsAppService.php                         # WhatsApp API Integration
 │       ├── WorkflowDiagramService.php                  # Workflow Diagrams
 │       ├── AffiliateService.php                        # Affiliate Logic
-│       └── ForecastService.php                         # Forecast Service
+│       ├── ForecastService.php                         # Forecast Service
+│       └── PdfService.php                              # PDF Generation Service (NEW - v1.3)
 │
 ├── bootstrap/
 │   ├── app.php                                         # Bootstrap App
@@ -131,6 +133,8 @@ backend/
 ├── public/
 │   ├── index.php
 │   ├── robots.txt
+│   ├── images/                                         # Static images folder (NEW - v1.3)
+│   │   └── watermark-logo.png                          # Watermark logo for PDF
 │   └── storage/
 │
 ├── resources/
@@ -138,7 +142,9 @@ backend/
 │   ├── js/
 │   └── views/
 │       └── pdf/
-│           └── financial-report.blade.php (NEW)
+│           ├── financial-report.blade.php
+│           ├── business-plan.blade.php
+│           └── combined-report.blade.php              # Combined PDF Report (NEW - v1.3)
 │
 ├── routes/
 │   ├── api.php (UPDATED)
@@ -156,7 +162,10 @@ backend/
 │   └── Unit/
 │
 ├── DOCS/
-│   └── EXPORT_PDF_FINANCIAL_REPORT.md (NEW)
+│   ├── PROJECT_STRUCTURE.md                           # This file
+│   ├── EXPORT_PDF_FINANCIAL_REPORT.md                 # Financial report export docs
+│   ├── COMBINED_PDF_EXPORT.md                         # Combined PDF export docs (NEW - v1.3)
+│   └── Singapay/
 ├── vendor/
 ├── artisan
 ├── composer.json
@@ -221,7 +230,8 @@ frontend/
 │   │   │   │   ├── Year-Display.jsx
 │   │   │   │   └── FinancialSummaries.jsx
 │   │   │   ├── ExportPDF/
-│   │   │   │   └── ExportPDF.jsx (NEW)
+│   │   │   │   ├── ExportPDF.jsx (NEW)
+│   │   │   │   └── ExportPDFLengkap.jsx              # Combined PDF Export (NEW - v1.3)
 │   │   │   └── MonthlyReports/
 │   │   │       ├── MonthlyReports.jsx
 │   │   │       ├── MonthlyReports-View.jsx
@@ -261,7 +271,8 @@ frontend/
 │   │   │   ├── monthlyReportApi.js
 │   │   │   ├── financialProjectionApi.js (NEW)
 │   │   │   ├── financialCategoryApi.js
-│   │   │   └── financialSummaryApi.js
+│   │   │   ├── financialSummaryApi.js
+│   │   │   └── combinedPdfApi.js                     # Combined PDF API (NEW - v1.3)
 │   │   ├── authApi.js
 │   │   └── userApi.js
 │   │
@@ -374,28 +385,57 @@ npm run lint         # Run ESLint
 
 ---
 
-## 🆕 Recent Updates (v1.2 - Dec 1, 2025)
+## 🆕 Recent Updates (v1.3 - Dec 12, 2025)
 
 ### New Features
-1. **Financial Projections Module** - Long-term forecasting with cash balance tracking
-2. **PDF Export** - Professional financial report generation
-3. **Database Enhancements** - Category subtype support, Projection table
-4. **Console Command** - RecalculateProjections for data updates
-5. **API Endpoints** - Financial projection CRUD operations
+1. **Combined PDF Export** - Complete Business Plan + Financial Report in single PDF
+2. **Organization Chart Hierarchy** - Text-based hierarchical display in PDF
+3. **Market Analysis Pie Chart** - TAM/SAM/SOM visualization in PDF
+4. **Watermark Logo** - Transparent logo watermark on every PDF page
+5. **Enhanced Executive Summary** - Extended with vision, mission, team info, and strategic details
+6. **Logo Embedding** - Logo display on cover page (converted to base64 for PDF compatibility)
+7. **Font Enhancement** - Improved typography (13px Arial)
 
 ### New Files
-- Backend: `FinancialProjectionController`, `PdfFinancialReportController`, `RecalculateProjections` command
-- Frontend: `FinancialProjections.jsx`, `ExportPDF.jsx`, `financialProjectionApi.js`
-- Database: 3 new migrations
-- Documentation: `EXPORT_PDF_FINANCIAL_REPORT.md`
+- Backend: `CombinedPdfController.php`, `combined-report.blade.php`
+- Frontend: `ExportPDFLengkap.jsx`, `combinedPdfApi.js`
+- Static: `public/images/watermark-logo.png`
+- Config: Updated `config/app.php` with watermark_logo setting
 
 ### Updated Files
-- Financial category models with subtype support
-- Financial category and simulation seeders
-- API routes with new projection endpoints
-- Frontend navigation sidebar
-- ManagementFinancial page layout
-- Package dependencies
+- Backend:
+  - `CombinedPdfController.php` - Main PDF generation logic
+  - `config/app.php` - Watermark logo configuration
+  - `createBusinessExecutiveSummary()` - Extended summary generation
+  - `convertLogoToDataUrl()` - Base64 logo conversion for PDF embedding
+- Frontend:
+  - `ExportPDFLengkap.jsx` - Combined PDF export UI
+  - `combinedPdfApi.js` - API client for PDF endpoint
+- Database:
+  - `TeamStructureSeeder.php` - Updated with 12 team members (4 hierarchy levels)
+
+### Key Improvements
+- ✅ Logo watermark (8% opacity, 600px size) on every page
+- ✅ Text-based organization hierarchy with tree connectors (├─, └─)
+- ✅ TAM/SAM/SOM pie chart without internal labels
+- ✅ Extended executive summary with business details
+- ✅ Base64 logo embedding for safe hosting deployment
+- ✅ Axios + JSON response pattern (prevents IDM interception)
+- ✅ Professional PDF layout (A4 Portrait, full coverage)
+
+### PDF Sections Included
+1. Cover Page - Logo, Business Name, Title, Generated Date
+2. Table of Contents
+3. Market Analysis - With TAM/SAM/SOM pie chart
+4. Competitive Analysis
+5. Marketing & Sales Strategy
+6. Operational Plan - With workflow diagrams
+7. Team Structure - With text-based hierarchy
+8. Financial Plan - With business charts (6 charts)
+9. Financial Report - With financial charts (4 charts)
+10. Forecast & Insights
+11. Executive Summary - Extended version
+12. Appendices
 
 ---
 
@@ -403,12 +443,22 @@ npm run lint         # Run ESLint
 
 | Item | Value |
 |------|-------|
-| **Current Version** | v1.2 |
-| **Release Date** | December 1, 2025 |
+| **Current Version** | v1.3 |
+| **Release Date** | December 12, 2025 |
 | **Repository** | Grapadi Strategix |
 | **Current Branch** | branch-pandu |
 | **Default Branch** | main |
-| **Last Updated** | December 1, 2025 |
+| **Last Updated** | December 12, 2025 |
+
+### v1.3 Changes (NEW - v1.3)
+- ✅ Combined PDF Export (Business Plan + Financial Report)
+- ✅ Organization hierarchy text-based display
+- ✅ Market analysis pie chart (TAM/SAM/SOM)
+- ✅ Watermark logo system (configurable)
+- ✅ Extended executive summary generation
+- ✅ Logo embedding with base64 conversion
+- ✅ Font size enhancement (13px)
+- ✅ Team structure seeder with hierarchy
 
 ### v1.2 Changes
 - ✅ Financial Projections with forecasting

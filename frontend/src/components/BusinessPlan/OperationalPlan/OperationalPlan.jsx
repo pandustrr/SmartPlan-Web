@@ -121,6 +121,8 @@ const OperationalPlan = () => {
         setView('list');
         setCurrentPlan(null);
         setError(null);
+        // Refresh data untuk memastikan gambar terbaru ter-load
+        fetchPlans();
     };
 
     const handleCreateSuccess = () => {
@@ -129,10 +131,18 @@ const OperationalPlan = () => {
         setView('list');
     };
 
-    const handleUpdateSuccess = () => {
-        fetchPlans();
-        fetchStatistics(); // Refresh statistics setelah update
-        setView('list');
+    const handleUpdateSuccess = (updatedData = null) => {
+        // Jika ada data yang di-return dari update (termasuk workflow_image_url), gunakan itu
+        if (updatedData?.id) {
+            setCurrentPlan(updatedData);
+            // Kembali ke view untuk menampilkan data yang baru
+            setView('view');
+        } else {
+            // Jika tidak ada data, fetch ulang semua plans
+            fetchPlans();
+            fetchStatistics();
+            setView('list');
+        }
     };
 
     const handleRetry = () => {

@@ -142,6 +142,40 @@ const BackgroundView = ({ business, onBack, onEdit }) => {
                     </p>
                 </div>
 
+                {/* Gambaran Umum Usaha */}
+                {business.business_overview && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Gambaran Umum Usaha</h3>
+                        <p className="text-gray-900 dark:text-white whitespace-pre-line leading-relaxed">
+                            {business.business_overview}
+                        </p>
+                    </div>
+                )}
+
+                {/* Legalitas Usaha */}
+                {business.business_legality && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Legalitas Usaha</h3>
+                        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4">
+                            <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                {business.business_legality}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Maksud & Tujuan Pendirian Usaha */}
+                {business.business_objectives && (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Maksud & Tujuan Pendirian Usaha</h3>
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
+                            <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                                {business.business_objectives}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Visi & Misi */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">

@@ -108,6 +108,9 @@ const OperationalPlanCreate = ({ onBack, onSuccess }) => {
                 throw new Error('User data not found');
             }
 
+            // Extract workflow image jika ada di submitData
+            const workflowImageFile = submitData?.workflowImageFile;
+            
             const finalData = {
                 ...dataToSubmit,
                 user_id: user.id
@@ -117,7 +120,22 @@ const OperationalPlanCreate = ({ onBack, onSuccess }) => {
             const response = await operationalPlanApi.create(finalData);
 
             if (response.data.status === 'success') {
-                toast.success('Rencana operasional berhasil dibuat!');
+                const createdPlanId = response.data.data?.id;
+                
+                // Upload workflow image jika ada
+                if (workflowImageFile && createdPlanId) {
+                    try {
+                        await operationalPlanApi.uploadWorkflowImage(createdPlanId, workflowImageFile);
+                        toast.success('Rencana operasional dan gambar workflow berhasil disimpan!');
+                    } catch (uploadError) {
+                        console.error('Error uploading workflow image:', uploadError);
+                        // Don't fail the whole submission, just show warning
+                        toast.warning('Rencana operasional berhasil disimpan, namun gambar workflow gagal diupload');
+                    }
+                } else {
+                    toast.success('Rencana operasional berhasil dibuat!');
+                }
+                
                 onSuccess();
             } else {
                 throw new Error(response.data.message || 'Terjadi kesalahan');

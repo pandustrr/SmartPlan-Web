@@ -179,6 +179,58 @@ const BackgroundForm = ({
                         />
                     </div>
 
+                    {/* New Fields - Gambaran Umum, Legalitas, Maksud & Tujuan */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Gambaran Umum Usaha
+                        </label>
+                        <textarea
+                            name="business_overview"
+                            value={formData.business_overview || ''}
+                            onChange={onInputChange}
+                            rows={3}
+                            placeholder="Gambarkan kondisi umum usaha Anda, sejarah singkat, pencapaian, dan perkembangan usaha saat ini"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Informasi tentang latar belakang, pengalaman, dan perkembangan usaha
+                        </p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Legalitas Usaha
+                        </label>
+                        <textarea
+                            name="business_legality"
+                            value={formData.business_legality || ''}
+                            onChange={onInputChange}
+                            rows={3}
+                            placeholder="Masukkan informasi legalitas seperti NIB, nomor izin usaha, sertifikasi, NPWP, akta pendirian, dll"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Perizinan, NIB, sertifikasi, dan dokumen legal lainnya
+                        </p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Maksud & Tujuan Pendirian Usaha
+                        </label>
+                        <textarea
+                            name="business_objectives"
+                            value={formData.business_objectives || ''}
+                            onChange={onInputChange}
+                            rows={3}
+                            placeholder="Sebutkan maksud dan tujuan utama mendirikan usaha ini, apa yang ingin dicapai dalam jangka pendek dan jangka panjang"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Target pasar, kesempatan bisnis, dan tujuan pertumbuhan
+                        </p>
+                    </div>
+
                     {/* Location & Type */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>

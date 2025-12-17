@@ -350,11 +350,28 @@ const OperationalPlanView = ({ plan, onBack, onEdit }) => {
                     </div>
                 </div>
 
-                {/* Workflow Diagram Section - Pindah ke atas agar lebih prominent */}
+                {/* Workflow Image Display - Di bagian atas */}
+                {plan.workflow_image_url && (
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <Workflow size={20} />
+                            Gambar Diagram Alur Kerja
+                        </h3>
+                        <div className="flex justify-center bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <img 
+                                src={plan.workflow_image_url} 
+                                alt="Workflow Diagram" 
+                                className="max-h-80 rounded-lg shadow-md"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Workflow Diagram Section - Generated */}
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <Workflow size={20} />
-                        Workflow Diagram
+                        Workflow Diagram (Generated)
                         {hasWorkflowDiagram && (
                             <span className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
                                 {plan.workflow_diagram.steps.length} Langkah
