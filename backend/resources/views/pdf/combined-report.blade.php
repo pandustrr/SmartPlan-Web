@@ -11,7 +11,8 @@
      * Splits text by sentences and groups them per paragraph
      */
     if (!function_exists('splitLongText')) {
-        function splitLongText($text, $sentencesPerParagraph = 3) {
+        function splitLongText($text, $sentencesPerParagraph = 3)
+        {
             $text = trim(strip_tags(htmlspecialchars_decode($text)));
             if (empty($text)) {
                 return [];
@@ -339,35 +340,34 @@
         </div>
 
         <div class="section">
-            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 1: LATAR BELAKANG UMUM & LEGAL</h3>
+            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN I: LATAR BELAKANG UMUM & LEGAL</h3>
             <ol style="line-height: 2; font-size: 14px; margin-bottom: 30px;">
                 <li>Ringkasan Eksekutif</li>
                 <li>Latar Belakang Usaha</li>
-                <li>Profil Usaha Kedai Kopi Pandu</li>
+                <li>Profil Usaha {{ $data['business_background']->name }}</li>
                 <li>Visi, Misi, dan Tujuan Usaha</li>
                 <li>Bentuk Badan Usaha dan Legalitas</li>
                 <li>Struktur Organisasi dan Tim Manajemen</li>
                 <li>Rencana Operasional Usaha</li>
             </ol>
 
-            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 2: ASPEK PASAR
+            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN II: ASPEK PASAR
                 ({{ $period_label }})</h3>
-            <ol style="line-height: 2; font-size: 14px;" start="5">
-                <li>Ringkasan Eksekutif Keuangan</li>
-                <li>Analisis Pasar
-                    <ol style="list-style-type: lower-alpha;">
-                        <li>Target Pasar</li>
-                        <li>Analisis Kompetitor</li>
-                        <li>Analisis SWOT</li>
-                    </ol>
-                </li>
-                <li>Produk & Layanan</li>
-                <li>Strategi Pemasaran</li>
-                <li>Ringkasan Per Kategori</li>
-                <li>Tren Bulanan</li>
+            <ol style="line-height: 2; font-size: 14px;" start="8">
+                <li>Gambaran Umum Industri dan Tren Pasar</li>
+                <li>Analisis Pasar</li>
+                <li>Analisis Kompetitor</li>
+                <li>Analisis SWOT</li>
+                <li>Produk dan Layanan</li>
+                <li>Strategi Pemasaran dan Penjualan</li>
+                <li>Proyeksi Penjualan dan Tren Bulanan</li>
+            </ol>
+
+            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN III: ASPEK KEUANGAN</h3>
+            <ol style="line-height: 2; font-size: 14px;" start="15">
+                <li>Proyeksi Laporan Keuangan</li>
                 <li>Proyeksi Keuangan 5 Tahun</li>
-                <li>Ringkasan Eksekutif Forecast</li>
-                <li>Detail Proyeksi Bulanan</li>
+                <li>Ringkasan Eksekutif Keuangan</li>
                 <li>Auto Insights & Analisis</li>
             </ol>
         </div>
@@ -381,7 +381,7 @@
     <!-- Separator: BAGIAN 1 -->
     <div class="page">
         <div class="separator-page">
-            <div class="separator-title">BAGIAN 1</div>
+            <div class="separator-title">BAGIAN I</div>
             <div class="separator-subtitle">LATAR BELAKANG UMUM & LEGAL</div>
         </div>
     </div>
@@ -976,106 +976,37 @@
     <!-- Separator: BAGIAN 2 -->
     <div class="page">
         <div class="separator-page">
-            <div class="separator-title">BAGIAN 2</div>
+            <div class="separator-title">BAGIAN II</div>
             <div class="separator-subtitle">ASPEK PASAR</div>
             <p style="font-size: 16px; color: #666; margin-top: 20px;">Periode: {{ $period_label }}</p>
         </div>
     </div>
 
-    <!-- Financial Executive Summary -->
-    <div class="page">
-        <div class="header">
-            <div class="company-name">{{ $data['business_background']->name }}</div>
-            <div class="document-title">8. RINGKASAN EKSEKUTIF KEUANGAN</div>
-        </div>
-
-        <div class="section">
-            {!! nl2br(e($financial_summary['executive_summary'] ?? 'Data ringkasan eksekutif tidak tersedia')) !!}
-
-            @if (isset($financial_summary['summary_cards']))
-                <div style="margin-top: 20px;">
-                    <table class="table">
-                        <tr>
-                            <th style="width: 50%;">Metrik</th>
-                            <th style="width: 50%;">Nilai</th>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Pendapatan</strong></td>
-                            <td class="text-green">
-                                Rp
-                                {{ number_format($financial_summary['summary_cards']['total_income'], 0, ',', '.') }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Pengeluaran</strong></td>
-                            <td class="text-red">
-                                Rp
-                                {{ number_format($financial_summary['summary_cards']['total_expense'], 0, ',', '.') }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Laba Bersih</strong></td>
-                            <td
-                                class="{{ $financial_summary['summary_cards']['net_profit'] >= 0 ? 'text-green' : 'text-red' }}">
-                                <strong>
-                                    Rp
-                                    {{ number_format($financial_summary['summary_cards']['net_profit'], 0, ',', '.') }}
-                                </strong>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Saldo Kas</strong></td>
-                            <td
-                                class="{{ $financial_summary['summary_cards']['cash_balance'] >= 0 ? 'text-green' : 'text-red' }}">
-                                Rp
-                                {{ number_format($financial_summary['summary_cards']['cash_balance'], 0, ',', '.') }}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            @endif
-
-            @if (isset($financialCharts['income_vs_expense']))
-                <div style="margin-top: 15px;">
-                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Grafik Pendapatan vs
-                        Pengeluaran</h4>
-                    <img src="{{ $financialCharts['income_vs_expense'] }}" alt="Income vs Expense Chart"
-                        class="chart-image">
-                    <div class="chart-analysis">
-                        <div class="chart-analysis-title"> Analisis:</div>
-                        <p style="margin: 0;">{{ $chartAnalyses['income_vs_expense'] ?? 'Data analisis tidak tersedia.' }}</p>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Market Analysis -->
+    <!-- Section 8: Gambaran Umum Industri dan Tren Pasar -->
     @if ($data['market_analysis'])
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">9. ANALISIS PASAR</div>
+                <div class="document-title">8. GAMBARAN UMUM INDUSTRI DAN TREN PASAR (TAHUN {{ date('Y') }})</div>
             </div>
 
             <div class="section">
-                <!-- 1. Target Pasar -->
-                @if ($data['market_analysis']->target_market)
-                    <div class="subsection">
-                        <div class="subsection-title">Target Pasar</div>
-                        <p>{!! nl2br(e($data['market_analysis']->target_market)) !!}</p>
-                    </div>
-                @endif
-
-                <!-- 2. Ukuran Pasar -->
+                <!-- Ukuran Pasar -->
                 @if ($data['market_analysis']->market_size)
                     <div class="subsection">
                         <div class="subsection-title">Ukuran Pasar</div>
-                        <p>{!! nl2br(e($data['market_analysis']->market_size)) !!}</p>
+                        @php
+                            $marketSizeParagraphs = splitLongText($data['market_analysis']->market_size, 3);
+                        @endphp
+                        @foreach ($marketSizeParagraphs as $para)
+                            <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                                {!! nl2br($para) !!}
+                            </p>
+                        @endforeach
                     </div>
                 @endif
 
-                <!-- 3. Analisis Ukuran Pasar (TAM, SAM, SOM) -->
+                <!-- Analisis Ukuran Pasar (TAM, SAM, SOM) -->
                 @if ($data['market_analysis']->tam_total)
                     <div class="subsection">
                         <div class="subsection-title">Analisis Ukuran Pasar</div>
@@ -1124,48 +1055,61 @@
                     </div>
                 @endif
 
-                <!-- 4. Tren Pasar -->
+                <!-- Tren Pasar -->
                 @if ($data['market_analysis']->market_trends)
                     <div class="subsection">
                         <div class="subsection-title">Tren Pasar</div>
-                        <p>{!! nl2br(e($data['market_analysis']->market_trends)) !!}</p>
+                        @php
+                            $trendsParagraphs = splitLongText($data['market_analysis']->market_trends, 3);
+                        @endphp
+                        @foreach ($trendsParagraphs as $para)
+                            <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                                {!! nl2br($para) !!}
+                            </p>
+                        @endforeach
                     </div>
                 @endif
+            </div>
+        </div>
+    @endif
 
-                <!-- 5. Analisis SWOT -->
-                @if (
-                    $data['market_analysis']->strengths ||
-                        $data['market_analysis']->weaknesses ||
-                        $data['market_analysis']->opportunities ||
-                        $data['market_analysis']->threats)
+    <!-- Section 9: Analisis Pasar -->
+    @if ($data['market_analysis'])
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">9. ANALISIS PASAR</div>
+            </div>
+
+            <div class="section">
+                <!-- Target Pasar -->
+                @if ($data['market_analysis']->target_market)
                     <div class="subsection">
-                        <div class="subsection-title">Analisis SWOT</div>
-                        <table class="table">
-                            <tr>
-                                <th style="width: 30%;">Kategori</th>
-                                <th style="width: 70%;">Deskripsi</th>
-                            </tr>
-                            <tr>
-                                <td><strong>Strengths (Kekuatan)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Weaknesses (Kelemahan)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Opportunities (Peluang)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Threats (Ancaman)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
-                            </tr>
-                        </table>
+                        <div class="subsection-title">Target Pasar</div>
+                        @php
+                            $targetMarketParagraphs = splitLongText($data['market_analysis']->target_market, 3);
+                        @endphp
+                        @foreach ($targetMarketParagraphs as $para)
+                            <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                                {!! nl2br($para) !!}
+                            </p>
+                        @endforeach
                     </div>
                 @endif
+            </div>
+        </div>
+    @endif
 
-                <!-- 6. Analisis Kompetitor (Tabel Detail) -->
+    <!-- Section 10: Analisis Kompetitor -->
+    @if ($data['market_analysis'])
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">10. ANALISIS KOMPETITOR</div>
+            </div>
+
+            <div class="section">
+                <!-- Tabel Detail Kompetitor -->
                 @if ($data['market_analysis']->competitors->count() > 0)
                     <div class="subsection">
                         <div class="subsection-title">Analisis Kompetitor</div>
@@ -1206,15 +1150,22 @@
                     </div>
                 @endif
 
-                <!-- 7. Kompetitor Utama -->
+                <!-- Kompetitor Utama -->
                 @if ($data['market_analysis']->main_competitors)
                     <div class="subsection">
                         <div class="subsection-title">Kompetitor Utama</div>
-                        <p>{!! nl2br(e($data['market_analysis']->main_competitors)) !!}</p>
+                        @php
+                            $mainCompetitorsParagraphs = splitLongText($data['market_analysis']->main_competitors, 3);
+                        @endphp
+                        @foreach ($mainCompetitorsParagraphs as $para)
+                            <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                                {!! nl2br($para) !!}
+                            </p>
+                        @endforeach
                     </div>
                 @endif
 
-                <!-- 8. Analisis Kelebihan & Kekurangan Kompetitor -->
+                <!-- Kelebihan & Kekurangan Kompetitor -->
                 @if ($data['market_analysis']->competitor_strengths || $data['market_analysis']->competitor_weaknesses)
                     <div class="subsection">
                         <div class="subsection-title">Analisis Kelebihan & Kekurangan Kompetitor</div>
@@ -1224,30 +1175,83 @@
                                 <th style="width: 50%;">Kelemahan Kompetitor</th>
                             </tr>
                             <tr>
-                                <td>{!! nl2br(e($data['market_analysis']->competitor_strengths ?? '-')) !!}</td>
-                                <td>{!! nl2br(e($data['market_analysis']->competitor_weaknesses ?? '-')) !!}</td>
+                                <td style="vertical-align: top;">{!! nl2br(e($data['market_analysis']->competitor_strengths ?? '-')) !!}</td>
+                                <td style="vertical-align: top;">{!! nl2br(e($data['market_analysis']->competitor_weaknesses ?? '-')) !!}</td>
                             </tr>
                         </table>
                     </div>
                 @endif
 
-                <!-- 9. Keunggulan Kompetitif -->
+                <!-- Keunggulan Kompetitif -->
                 @if ($data['market_analysis']->competitive_advantage)
                     <div class="subsection">
                         <div class="subsection-title">Keunggulan Kompetitif</div>
-                        <p>{!! nl2br(e($data['market_analysis']->competitive_advantage)) !!}</p>
+                        @php
+                            $competitiveAdvantageParagraphs = splitLongText(
+                                $data['market_analysis']->competitive_advantage,
+                                3,
+                            );
+                        @endphp
+                        @foreach ($competitiveAdvantageParagraphs as $para)
+                            <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                                {!! nl2br($para) !!}
+                            </p>
+                        @endforeach
                     </div>
                 @endif
             </div>
         </div>
     @endif
 
-    <!-- Products & Services -->
+    <!-- Section 11: Analisis SWOT -->
+    @if ($data['market_analysis'])
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">11. ANALISIS SWOT</div>
+            </div>
+
+            <div class="section">
+                @if (
+                    $data['market_analysis']->strengths ||
+                        $data['market_analysis']->weaknesses ||
+                        $data['market_analysis']->opportunities ||
+                        $data['market_analysis']->threats)
+                    <div class="subsection">
+                        <table class="table">
+                            <tr>
+                                <th style="width: 30%;">Kategori</th>
+                                <th style="width: 70%;">Deskripsi</th>
+                            </tr>
+                            <tr>
+                                <td><strong>Strengths (Kekuatan)</strong></td>
+                                <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Weaknesses (Kelemahan)</strong></td>
+                                <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Opportunities (Peluang)</strong></td>
+                                <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Threats (Ancaman)</strong></td>
+                                <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
+                            </tr>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- Section 12: Produk dan Layanan -->
     @if ($data['products_services']->count() > 0)
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">10. PRODUK & LAYANAN</div>
+                <div class="document-title">12. PRODUK DAN LAYANAN</div>
             </div>
 
             <div class="section">
@@ -1374,12 +1378,12 @@
         </div>
     @endif
 
-    <!-- Marketing Strategies -->
+    <!-- Section 13: Strategi Pemasaran dan Penjualan -->
     @if ($data['marketing_strategies']->count() > 0)
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">11. STRATEGI PEMASARAN</div>
+                <div class="document-title">13. STRATEGI PEMASARAN DAN PENJUALAN</div>
             </div>
 
             <div class="section" style="margin-top: 5px; margin-bottom: 0;">
@@ -1420,6 +1424,83 @@
             </div>
         </div>
     @endif
+
+    <!-- Section 14: Proyeksi Penjualan dan Tren Bulanan -->
+    <div class="page">
+        <div class="header">
+            <div class="company-name">{{ $data['business_background']->name }}</div>
+            <div class="document-title">14. PROYEKSI PENJUALAN DAN TREN BULANAN</div>
+        </div>
+
+        <div class="section">
+            <!-- Grafik Pendapatan (Fokus Penjualan) -->
+            @if (isset($financialCharts['income_vs_expense']))
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Grafik Proyeksi Penjualan</h4>
+                    <img src="{{ $financialCharts['income_vs_expense'] }}" alt="Income Chart" class="chart-image">
+                    <div class="chart-analysis">
+                        <div class="chart-analysis-title"> Analisis Penjualan:</div>
+                        <p style="margin: 0;">
+                            {{ $chartAnalyses['income_vs_expense'] ?? 'Grafik ini menunjukkan proyeksi penjualan dan tren pendapatan bisnis. Analisis lebih lanjut diperlukan untuk strategi peningkatan penjualan.' }}
+                        </p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Tren Bulanan -->
+            @if ($period_type === 'year' && isset($financial_summary['monthly_summary']))
+                <div style="margin-top: 20px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">Tren Bulanan - Tahun
+                        {{ $financial_summary['year'] }}</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Bulan</th>
+                            <th>Pendapatan</th>
+                            <th>Pengeluaran</th>
+                            <th>Laba Bersih</th>
+                            <th>Transaksi</th>
+                        </tr>
+                        @foreach ($financial_summary['monthly_summary'] as $month)
+                            <tr>
+                                <td>{{ $month['month_name'] }}</td>
+                                <td class="text-green">Rp {{ number_format($month['income'], 0, ',', '.') }}</td>
+                                <td class="text-red">Rp {{ number_format($month['expense'], 0, ',', '.') }}</td>
+                                <td class="{{ $month['net_profit'] >= 0 ? 'text-green' : 'text-red' }}">
+                                    Rp {{ number_format($month['net_profit'], 0, ',', '.') }}
+                                </td>
+                                <td>{{ $month['transaction_count'] }}</td>
+                            </tr>
+                        @endforeach
+                    </table>
+
+                    @if (isset($financialCharts['monthly_trend']))
+                        <div style="margin-top: 15px;">
+                            <img src="{{ $financialCharts['monthly_trend'] }}" alt="Monthly Trend Chart"
+                                class="chart-image">
+                            <div class="chart-analysis">
+                                <div class="chart-analysis-title"> Analisis:</div>
+                                <p style="margin: 0;">
+                                    {{ $chartAnalyses['monthly_trend'] ?? 'Data tren bulanan tidak tersedia.' }}</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- ========================================
+         BAGIAN III: ASPEK KEUANGAN
+    ========================================= --}}
+
+    <!-- Separator: BAGIAN 3 -->
+    <div class="page">
+        <div class="separator-page">
+            <div class="separator-title">BAGIAN III</div>
+            <div class="separator-subtitle">ASPEK KEUANGAN</div>
+            <p style="font-size: 16px; color: #666; margin-top: 20px;">Periode: {{ $period_label }}</p>
+        </div>
+    </div>
 
     {{-- TODO: Comment - FinancialPlan nonaktif di Business Plan --}}
     {{--
@@ -1761,130 +1842,146 @@
     --}}
     {{-- END: TODO Comment - FinancialPlan nonaktif di Business Plan --}}
 
-    <!-- Category Summary -->
-    @if (isset($financial_summary['category_summary']))
-        <div class="page">
-            <div class="header">
-                <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">12. RINGKASAN PER KATEGORI</div>
-            </div>
-
-            <div class="section">
-                <div class="subsection">
-                    <div class="subsection-title">Top 5 Pendapatan</div>
-                    <table class="table">
-                        <tr>
-                            <th>No</th>
-                            <th>Kategori</th>
-                            <th>Total</th>
-                            <th>Transaksi</th>
-                            <th>Rata-rata</th>
-                        </tr>
-                        @foreach ($financial_summary['category_summary']['top_income'] as $index => $cat)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $cat['category']->name }}</td>
-                                <td class="text-green">Rp {{ number_format($cat['total'], 0, ',', '.') }}</td>
-                                <td>{{ $cat['count'] }}</td>
-                                <td>Rp {{ number_format($cat['average'], 0, ',', '.') }}</td>
-                            </tr>
-                        @endforeach
-                    </table>
-
-                    @if (isset($financialCharts['category_income_pie']))
-                        <img src="{{ $financialCharts['category_income_pie'] }}" alt="Category Income Chart"
-                            class="chart-image">
-                        <div class="chart-analysis">
-                            <div class="chart-analysis-title"> Analisis:</div>
-                            <p style="margin: 0;">{{ $chartAnalyses['category_income'] ?? 'Data kategori pendapatan tidak tersedia.' }}</p>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="subsection">
-                    <div class="subsection-title">Top 5 Pengeluaran</div>
-                    <table class="table">
-                        <tr>
-                            <th>No</th>
-                            <th>Kategori</th>
-                            <th>Total</th>
-                            <th>Transaksi</th>
-                            <th>Rata-rata</th>
-                        </tr>
-                        @foreach ($financial_summary['category_summary']['top_expense'] as $index => $cat)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $cat['category']->name }}</td>
-                                <td class="text-red">Rp {{ number_format($cat['total'], 0, ',', '.') }}</td>
-                                <td>{{ $cat['count'] }}</td>
-                                <td>Rp {{ number_format($cat['average'], 0, ',', '.') }}</td>
-                            </tr>
-                        @endforeach
-                    </table>
-
-                    @if (isset($financialCharts['category_expense_pie']))
-                        <img src="{{ $financialCharts['category_expense_pie'] }}" alt="Category Expense Chart"
-                            class="chart-image">
-                        <div class="chart-analysis">
-                            <div class="chart-analysis-title"> Analisis:</div>
-                            <p style="margin: 0;">{{ $chartAnalyses['category_expense'] ?? 'Data kategori pengeluaran tidak tersedia.' }}</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
+    <!-- Section 15: Proyeksi Laporan Keuangan -->
+    <div class="page">
+        <div class="header">
+            <div class="company-name">{{ $data['business_background']->name }}</div>
+            <div class="document-title">15. PROYEKSI LAPORAN KEUANGAN</div>
         </div>
-    @endif
 
-    <!-- Monthly Trend (only for year view) -->
-    @if ($period_type === 'year' && isset($financial_summary['monthly_summary']))
-        <div class="page">
-            <div class="header">
-                <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">13. TREN BULANAN - TAHUN {{ $financial_summary['year'] }}</div>
-            </div>
-
-            <div class="section">
-                <table class="table">
-                    <tr>
-                        <th>Bulan</th>
-                        <th>Pendapatan</th>
-                        <th>Pengeluaran</th>
-                        <th>Laba Bersih</th>
-                        <th>Transaksi</th>
-                    </tr>
-                    @foreach ($financial_summary['monthly_summary'] as $month)
-                        <tr>
-                            <td>{{ $month['month_name'] }}</td>
-                            <td class="text-green">Rp {{ number_format($month['income'], 0, ',', '.') }}</td>
-                            <td class="text-red">Rp {{ number_format($month['expense'], 0, ',', '.') }}</td>
-                            <td class="{{ $month['net_profit'] >= 0 ? 'text-green' : 'text-red' }}">
-                                Rp {{ number_format($month['net_profit'], 0, ',', '.') }}
-                            </td>
-                            <td>{{ $month['transaction_count'] }}</td>
-                        </tr>
-                    @endforeach
-                </table>
-
-                @if (isset($financialCharts['monthly_trend']))
-                    <div style="margin-top: 15px;">
-                        <img src="{{ $financialCharts['monthly_trend'] }}" alt="Monthly Trend Chart"
-                            class="chart-image">
-                        <div class="chart-analysis">
-                            <div class="chart-analysis-title"> Analisis:</div>
-                            <p style="margin: 0;">{{ $chartAnalyses['monthly_trend'] ?? 'Data tren bulanan tidak tersedia.' }}</p>
-                        </div>
+        <div class="section">
+            <!-- Grafik Pendapatan vs Pengeluaran -->
+            @if (isset($financialCharts['income_vs_expense']))
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Grafik Pendapatan vs
+                        Pengeluaran</h4>
+                    <img src="{{ $financialCharts['income_vs_expense'] }}" alt="Income vs Expense Chart"
+                        class="chart-image">
+                    <div class="chart-analysis">
+                        <div class="chart-analysis-title"> Analisis:</div>
+                        <p style="margin: 0;">
+                            {{ $chartAnalyses['income_vs_expense'] ?? 'Data analisis tidak tersedia.' }}</p>
                     </div>
-                @endif
-            </div>
-        </div>
-    @endif
+                </div>
+            @endif
 
-    <!-- Financial Projections -->
+            <!-- Ringkasan Per Kategori -->
+            @if (isset($financial_summary['category_summary']))
+                <div style="margin-top: 25px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">Ringkasan Per Kategori</h4>
+
+                    <!-- Top 5 Pendapatan -->
+                    <div class="subsection">
+                        <div class="subsection-title">Top 5 Pendapatan</div>
+                        <table class="table">
+                            <tr>
+                                <th>No</th>
+                                <th>Kategori</th>
+                                <th>Total</th>
+                                <th>Transaksi</th>
+                                <th>Rata-rata</th>
+                            </tr>
+                            @foreach ($financial_summary['category_summary']['top_income'] as $index => $cat)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $cat['category']->name }}</td>
+                                    <td class="text-green">Rp {{ number_format($cat['total'], 0, ',', '.') }}</td>
+                                    <td>{{ $cat['count'] }}</td>
+                                    <td>Rp {{ number_format($cat['average'], 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        @if (isset($financialCharts['category_income_pie']))
+                            <img src="{{ $financialCharts['category_income_pie'] }}" alt="Category Income Chart"
+                                class="chart-image">
+                            <div class="chart-analysis">
+                                <div class="chart-analysis-title"> Analisis:</div>
+                                <p style="margin: 0;">
+                                    {{ $chartAnalyses['category_income'] ?? 'Data kategori pendapatan tidak tersedia.' }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Top 5 Pengeluaran -->
+                    <div class="subsection">
+                        <div class="subsection-title">Top 5 Pengeluaran</div>
+                        <table class="table">
+                            <tr>
+                                <th>No</th>
+                                <th>Kategori</th>
+                                <th>Total</th>
+                                <th>Transaksi</th>
+                                <th>Rata-rata</th>
+                            </tr>
+                            @foreach ($financial_summary['category_summary']['top_expense'] as $index => $cat)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $cat['category']->name }}</td>
+                                    <td class="text-red">Rp {{ number_format($cat['total'], 0, ',', '.') }}</td>
+                                    <td>{{ $cat['count'] }}</td>
+                                    <td>Rp {{ number_format($cat['average'], 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </table>
+
+                        @if (isset($financialCharts['category_expense_pie']))
+                            <img src="{{ $financialCharts['category_expense_pie'] }}" alt="Category Expense Chart"
+                                class="chart-image">
+                            <div class="chart-analysis">
+                                <div class="chart-analysis-title"> Analisis:</div>
+                                <p style="margin: 0;">
+                                    {{ $chartAnalyses['category_expense'] ?? 'Data kategori pengeluaran tidak tersedia.' }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- Detail Proyeksi Bulanan (Forecast Results) -->
+            @if ($has_forecast && $forecast_results && count($forecast_results) > 0)
+                <div style="margin-top: 25px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">Detail Proyeksi Bulanan</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Prediksi Pendapatan</th>
+                                <th>Prediksi Pengeluaran</th>
+                                <th>Prediksi Laba Bersih</th>
+                                <th>Kepercayaan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($forecast_results as $result)
+                                <tr>
+                                    <td>{{ date('F Y', mktime(0, 0, 0, $result['month'], 1, $result['year'])) }}</td>
+                                    <td class="text-green">Rp
+                                        {{ number_format($result['forecast_income'] ?? 0, 0, ',', '.') }}</td>
+                                    <td class="text-red">Rp
+                                        {{ number_format($result['forecast_expense'] ?? 0, 0, ',', '.') }}</td>
+                                    <td
+                                        class="{{ ($result['forecast_profit'] ?? 0) >= 0 ? 'text-green' : 'text-red' }}">
+                                        Rp {{ number_format($result['forecast_profit'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td>{{ number_format($result['confidence_level'] ?? 0, 1) }}%</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Section 16: Proyeksi Keuangan 5 Tahun -->
     @if (!empty($financial_data['projections']) && count($financial_data['projections']) > 0)
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">14. PROYEKSI KEUANGAN 5 TAHUN</div>
+                <div class="document-title">16. PROYEKSI KEUANGAN 5 TAHUN</div>
             </div>
 
             <div class="section">
@@ -1901,7 +1998,7 @@
                                     @if ($projection->scenario_type == 'optimistic')
                                         Optimistik
                                     @elseif($projection->scenario_type == 'realistic')
-                                         Realistik
+                                        Realistik
                                     @else
                                         Pesimistik
                                     @endif
@@ -1993,264 +2090,233 @@
         </div>
     @endif
 
-    @if ($has_forecast)
-        <!-- Forecast Executive Summary -->
-        <div class="page">
-            <div class="header">
-                <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">15. RINGKASAN EKSEKUTIF FORECAST</div>
+    <!-- Section 17: Ringkasan Eksekutif Keuangan -->
+    <div class="page">
+        <div class="header">
+            <div class="company-name">{{ $data['business_background']->name }}</div>
+            <div class="document-title">17. RINGKASAN EKSEKUTIF KEUANGAN</div>
+        </div>
+
+        <div class="section">
+            <!-- Executive Summary Text -->
+            <div style="margin-bottom: 20px;">
+                @php
+                    $execSummaryParagraphs = splitLongText(
+                        $financial_summary['executive_summary'] ?? 'Data ringkasan eksekutif tidak tersedia',
+                        3,
+                    );
+                @endphp
+                @foreach ($execSummaryParagraphs as $para)
+                    <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                        {!! nl2br($para) !!}
+                    </p>
+                @endforeach
             </div>
 
-            <div class="section">
+            <!-- Ringkasan Eksekutif Forecast (Jika ada) -->
+            @if ($has_forecast)
                 <div
-                    style="background: #f3f4f6; padding: 15px; border-left: 4px solid #2563eb; border-radius: 4px; line-height: 1.8; margin-bottom: 20px;">
-                    {!! nl2br(e($forecast_summary)) !!}
+                    style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-left: 4px solid #2563eb; border-radius: 4px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Ringkasan
+                        Eksekutif Forecast</h4>
+                    @php
+                        $forecastSummaryParagraphs = splitLongText($forecast_summary ?? '', 3);
+                    @endphp
+                    @foreach ($forecastSummaryParagraphs as $para)
+                        <p style="margin-bottom: 10px; text-align: justify; line-height: 1.6; font-size: 11px;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
                 </div>
+            @endif
 
-                <!-- Statistik Utama -->
+            <!-- Summary Cards -->
+            @if (isset($financial_summary['summary_cards']))
                 <div style="margin-top: 20px;">
-                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Statistik
-                        Utama</h4>
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">Ringkasan Metrik Keuangan</h4>
                     <table class="table">
                         <tr>
-                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
-                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">TOTAL PENDAPATAN</div>
-                                <div style="font-size: 14px; font-weight: bold; color: #2563eb;">
-                                    Rp {{ number_format($forecast_statistics['total_income'], 0, ',', '.') }}
-                                </div>
+                            <th style="width: 50%;">Metrik</th>
+                            <th style="width: 50%;">Nilai</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Pendapatan</strong></td>
+                            <td class="text-green">
+                                Rp
+                                {{ number_format($financial_summary['summary_cards']['total_income'], 0, ',', '.') }}
                             </td>
-                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
-                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">TOTAL PENGELUARAN</div>
-                                <div style="font-size: 14px; font-weight: bold; color: #2563eb;">
-                                    Rp {{ number_format($forecast_statistics['total_expense'], 0, ',', '.') }}
-                                </div>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Pengeluaran</strong></td>
+                            <td class="text-red">
+                                Rp
+                                {{ number_format($financial_summary['summary_cards']['total_expense'], 0, ',', '.') }}
                             </td>
-                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
-                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">TOTAL LABA</div>
-                                <div
-                                    style="font-size: 14px; font-weight: bold; color: {{ $forecast_statistics['total_profit'] >= 0 ? '#10b981' : '#ef4444' }};">
-                                    Rp {{ number_format($forecast_statistics['total_profit'], 0, ',', '.') }}
-                                </div>
+                        </tr>
+                        <tr>
+                            <td><strong>Laba Bersih</strong></td>
+                            <td
+                                class="{{ $financial_summary['summary_cards']['net_profit'] >= 0 ? 'text-green' : 'text-red' }}">
+                                <strong>
+                                    Rp
+                                    {{ number_format($financial_summary['summary_cards']['net_profit'], 0, ',', '.') }}
+                                </strong>
                             </td>
-                            <td style="width: 25%; text-align: center; background: #f0f9ff;">
-                                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">RATA-RATA MARGIN</div>
-                                <div style="font-size: 14px; font-weight: bold; color: #2563eb;">
-                                    {{ number_format($forecast_statistics['avg_margin'], 2) }}%
-                                </div>
+                        </tr>
+                        <tr>
+                            <td><strong>Saldo Kas</strong></td>
+                            <td
+                                class="{{ $financial_summary['summary_cards']['cash_balance'] >= 0 ? 'text-green' : 'text-red' }}">
+                                Rp
+                                {{ number_format($financial_summary['summary_cards']['cash_balance'], 0, ',', '.') }}
                             </td>
                         </tr>
                     </table>
                 </div>
-            </div>
-        </div>
+            @endif
 
-        <!-- Forecast Detail Results -->
+            <!-- Chart Income vs Expense -->
+            @if (isset($financialCharts['income_vs_expense']))
+                <div style="margin-top: 20px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Grafik Pendapatan vs
+                        Pengeluaran</h4>
+                    <img src="{{ $financialCharts['income_vs_expense'] }}" alt="Income vs Expense Chart"
+                        class="chart-image">
+                    <div class="chart-analysis">
+                        <div class="chart-analysis-title"> Analisis:</div>
+                        <p style="margin: 0;">
+                            {{ $chartAnalyses['income_vs_expense'] ?? 'Data analisis tidak tersedia.' }}</p>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Section 18: Auto Insights & Analisis -->
+    @if ($has_forecast && $forecast_insights && count($forecast_insights) > 0)
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">16. DETAIL PROYEKSI BULANAN</div>
+                <div class="document-title">18. AUTO INSIGHTS & ANALISIS</div>
             </div>
 
             <div class="section">
-                <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Tabel Detail
-                    Prediksi Bulanan</h4>
+                <div style="text-align: justify; line-height: 1.8; margin-bottom: 20px; font-size: 11px; color: #333;">
+                    <p style="margin-bottom: 12px;">
+                        Berikut adalah insight otomatis yang dihasilkan oleh sistem berdasarkan analisis data keuangan
+                        dan proyeksi bisnis.
+                        Insight ini dikategorikan berdasarkan tingkat prioritas untuk membantu Anda mengambil keputusan
+                        strategis.
+                    </p>
+                </div>
 
-                @if ($forecast_results && count($forecast_results) > 0)
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Bulan</th>
-                                <th class="text-right">Pendapatan</th>
-                                <th class="text-right">Pengeluaran</th>
-                                <th class="text-right">Laba</th>
-                                <th class="text-right">Margin %</th>
-                                <th class="text-right">Confidence %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($forecast_results as $result)
-                                <tr>
-                                    <td>Bulan {{ $result['month'] ?? '-' }}</td>
-                                    <td class="text-right">Rp
-                                        {{ number_format($result['forecast_income'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-right">Rp
-                                        {{ number_format($result['forecast_expense'] ?? 0, 0, ',', '.') }}</td>
-                                    <td
-                                        class="text-right {{ ($result['forecast_profit'] ?? 0) >= 0 ? 'text-green' : 'text-red' }}">
-                                        Rp {{ number_format($result['forecast_profit'] ?? 0, 0, ',', '.') }}
-                                    </td>
-                                    <td class="text-right">{{ number_format($result['forecast_margin'] ?? 0, 2) }}%
-                                    </td>
-                                    <td class="text-right">{{ number_format($result['confidence_level'] ?? 0, 2) }}%
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @else
-                    <p style="color: #999; font-style: italic; text-align: center; padding: 20px;">Tidak ada data
-                        proyeksi yang tersedia.</p>
+                @php
+                    $criticalInsights = collect($forecast_insights)->where('severity', 'critical')->all();
+                    $warningInsights = collect($forecast_insights)->where('severity', 'warning')->all();
+                    $positiveInsights = collect($forecast_insights)->where('severity', 'positive')->all();
+                    $infoInsights = collect($forecast_insights)
+                        ->whereNotIn('severity', ['critical', 'warning', 'positive'])
+                        ->all();
+                @endphp
+
+                @if (count($criticalInsights) > 0)
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #dc2626;">🚨 Insight
+                            Kritis</h4>
+                        @foreach ($criticalInsights as $insight)
+                            <div
+                                style="margin-bottom: 12px; padding: 12px; border-left: 3px solid #dc2626; background: #fef2f2; font-size: 11px;">
+                                <div style="font-weight: bold; margin-bottom: 5px; color: #dc2626;">
+                                    {{ $insight['title'] ?? 'Insight' }}</div>
+                                <div style="color: #333;">{{ $insight['description'] ?? '-' }}</div>
+                                @if (isset($insight['value']) && $insight['value'])
+                                    <div style="margin-top: 6px; font-weight: bold; color: #dc2626;">
+                                        {{ $insight['value'] }}</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                 @endif
 
-                <!-- Performance Metrics -->
-                <div style="margin-top: 20px;">
-                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Metrik
-                        Performa</h4>
-                    <table class="table">
-                        <tr>
-                            <td style="width: 40%; font-weight: bold;">Rata-rata Kepercayaan Prediksi</td>
-                            <td class="text-right">{{ number_format($forecast_statistics['avg_confidence'], 2) }}%
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Tingkat Pertumbuhan</td>
-                            <td class="text-right">{{ number_format($forecast_statistics['growth_rate'], 2) }}%</td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Pendapatan Tertinggi</td>
-                            <td class="text-right">Bulan {{ $forecast_statistics['highest_income_month'] ?? '-' }}
-                                (Rp
-                                {{ number_format($forecast_statistics['highest_income_value'] ?? 0, 0, ',', '.') }})
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">Laba Tertinggi</td>
-                            <td class="text-right">Bulan {{ $forecast_statistics['highest_profit_month'] ?? '-' }}
-                                (Rp
-                                {{ number_format($forecast_statistics['highest_profit_value'] ?? 0, 0, ',', '.') }})
-                            </td>
-                        </tr>
-                    </table>
+                @if (count($warningInsights) > 0)
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #f59e0b;">⚠️
+                            Peringatan</h4>
+                        @foreach ($warningInsights as $insight)
+                            <div
+                                style="margin-bottom: 12px; padding: 12px; border-left: 3px solid #f59e0b; background: #fffbeb; font-size: 11px;">
+                                <div style="font-weight: bold; margin-bottom: 5px; color: #f59e0b;">
+                                    {{ $insight['title'] ?? 'Insight' }}</div>
+                                <div style="color: #333;">{{ $insight['description'] ?? '-' }}</div>
+                                @if (isset($insight['value']) && $insight['value'])
+                                    <div style="margin-top: 6px; font-weight: bold; color: #f59e0b;">
+                                        {{ $insight['value'] }}</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if (count($positiveInsights) > 0)
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #10b981;">✅ Insight
+                            Positif</h4>
+                        @foreach ($positiveInsights as $insight)
+                            <div
+                                style="margin-bottom: 12px; padding: 12px; border-left: 3px solid #10b981; background: #f0fdf4; font-size: 11px;">
+                                <div style="font-weight: bold; margin-bottom: 5px; color: #10b981;">
+                                    {{ $insight['title'] ?? 'Insight' }}</div>
+                                <div style="color: #333;">{{ $insight['description'] ?? '-' }}</div>
+                                @if (isset($insight['value']) && $insight['value'])
+                                    <div style="margin-top: 6px; font-weight: bold; color: #10b981;">
+                                        {{ $insight['value'] }}</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if (count($infoInsights) > 0)
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #3b82f6;">ℹ️
+                            Informasi Umum</h4>
+                        @foreach ($infoInsights as $insight)
+                            <div
+                                style="margin-bottom: 12px; padding: 12px; border-left: 3px solid #3b82f6; background: #eff6ff; font-size: 11px;">
+                                <div style="font-weight: bold; margin-bottom: 5px; color: #3b82f6;">
+                                    {{ $insight['title'] ?? 'Insight' }}</div>
+                                <div style="color: #333;">{{ $insight['description'] ?? '-' }}</div>
+                                @if (isset($insight['value']) && $insight['value'])
+                                    <div style="margin-top: 6px; font-weight: bold; color: #3b82f6;">
+                                        {{ $insight['value'] }}</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div
+                    style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 4px; font-size: 10px; color: #666; line-height: 1.7; border-left: 4px solid #6b7280;">
+                    <strong>Catatan:</strong> Insight ini dihasilkan secara otomatis berdasarkan analisis data historis
+                    dan proyeksi keuangan.
+                    Harap gunakan sebagai referensi dan pertimbangkan faktor-faktor eksternal lainnya dalam pengambilan
+                    keputusan bisnis Anda.
                 </div>
             </div>
         </div>
+    @endif
 
-        <!-- Forecast Insights -->
-        @if ($forecast_insights && count($forecast_insights) > 0)
-            <div class="page">
-                <div class="header">
-                    <div class="company-name">{{ $data['business_background']->name }}</div>
-                    <div class="document-title">17. AUTO INSIGHTS & ANALISIS</div>
-                </div>
-
-                <div class="section">
-                    <div style="text-align: justify; line-height: 1.8; margin-bottom: 20px; font-size: 11px; color: #333;">
-                        <p style="margin: 0 0 12px 0;">
-                            Berdasarkan analisis prediktif dan machine learning yang diterapkan terhadap data finansial historis selama periode pelaporan, sistem kami telah mengidentifikasi sejumlah insight strategis dan pola kritis yang perlu mendapatkan perhatian khusus dari manajemen. Analisis komprehensif ini menggabungkan tren data ekstensif dengan faktor-faktor kuantitatif dan kualitatif untuk memberikan perspektif holistik tentang kesehatan finansial bisnis Anda.
-                        </p>
-                        <p style="margin: 0 0 12px 0;">
-                            Setiap insight yang disajikan di bawah telah dikategorikan berdasarkan tingkat urgensi dan dampak potensialnya terhadap operasional bisnis. Pemahaman mendalam tentang insight-insight ini akan membantu dalam merumuskan strategi bisnis yang lebih efektif, mengidentifikasi peluang pertumbuhan, dan meminimalkan risiko-risiko potensial yang mungkin dihadapi.
-                        </p>
-                        <p style="margin: 0;">
-                            Kami merekomendasikan untuk menggunakan informasi ini sebagai dasar pengambilan keputusan strategis sambil tetap mempertimbangkan konteks pasar eksternal, keadaan industri, dan faktor-faktor lain yang mungkin tidak terukur dalam sistem analitik kami.
-                        </p>
-                    </div>
-
-                    @php
-                        $criticalInsights = collect($forecast_insights)->where('severity', 'critical')->all();
-                        $warningInsights = collect($forecast_insights)->where('severity', 'warning')->all();
-                        $positiveInsights = collect($forecast_insights)->where('severity', 'positive')->all();
-                        $infoInsights = collect($forecast_insights)->whereNotIn('severity', ['critical', 'warning', 'positive'])->all();
-                    @endphp
-
-                    @if (count($criticalInsights) > 0)
-                        <div style="margin-bottom: 20px; padding: 15px; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px;">
-                            <h4 style="font-weight: bold; font-size: 12px; color: #ef4444; margin: 0 0 12px 0; text-transform: uppercase;">PERINGATAN KRITIS - MEMERLUKAN TINDAKAN SEGERA</h4>
-                            @foreach ($criticalInsights as $insight)
-                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
-                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
-                                        <strong style="color: #991b1b;">{{ $insight['title'] ?? 'Insight Kritis' }}:</strong><br>
-                                        {{ $insight['description'] ?? '-' }}
-                                    </p>
-                                    @if (isset($insight['value']) && $insight['value'])
-                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
-                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
-                                        </p>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    @if (count($warningInsights) > 0)
-                        <div style="margin-bottom: 20px; padding: 15px; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 4px;">
-                            <h4 style="font-weight: bold; font-size: 12px; color: #f59e0b; margin: 0 0 12px 0; text-transform: uppercase;">PERINGATAN - PERLU DIMONITOR DENGAN SEKSAMA</h4>
-                            @foreach ($warningInsights as $insight)
-                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
-                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
-                                        <strong style="color: #b45309;">{{ $insight['title'] ?? 'Insight Peringatan' }}:</strong><br>
-                                        {{ $insight['description'] ?? '-' }}
-                                    </p>
-                                    @if (isset($insight['value']) && $insight['value'])
-                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
-                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
-                                        </p>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    @if (count($positiveInsights) > 0)
-                        <div style="margin-bottom: 20px; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
-                            <h4 style="font-weight: bold; font-size: 12px; color: #10b981; margin: 0 0 12px 0; text-transform: uppercase;">INSIGHT POSITIF - KEKUATAN DAN PELUANG</h4>
-                            @foreach ($positiveInsights as $insight)
-                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
-                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
-                                        <strong style="color: #065f46;">{{ $insight['title'] ?? 'Insight Positif' }}:</strong><br>
-                                        {{ $insight['description'] ?? '-' }}
-                                    </p>
-                                    @if (isset($insight['value']) && $insight['value'])
-                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
-                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
-                                        </p>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    @if (count($infoInsights) > 0)
-                        <div style="margin-bottom: 20px; padding: 15px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px;">
-                            <h4 style="font-weight: bold; font-size: 12px; color: #2563eb; margin: 0 0 12px 0; text-transform: uppercase;">INFORMASI TAMBAHAN - INSIGHT LAINNYA</h4>
-                            @foreach ($infoInsights as $insight)
-                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(37, 99, 235, 0.2);">
-                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
-                                        <strong style="color: #1e40af;">{{ $insight['title'] ?? 'Insight Informasi' }}:</strong><br>
-                                        {{ $insight['description'] ?? '-' }}
-                                    </p>
-                                    @if (isset($insight['value']) && $insight['value'])
-                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
-                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
-                                        </p>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 4px; font-size: 10px; color: #666; line-height: 1.7; border-left: 4px solid #6b7280;">
-                        <p style="margin: 0 0 8px 0; font-weight: bold; color: #374151;">
-                            DISCLAIMER & CATATAN METODOLOGI
-                        </p>
-                        <p style="margin: 0;">
-                            Insights dan rekomendasi yang disajikan dalam laporan ini dihasilkan secara otomatis melalui algoritma analitik prediktif berdasarkan data historis yang tersedia dalam sistem. Analisis ini bertujuan untuk mendukung proses pengambilan keputusan manajemen, namun tidak menggantikan pertimbangan profesional manusia. Faktor-faktor eksternal yang tidak terukur dalam sistem (seperti perubahan regulasi, tren pasar global, kompetisi baru, atau kejadian tak terduga) dapat mempengaruhi akurasi prediksi. Oleh karena itu, semua rekomendasi harus dievaluasi kembali dengan cermat oleh pihak manajemen yang berpengalaman sebelum diimplementasikan.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        @endif
-    @else
-        <!-- No Forecast Data Available -->
+    <!-- Jika tidak ada forecast, tampilkan no data page -->
+    @if (!$has_forecast)
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">12. LAPORAN FORECAST</div>
+                <div class="document-title">LAPORAN FORECAST</div>
             </div>
 
             <div class="section">
                 <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 8px;">
-                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;"></div>
+                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;">📊</div>
                     <h3 style="font-size: 18px; color: #666; margin-bottom: 10px;">Data Forecast Belum Tersedia</h3>
                     <p style="font-size: 12px; color: #999;">
                         Belum ada data forecast untuk periode {{ $period_label }}.<br>
