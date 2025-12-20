@@ -13,9 +13,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
   const [loadingBusinesses, setLoadingBusinesses] = useState(true);
   const [businesses, setBusinesses] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(propSelectedBusiness || null);
-  const [periodType, setPeriodType] = useState("year");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [availableYears, setAvailableYears] = useState([]);
   const [mode, setMode] = useState("free"); // free or pro
 
@@ -74,8 +72,6 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
     setAvailableYears(years.reverse());
   };
 
-  const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-
   const handleGeneratePDF = async () => {
     if (!selectedBusiness) {
       toast.error("Silakan pilih bisnis terlebih dahulu");
@@ -90,18 +86,13 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
     setLoading(true);
 
     try {
-      let periodValue;
-      if (periodType === "year") {
-        periodValue = selectedYear.toString();
-      } else {
-        periodValue = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
-      }
+      const periodValue = selectedYear.toString();
 
       console.log("📤 Sending PDF Request with axios...");
       console.log("📋 Request Data:", {
         user_id: parseInt(user.id),
         business_background_id: selectedBusiness.id,
-        period_type: periodType,
+        period_type: "year",
         period_value: periodValue,
         mode: mode,
       });
@@ -110,7 +101,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
       const response = await combinedPdfApi.generateCombinedPdf(
         user.id,
         selectedBusiness.id,
-        periodType,
+        "year",
         periodValue,
         mode
       );
@@ -297,25 +288,6 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
                 Periode Laporan Keuangan
               </h3>
 
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => setPeriodType("year")}
-                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
-                    periodType === "year" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Per Tahun
-                </button>
-                <button
-                  onClick={() => setPeriodType("month")}
-                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
-                    periodType === "month" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Per Bulan
-                </button>
-              </div>
-
               <div className="mb-4">
                 <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Tahun</label>
                 <select
@@ -330,23 +302,6 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
                   ))}
                 </select>
               </div>
-
-              {periodType === "month" && (
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Bulan</label>
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 text-gray-900 transition-all bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
-                  >
-                    {monthNames.map((month, index) => (
-                      <option key={index + 1} value={index + 1}>
-                        {month}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
             </div>
 
             {/* Preview Info */}
@@ -360,7 +315,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
                       <strong>Bagian 1: Business Plan</strong> - Latar belakang bisnis, analisis pasar, produk/layanan, strategi pemasaran, operasional, dan tim
                     </li>
                     <li>
-                      <strong>Bagian 2: Laporan Keuangan ({periodType === "year" ? `Tahun ${selectedYear}` : `${monthNames[selectedMonth - 1]} ${selectedYear}`})</strong> - Ringkasan eksekutif, kategori, tren bulanan, dan proyeksi keuangan
+                      <strong>Bagian 2: Laporan Keuangan (Tahun {selectedYear})</strong> - Ringkasan eksekutif, kategori, tren bulanan, dan proyeksi keuangan
                     </li>
                     <li>
                       <strong>Grafik & Visualisasi:</strong> Semua chart akan disertakan secara otomatis
@@ -396,7 +351,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
 
             <div className="mt-6 text-sm text-center text-gray-600 dark:text-gray-400">
               Laporan akan diunduh untuk: <span className="font-semibold text-gray-900 dark:text-white">{selectedBusiness.name}</span> | Periode Keuangan:{" "}
-              <span className="font-semibold text-gray-900 dark:text-white">{periodType === "year" ? `Tahun ${selectedYear}` : `${monthNames[selectedMonth - 1]} ${selectedYear}`}</span>
+              <span className="font-semibold text-gray-900 dark:text-white">Tahun {selectedYear}</span>
             </div>
           </>
         )}
