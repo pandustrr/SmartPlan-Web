@@ -354,8 +354,7 @@
             <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN II: ASPEK PASAR
                 ({{ $period_label }})</h3>
             <ol style="line-height: 2; font-size: 14px;" start="8">
-                <li>Gambaran Umum Industri dan Tren Pasar</li>
-                <li>Analisis Pasar</li>
+                <li>Gambaran Umum Industri, Tren Pasar, dan Target Pasar</li>
                 <li>Analisis Kompetitor</li>
                 <li>Analisis SWOT</li>
                 <li>Produk dan Layanan</li>
@@ -364,7 +363,7 @@
             </ol>
 
             <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN III: ASPEK KEUANGAN</h3>
-            <ol style="line-height: 2; font-size: 14px;" start="15">
+            <ol style="line-height: 2; font-size: 14px;" start="14">
                 <li>Proyeksi Laporan Keuangan</li>
                 <li>Proyeksi Keuangan 5 Tahun</li>
                 <li>Ringkasan Eksekutif Keuangan</li>
@@ -450,6 +449,16 @@
         </div>
 
         <div class="section">
+            <!-- Deskripsi Profil -->
+            <div class="subsection">
+                <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                    {{ $data['business_background']->name }} merupakan sebuah bisnis yang bergerak di bidang <strong>{{ $data['business_background']->category }}</strong> dengan tipe usaha <strong>{{ $data['business_background']->business_type }}</strong>.
+                    Usaha ini didirikan pada <strong>{{ $data['business_background']->start_date ? date('d F Y', strtotime($data['business_background']->start_date)) : 'periode yang tidak ditentukan' }}</strong> dan berlokasi di <strong>{{ $data['business_background']->location }}</strong>.
+                    Dengan fokus pada industri ini, {{ $data['business_background']->name }} berkomitmen untuk memberikan produk/layanan berkualitas kepada pelanggan.
+                </p>
+            </div>
+
+            <!-- Tabel Informasi Umum -->
             <div class="subsection">
                 <div class="subsection-title">Informasi Umum</div>
                 <table class="table">
@@ -1069,19 +1078,7 @@
                         @endforeach
                     </div>
                 @endif
-            </div>
-        </div>
-    @endif
 
-    <!-- Section 9: Analisis Pasar -->
-    @if ($data['market_analysis'])
-        <div class="page">
-            <div class="header">
-                <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">9. ANALISIS PASAR</div>
-            </div>
-
-            <div class="section">
                 <!-- Target Pasar -->
                 @if ($data['market_analysis']->target_market)
                     <div class="subsection">
@@ -1100,20 +1097,18 @@
         </div>
     @endif
 
-    <!-- Section 10: Analisis Kompetitor -->
+    <!-- Section 9: Analisis Kompetitor -->
     @if ($data['market_analysis'])
-        <div class="page">
-            <div class="header">
-                <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">10. ANALISIS KOMPETITOR</div>
-            </div>
+        @if ($data['market_analysis']->competitors->count() > 0)
+            <div class="page">
+                <div class="header">
+                    <div class="company-name">{{ $data['business_background']->name }}</div>
+                    <div class="document-title">9. ANALISIS KOMPETITOR</div>
+                </div>
 
-            <div class="section">
-                <!-- Tabel Detail Kompetitor -->
-                @if ($data['market_analysis']->competitors->count() > 0)
-                    <div class="subsection">
-                        <div class="subsection-title">Analisis Kompetitor</div>
-                        <table class="table">
+                <div class="section">
+                    <!-- Tabel Detail Kompetitor langsung di halaman -->
+                    <table class="table" style="margin-top: 0;">
                             <tr>
                                 <th>Nama Kompetitor</th>
                                 <th>Tipe</th>
@@ -1147,10 +1142,8 @@
                                 </tr>
                             @endforeach
                         </table>
-                    </div>
-                @endif
 
-                <!-- Kompetitor Utama -->
+                    <!-- Kompetitor Utama -->
                 @if ($data['market_analysis']->main_competitors)
                     <div class="subsection">
                         <div class="subsection-title">Kompetitor Utama</div>
@@ -1182,25 +1175,26 @@
                     </div>
                 @endif
 
-                <!-- Keunggulan Kompetitif -->
-                @if ($data['market_analysis']->competitive_advantage)
-                    <div class="subsection">
-                        <div class="subsection-title">Keunggulan Kompetitif</div>
-                        @php
-                            $competitiveAdvantageParagraphs = splitLongText(
-                                $data['market_analysis']->competitive_advantage,
-                                3,
-                            );
-                        @endphp
-                        @foreach ($competitiveAdvantageParagraphs as $para)
-                            <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                                {!! nl2br($para) !!}
-                            </p>
-                        @endforeach
-                    </div>
-                @endif
+                    <!-- Keunggulan Kompetitif -->
+                    @if ($data['market_analysis']->competitive_advantage)
+                        <div class="subsection">
+                            <div class="subsection-title">Keunggulan Kompetitif</div>
+                            @php
+                                $competitiveAdvantageParagraphs = splitLongText(
+                                    $data['market_analysis']->competitive_advantage,
+                                    3,
+                                );
+                            @endphp
+                            @foreach ($competitiveAdvantageParagraphs as $para)
+                                <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                                    {!! nl2br($para) !!}
+                                </p>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
-        </div>
+        @endif
     @endif
 
     <!-- Section 11: Analisis SWOT -->
@@ -1217,6 +1211,16 @@
                         $data['market_analysis']->weaknesses ||
                         $data['market_analysis']->opportunities ||
                         $data['market_analysis']->threats)
+                    <!-- Penjelasan SWOT -->
+                    <div class="subsection">
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            Analisis SWOT merupakan alat strategis yang digunakan untuk mengevaluasi posisi {{ $data['business_background']->name }} di pasar.
+                            Analisis ini mengidentifikasi kekuatan internal yang dapat dimanfaatkan, kelemahan yang perlu diperbaiki, serta peluang dan ancaman eksternal yang mempengaruhi pertumbuhan bisnis.
+                            Dengan pemahaman mendalam tentang faktor-faktor ini, {{ $data['business_background']->name }} dapat mengembangkan strategi yang lebih efektif untuk mencapai tujuan bisnis.
+                        </p>
+                    </div>
+
+                    <!-- Tabel Detail SWOT -->
                     <div class="subsection">
                         <table class="table">
                             <tr>
@@ -1240,6 +1244,32 @@
                                 <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
                             </tr>
                         </table>
+                    </div>
+
+                    <!-- Analisis Kesimpulan SWOT -->
+                    <div class="subsection">
+                        <div class="subsection-title">Kesimpulan Analisis SWOT</div>
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            Berdasarkan analisis SWOT di atas, {{ $data['business_background']->name }} memiliki beberapa kekuatan yang dapat menjadi fondasi pengembangan bisnis.
+                            @if ($data['market_analysis']->strengths)
+                                Kekuatan utama terletak pada {{ strtolower(Str::limit($data['market_analysis']->strengths, 80, '...')) }},
+                            @endif
+                            yang dapat dimanfaatkan untuk merebut peluang pasar yang ada.
+                            @if ($data['market_analysis']->opportunities)
+                                Peluang bisnis yang signifikan mencakup {{ strtolower(Str::limit($data['market_analysis']->opportunities, 80, '...')) }}.
+                            @endif
+                        </p>
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            Namun demikian, perlu perhatian khusus terhadap kelemahan internal dan ancaman eksternal untuk memastikan keberlanjutan bisnis.
+                            @if ($data['market_analysis']->weaknesses)
+                                Kelemahan yang perlu dibenahi meliputi {{ strtolower(Str::limit($data['market_analysis']->weaknesses, 80, '...')) }},
+                            @endif
+                            sementara
+                            @if ($data['market_analysis']->threats)
+                                ancaman potensial dari pasar antara lain {{ strtolower(Str::limit($data['market_analysis']->threats, 80, '...')) }}.
+                            @endif
+                            Dengan strategi yang tepat untuk meminimalkan kelemahan dan mengantisipasi ancaman, {{ $data['business_background']->name }} dapat memaksimalkan pertumbuhan dan pencapaian target bisnis.
+                        </p>
                     </div>
                 @endif
             </div>
