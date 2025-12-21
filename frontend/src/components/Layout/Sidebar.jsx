@@ -77,11 +77,11 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
         //   label: "Rencana Keuangan",
         //   icon: DollarSign,
         // },
-        {
-          id: "pdf-business-plan",
-          label: "PDF Business Plan",
-          icon: FileText,
-        },
+        // {
+        //   id: "pdf-business-plan",
+        //   label: "PDF Business Plan",
+        //   icon: FileText,
+        // },
       ],
     },
 
@@ -116,11 +116,11 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           label: "Proyeksi Keuangan 5 Tahun",
           icon: Calculator,
         },
-        {
-          id: "export-pdf-financial",
-          label: "Export PDF Laporan Keuangan",
-          icon: FileText,
-        },
+        // {
+        //   id: "export-pdf-financial",
+        //   label: "Export PDF Laporan Keuangan",
+        //   icon: FileText,
+        // },
       ],
     },
 
