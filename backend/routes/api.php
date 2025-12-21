@@ -23,6 +23,8 @@ use App\Http\Controllers\Affiliate\AffiliateLinkController;
 use App\Http\Controllers\Affiliate\AffiliateTrackController;
 use App\Http\Controllers\Affiliate\AffiliateLeadController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Singapay\PdfPaymentController;
+use App\Http\Controllers\Singapay\WebhookController;
 
 // =====================================
 // CORS preflight untuk semua route
@@ -266,6 +268,21 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::patch('/{lead}/status', [AffiliateLeadController::class, 'updateStatus']);
         });
     });
+
+    // =====================================
+    // SingaPay Payment Routes (AUTHENTICATED)
+    // =====================================
+    Route::prefix('payment')->group(function () {
+        // Package & Subscription
+        Route::get('/packages', [PdfPaymentController::class, 'packages']);
+        Route::get('/subscription', [PdfPaymentController::class, 'subscription']);
+        Route::get('/check-access', [PdfPaymentController::class, 'checkAccess']);
+
+        // Purchase & Payment
+        Route::post('/purchase', [PdfPaymentController::class, 'purchase']);
+        Route::get('/status/{transactionCode}', [PdfPaymentController::class, 'checkStatus']);
+        Route::post('/cancel/{transactionCode}', [PdfPaymentController::class, 'cancel']);
+    });
 });
 
 // =====================================
@@ -290,4 +307,16 @@ Route::prefix('affiliate/public')->group(function () {
 
     // Submit lead from landing page
     Route::post('/leads/{slug}/submit', [AffiliateLeadController::class, 'submit']);
+});
+
+// =====================================
+// SingaPay Webhook Routes (PUBLIC - NO AUTH)
+// =====================================
+Route::prefix('webhook/singapay')->group(function () {
+    Route::post('/payment', [WebhookController::class, 'handlePayment']);
+    Route::post('/virtual-account', [WebhookController::class, 'handleVirtualAccount']);
+    Route::post('/qris', [WebhookController::class, 'handleQris']);
+
+    // Test webhook (mock mode only)
+    Route::post('/test', [WebhookController::class, 'test']);
 });

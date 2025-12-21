@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { FiDownload, FiArrowLeft, FiCalendar, FiFileText, FiTrendingUp, FiAlertCircle, FiCheck, FiLayers, FiChevronDown } from "react-icons/fi";
+import { FiDownload, FiArrowLeft, FiCalendar, FiFileText, FiTrendingUp, FiAlertCircle, FiCheck, FiLayers, FiChevronDown, FiLock, FiCheckCircle } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useAuth } from "../../../contexts/AuthContext";
 import combinedPdfApi from "../../../services/managementFinancial/combinedPdfApi";
+import singapayApi from "../../../services/singapayApi";
+import PdfProPaymentModal from "./PdfProPaymentModal";
 // TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
 // import { financialPlanApi } from "../../../services/businessPlan";
 
@@ -16,6 +18,9 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState([]);
   const [mode, setMode] = useState("free"); // free or pro
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [hasProAccess, setHasProAccess] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -24,6 +29,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
     console.log("📦 Props:", { onBack, propSelectedBusiness });
     console.log("👤 User:", user);
     generateAvailableYears();
+    checkProAccess();
     if (!propSelectedBusiness) {
       console.log("🔍 Fetching businesses...");
       fetchBusinesses();
@@ -70,6 +76,41 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
       years.push(year);
     }
     setAvailableYears(years.reverse());
+  };
+
+  const checkProAccess = async () => {
+    try {
+      setCheckingAccess(true);
+      const response = await singapayApi.checkAccess();
+      console.log("✅ Access check:", response.data);
+      
+      if (response.data.success && response.data.has_access) {
+        setHasProAccess(true);
+        setMode("pro");
+      } else {
+        setHasProAccess(false);
+      }
+    } catch (error) {
+      console.error("❌ Error checking access:", error);
+      setHasProAccess(false);
+    } finally {
+      setCheckingAccess(false);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    toast.success("✅ Pembayaran berhasil! Akses Pro telah aktif.");
+    checkProAccess(); // Refresh access status
+    setShowPaymentModal(false);
+  };
+
+  const handleModeChange = (newMode) => {
+    if (newMode === "pro" && !hasProAccess) {
+      // Show payment modal
+      setShowPaymentModal(true);
+    } else {
+      setMode(newMode);
+    }
   };
 
   const handleGeneratePDF = async () => {
@@ -253,9 +294,17 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
                 <FiFileText className="text-xl text-indigo-600 dark:text-indigo-400" />
                 Mode PDF
               </h3>
+              {hasProAccess && (
+                <div className="p-3 mb-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+                  <div className="flex items-center gap-2 text-sm text-green-800 dark:text-green-200">
+                    <FiCheckCircle className="text-lg" />
+                    <span className="font-semibold">Akses Pro Aktif</span>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2">
                 <button
-                  onClick={() => setMode("free")}
+                  onClick={() => handleModeChange("free")}
                   className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
                     mode === "free" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
@@ -267,16 +316,19 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
                   <p className="mt-1 text-xs opacity-80">Dengan watermark</p>
                 </button>
                 <button
-                  onClick={() => setMode("pro")}
-                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
+                  onClick={() => handleModeChange("pro")}
+                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all relative ${
                     mode === "pro" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <span>Pro</span>
+                    {!hasProAccess && <FiLock className="text-sm" />}
                     {mode === "pro" && <FiCheck className="text-xl" />}
                   </div>
-                  <p className="mt-1 text-xs opacity-80">Tanpa watermark</p>
+                  <p className="mt-1 text-xs opacity-80">
+                    {hasProAccess ? "Tanpa watermark" : "Berlangganan untuk unlock"}
+                  </p>
                 </button>
               </div>
             </div>
@@ -385,6 +437,13 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
           </li>
         </ul>
       </div>
+
+      {/* Payment Modal */}
+      <PdfProPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

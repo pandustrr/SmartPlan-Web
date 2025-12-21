@@ -1,0 +1,321 @@
+<?php
+
+namespace App\Helpers;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+
+/**
+ * Helper untuk hit API Payment Gateway dengan OAuth B2B Authentication
+ *
+ * Middleware yang digunakan: auth.merchant dengan guard merchantApi
+ * Endpoint OAuth: POST /api/v1.0/access-token/b2b
+ *
+ * Cara penggunaan:
+ *
+ * 1. Set environment variables di .env:
+ *    PG_BASE_URL=https://your-payment-gateway.com
+ *    PG_CLIENT_KEY=your_client_key
+ *    PG_CLIENT_SECRET=your_client_secret
+ *
+ * 2. Contoh penggunaan:
+ *    $response = MerchantApiHelper::sendRequest('/api/v1.0/accounts', [], 'GET');
+ *    $response = MerchantApiHelper::sendRequest('/api/v1.0/disbursement/{account_id}/transfer', $payload, 'POST');
+ */
+class MerchantApiHelper
+{
+    /**
+     * Cache key untuk access token
+     */
+    private const CACHE_KEY_ACCESS_TOKEN = 'pg_merchant_access_token';
+
+    /**
+     * Cache key untuk token expiry timestamp
+     */
+    private const CACHE_KEY_TOKEN_EXPIRY = 'pg_merchant_token_expiry';
+
+    /**
+     * Mendapatkan atau generate access token
+     * Token akan di-cache dan otomatis refresh jika expired
+     */
+    private static function getAccessToken(): string
+    {
+        // Cek apakah token masih valid
+        $cachedToken = Cache::get(self::CACHE_KEY_ACCESS_TOKEN);
+        $expiryTimestamp = Cache::get(self::CACHE_KEY_TOKEN_EXPIRY);
+
+        if ($cachedToken && $expiryTimestamp && now()->timestamp < $expiryTimestamp) {
+            if (config('app.debug')) {
+                Log::debug('[PG Merchant API] Using cached access token');
+            }
+            return $cachedToken;
+        }
+
+        // Generate new token
+        return self::generateAccessToken();
+    }
+
+    /**
+     * Generate access token baru dari endpoint OAuth B2B
+     */
+    private static function generateAccessToken(): string
+    {
+        $baseUrl = rtrim(env('PG_BASE_URL'), '/');
+        $clientKey = env('PG_CLIENT_KEY');
+        $clientSecret = env('PG_CLIENT_SECRET');
+        $apiKey = env('PG_API_KEY');
+
+        if (!$baseUrl || !$clientKey || !$clientSecret || !$apiKey) {
+            throw new \Exception('PG credentials not configured. Please set PG_BASE_URL, PG_CLIENT_KEY, PG_CLIENT_SECRET, and PG_API_KEY in .env');
+        }
+
+        $url = $baseUrl . '/api/v1.0/access-token/b2b';
+
+        // Prepare request body
+        $timestamp = now()->format('Y-m-d\TH:i:sP'); // ISO 8601 format
+        $stringToSign = $clientKey . '|' . $timestamp;
+        $signature = hash_hmac('sha512', $stringToSign, $clientSecret);
+
+        $payload = [
+            'grant_type' => 'client_credentials',
+        ];
+
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Basic ' . base64_encode($clientKey . ':' . $clientSecret),
+            'X-PARTNER-ID' => $apiKey,
+            'X-TIMESTAMP' => $timestamp,
+            'X-SIGNATURE' => $signature,
+        ];
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API] Generating new access token', [
+                'url' => $url,
+                'payload' => $payload,
+                'headers' => $headers,
+            ]);
+        }
+
+        $response = Http::withHeaders($headers)->post($url, $payload);
+
+        if ($response->failed()) {
+            Log::error('[PG Merchant API] Failed to generate access token', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]);
+            throw new \Exception('Failed to generate access token: ' . $response->body());
+        }
+
+        $data = $response->json();
+
+        if (!isset($data['data']['access_token']) || !isset($data['data']['expires_in'])) {
+            Log::error('[PG Merchant API] Invalid token response format', [
+                'response' => $data,
+            ]);
+            throw new \Exception('Invalid token response format');
+        }
+
+        $accessToken = $data['data']['access_token'];
+        $expiresIn = $data['data']['expires_in']; // in seconds
+
+        // Cache token dengan buffer 60 detik sebelum expiry
+        $expiryTimestamp = now()->timestamp + $expiresIn - 60;
+
+        Cache::put(self::CACHE_KEY_ACCESS_TOKEN, $accessToken, $expiresIn - 60);
+        Cache::put(self::CACHE_KEY_TOKEN_EXPIRY, $expiryTimestamp, $expiresIn - 60);
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API] Access token generated and cached', [
+                'expires_in' => $expiresIn,
+                'expiry_at' => Carbon::createFromTimestamp($expiryTimestamp)->toDateTimeString(),
+            ]);
+        }
+
+        return $accessToken;
+    }
+
+    /**
+     * Send request ke Payment Gateway API
+     *
+     * @param string $endpoint Endpoint path (e.g., '/api/v1.0/accounts')
+     * @param array $body Request body
+     * @param string $method HTTP method (GET, POST, PUT, PATCH, DELETE)
+     * @param string|null $baseUrl Override base URL (optional)
+     * @return \Illuminate\Http\Client\Response
+     */
+    public static function sendRequest(
+        string $endpoint,
+        array $body = [],
+        string $method = 'POST',
+        ?string $baseUrl = null
+    ) {
+        $accessToken = self::getAccessToken();
+        $url = rtrim($baseUrl ?? env('PG_BASE_URL'), '/') . '/' . ltrim($endpoint, '/');
+        $timestamp = now()->format('Y-m-d\TH:i:sP'); // ISO 8601 format
+
+        $headers = [
+            'Authorization' => 'Bearer ' . $accessToken,
+            'Content-Type' => 'application/json',
+            'X-TIMESTAMP' => $timestamp,
+            'X-PARTNER-ID' => env('PG_API_KEY'),
+            'Accept' => 'application/json',
+        ];
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API Request]', [
+                'method' => $method,
+                'url' => $url,
+                'headers' => $headers,
+                'body' => $body,
+            ]);
+        }
+
+        $method = strtoupper($method);
+        $http = Http::withHeaders($headers);
+
+        switch ($method) {
+            case 'GET':
+                $response = $http->get($url, $body);
+                break;
+            case 'POST':
+                $response = $http->post($url, $body);
+                break;
+            case 'PUT':
+                $response = $http->put($url, $body);
+                break;
+            case 'PATCH':
+                $response = $http->patch($url, $body);
+                break;
+            case 'DELETE':
+                $response = $http->delete($url, $body);
+                break;
+            default:
+                $response = $http->send($method, $url, [
+                    'json' => $body,
+                ]);
+                break;
+        }
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API Response]', [
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Send multipart request ke Payment Gateway API (untuk upload file)
+     *
+     * @param string $endpoint Endpoint path
+     * @param array $fields Form fields
+     * @param array $files Files to upload ['field_name' => UploadedFile]
+     * @param string $method HTTP method (POST, PUT, PATCH)
+     * @param string|null $baseUrl Override base URL (optional)
+     * @return \Illuminate\Http\Client\Response
+     */
+    public static function sendMultipartRequest(
+        string $endpoint,
+        array $fields = [],
+        array $files = [],
+        string $method = 'POST',
+        ?string $baseUrl = null
+    ) {
+        $accessToken = self::getAccessToken();
+        $url = rtrim($baseUrl ?? env('PG_BASE_URL'), '/') . '/' . ltrim($endpoint, '/');
+        $timestamp = now()->format('Y-m-d\TH:i:sP');
+
+        $headers = [
+            'Authorization' => 'Bearer ' . $accessToken,
+            'X-TIMESTAMP' => $timestamp,
+            'X-PARTNER-ID' => env('PG_API_KEY'),
+        ];
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API Multipart Request]', [
+                'method' => $method,
+                'url' => $url,
+                'fields' => $fields,
+                'files' => array_keys($files),
+            ]);
+        }
+
+        $http = Http::asMultipart()->withHeaders($headers);
+
+        // Attach files
+        foreach ($files as $key => $file) {
+            $http->attach(
+                $key,
+                file_get_contents($file),
+                $file->getClientOriginalName()
+            );
+        }
+
+        // Build multipart fields
+        $multipart = [];
+        foreach ($fields as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $subValue) {
+                    $multipart[] = [
+                        'name' => $key . '[]',
+                        'contents' => $subValue,
+                    ];
+                }
+            } else {
+                $multipart[] = [
+                    'name' => $key,
+                    'contents' => $value,
+                ];
+            }
+        }
+
+        $response = $http->send($method, $url, ['multipart' => $multipart]);
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API Multipart Response]', [
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Clear cached access token (force regenerate pada request berikutnya)
+     */
+    public static function clearToken(): void
+    {
+        Cache::forget(self::CACHE_KEY_ACCESS_TOKEN);
+        Cache::forget(self::CACHE_KEY_TOKEN_EXPIRY);
+
+        if (config('app.debug')) {
+            Log::debug('[PG Merchant API] Access token cache cleared');
+        }
+    }
+
+    /**
+     * Handle API error response
+     *
+     * @param \Illuminate\Http\Client\Response $response
+     * @param string|null $message Custom error message
+     * @param int|null $overrideCode Override error code
+     * @return \Illuminate\Contracts\View\View
+     */
+    public static function handleApiError($response, $message = null, $overrideCode = null)
+    {
+        Log::error('[PG Merchant API Error]', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
+        return view('errors.api-error', [
+            'message' => $message ?? $response->json()['message'] ?? 'Terjadi kesalahan saat memuat data dari Payment Gateway API.',
+            'code' => $overrideCode ?? $response->status(),
+        ]);
+    }
+}

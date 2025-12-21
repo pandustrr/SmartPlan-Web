@@ -22,6 +22,9 @@ class User extends Authenticatable
         'otp_expires_at',
         'reset_otp_code',
         'reset_otp_expires_at',
+        'pdf_access_expires_at',
+        'pdf_access_package',
+        'pdf_access_active',
     ];
 
     protected $hidden = [
@@ -37,6 +40,8 @@ class User extends Authenticatable
             'phone_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
             'reset_otp_expires_at' => 'datetime',
+            'pdf_access_expires_at' => 'datetime',
+            'pdf_access_active' => 'boolean',
             'password' => 'hashed',
         ];
     }
@@ -100,5 +105,27 @@ class User extends Authenticatable
         $this->reset_otp_code = null;
         $this->reset_otp_expires_at = null;
         $this->save();
+    }
+
+    // =====================================
+    // SingaPay Payment Relations
+    // =====================================
+
+    /**
+     * Get all PDF purchases
+     */
+    public function pdfPurchases()
+    {
+        return $this->hasMany(\App\Models\Singapay\PdfPurchase::class);
+    }
+
+    /**
+     * Check if user has active PDF Pro access
+     */
+    public function hasPdfProAccess(): bool
+    {
+        return $this->pdf_access_active
+            && $this->pdf_access_expires_at
+            && $this->pdf_access_expires_at->isFuture();
     }
 }

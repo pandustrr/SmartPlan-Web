@@ -1,0 +1,429 @@
+<?php
+
+namespace App\Http\Controllers\PGB2B;
+
+use App\Helpers\MerchantApiHelper;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Test Controller untuk demo integrasi Payment Gateway API
+ *
+ * CARA PAKAI:
+ * 1. Copy file ini ke app/Http/Controllers/
+ * 2. Tambahkan route di routes/web.php:
+ *    Route::get('/pg-test', [PGTestController::class, 'index']);
+ *    Route::post('/pg-test/get-accounts', [PGTestController::class, 'getAccounts']);
+ *    Route::post('/pg-test/create-va', [PGTestController::class, 'createVA']);
+ *    Route::get('/pg-test/generate-qris', [PGTestController::class, 'generateQRIS']);
+ *    dst...
+ * 3. Akses http://your-app.test/pg-test
+ */
+class PGTestController extends Controller
+{
+    /**
+     * Test page - form untuk testing berbagai endpoint
+     */
+    public function index()
+    {
+        return view('pg-test.index');
+    }
+
+    /**
+     * Test: Get all accounts
+     */
+    public function getAccounts()
+    {
+        try {
+            $response = MerchantApiHelper::sendRequest(
+                '/api/v1.0/accounts',
+                [],
+                'GET'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to fetch accounts',
+                    'data' => $response->json(),
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('PG Test Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Get merchant balance
+     */
+    public function getMerchantBalance()
+    {
+        try {
+            $response = MerchantApiHelper::sendRequest(
+                '/api/v1.0/balance-inquiry',
+                [],
+                'GET'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to fetch balance',
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Create Virtual Account
+     */
+    public function createVA(Request $request)
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|string',
+            'bank_code' => 'required|in:BRI,MAYBANK,DANAMON',
+            'amount' => 'required|numeric|min:10000|max:100000000',
+            'kind' => 'required|in:temporary,permanent',
+            'expired_at' => 'required_if:kind,temporary|date|after:now',
+            'max_usage' => 'required_if:kind,temporary|integer|min:1|max:255',
+        ]);
+
+        try {
+            $accountId = $validated['account_id'];
+            unset($validated['account_id']);
+
+            // Convert expired_at to milliseconds timestamp if temporary
+            if ($validated['kind'] === 'temporary') {
+                $validated['expired_at'] = strtotime($validated['expired_at']) * 1000;
+            } else {
+                unset($validated['expired_at']);
+                unset($validated['max_usage']);
+            }
+
+            $response = MerchantApiHelper::sendRequest(
+                "/api/v1.0/virtual-accounts/{$accountId}",
+                $validated,
+                'POST'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to create VA',
+                    'errors' => $response->json()['errors'] ?? null,
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Virtual Account created successfully',
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Get VA Transactions
+     */
+    public function getVATransactions(Request $request, $accountId)
+    {
+        try {
+            $response = MerchantApiHelper::sendRequest(
+                "/api/v1.0/va-transactions/{$accountId}",
+                [],
+                'GET'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to fetch VA transactions',
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Create Payment Link
+     */
+    public function createPaymentLink(Request $request)
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|string',
+            'reff_no' => 'required|string|max:40',
+            'title' => 'required|string|max:255',
+            'required_customer_detail' => 'boolean',
+            'max_usage' => 'required|integer|min:1',
+            'expired_at' => 'nullable|date|after:now',
+            'total_amount' => 'required|numeric|min:10000|max:10000000',
+            'items' => 'required|array|min:1',
+            'items.*.name' => 'required|string|max:255',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric',
+        ]);
+
+        try {
+            $accountId = $validated['account_id'];
+            unset($validated['account_id']);
+
+            // Convert expired_at to milliseconds timestamp
+            if (isset($validated['expired_at'])) {
+                $validated['expired_at'] = strtotime($validated['expired_at']) * 1000;
+            }
+
+            $response = MerchantApiHelper::sendRequest(
+                "/api/v1.0/payment-link-manage/{$accountId}",
+                $validated,
+                'POST'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to create payment link',
+                    'errors' => $response->json()['errors'] ?? null,
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment Link created successfully',
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Generate QRIS
+     */
+    public function generateQRIS(Request $request)
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|string',
+            'amount' => 'required|numeric|min:1000|max:10000000',
+            'expired_at' => 'nullable|date|after:now',
+        ]);
+
+        try {
+            $accountId = $validated['account_id'];
+            unset($validated['account_id']);
+
+            $response = MerchantApiHelper::sendRequest(
+                "/api/v1.0/qris-dynamic/{$accountId}/generate-qr",
+                $validated,
+                'POST'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to generate QRIS',
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'QRIS generated successfully',
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Create Disbursement
+     */
+    public function createDisbursement(Request $request)
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|string',
+            'to_bank_code' => 'required|string',
+            'beneficiary_account_no' => 'required|string',
+            'amount' => 'required|numeric|min:10000',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $accountId = $validated['account_id'];
+            unset($validated['account_id']);
+
+            $response = MerchantApiHelper::sendRequest(
+                "/api/v1.0/disbursement/{$accountId}/transfer",
+                $validated,
+                'POST'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to create disbursement',
+                    'errors' => $response->json()['errors'] ?? null,
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Disbursement created successfully',
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Check Beneficiary Account
+     */
+    public function checkBeneficiary(Request $request)
+    {
+        $validated = $request->validate([
+            'to_bank_code' => 'required|string',
+            'beneficiary_account_no' => 'required|string',
+        ]);
+
+        try {
+            $response = MerchantApiHelper::sendRequest(
+                '/api/v1.0/disbursement/check-beneficiary',
+                $validated,
+                'POST'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to check beneficiary',
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Create Cardless Withdrawal
+     */
+    public function createCLWD(Request $request)
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|string',
+            'payment_vendor_id' => 'required|integer',
+            'amount' => 'required|numeric|in:50000,100000,250000,500000,750000,1000000',
+            'customer_phone' => 'required|string',
+        ]);
+
+        try {
+            $accountId = $validated['account_id'];
+            unset($validated['account_id']);
+
+            $response = MerchantApiHelper::sendRequest(
+                "/api/v1.0/cardless-withdrawals/{$accountId}",
+                $validated,
+                'POST'
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'Failed to create CLWD',
+                    'errors' => $response->json()['errors'] ?? null,
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cardless withdrawal created successfully',
+                'data' => $response->json()['data'],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Test: Clear Token Cache
+     */
+    public function clearToken()
+    {
+        try {
+            MerchantApiHelper::clearToken();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Token cache cleared successfully',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+}
