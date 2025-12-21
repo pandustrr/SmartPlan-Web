@@ -159,15 +159,16 @@
         .table td {
             border: 1px solid #ddd;
             padding: 8px 6px;
-            text-align: left;
+            text-align: justify;
             word-wrap: break-word;
             vertical-align: top;
-            line-height: 1.4;
+            line-height: 1.6;
         }
 
         .table th {
             background-color: #f8f9fa;
             font-weight: bold;
+            text-align: left;
         }
 
         .table tr:nth-child(even) {
@@ -214,7 +215,7 @@
         /* Chart images */
         .chart-image {
             width: 100%;
-            max-width: 500px;
+            max-width: 350px;
             height: auto;
             margin: 10px auto;
             display: block;
@@ -399,7 +400,7 @@
 
             @foreach ($executiveSummaryParagraphs as $para)
                 <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                    {!! nl2br($para) !!}
+                    {{ $para }}
                 </p>
             @endforeach
         </div>
@@ -420,7 +421,7 @@
                 @endphp
                 @foreach ($descriptionParagraphs as $para)
                     <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                        {!! nl2br($para) !!}
+                        {{ $para }}
                     </p>
                 @endforeach
             </div>
@@ -433,7 +434,7 @@
                     @endphp
                     @foreach ($overviewParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -504,7 +505,7 @@
                     @endphp
                     @foreach ($visionParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -518,7 +519,7 @@
                     @endphp
                     @foreach ($missionParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -532,7 +533,7 @@
                     @endphp
                     @foreach ($purposeParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -546,7 +547,7 @@
                     @endphp
                     @foreach ($objectivesParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -560,7 +561,7 @@
                     @endphp
                     @foreach ($valuesParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -584,7 +585,7 @@
                     @endphp
                     @foreach ($legalityParagraphs as $para)
                         <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                            {!! nl2br($para) !!}
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -659,8 +660,8 @@
                                         <td style="font-size: 9px; font-weight: bold; color: #059669;">
                                             Rp {{ number_format($member->salary, 0, ',', '.') }}
                                         </td>
-                                        <td style="font-size: 8px;">{!! nl2br(e($member->jobdesk ?? '-')) !!}</td>
-                                        <td style="font-size: 8px;">{!! nl2br(e($member->experience ?? '-')) !!}</td>
+                                        <td style="font-size: 8px; line-height: 1.6;">{{ str_replace(['\n', '\\n'], ' • ', $member->jobdesk ?? '-') }}</td>
+                                        <td style="font-size: 8px; line-height: 1.6;">{{ str_replace(['\n', '\\n'], ' ', $member->experience ?? '-') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -725,7 +726,18 @@
                             @if ($plan->location_description)
                                 <tr>
                                     <td><strong>Deskripsi Lokasi</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->location_description)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.8;">
+                                        @php
+                                            // Convert \n literal strings to actual newlines
+                                            $locationText = str_replace(['\\n', '\n'], "\n", $plan->location_description);
+                                            $locationLines = preg_split('/[\r\n]+/', trim($locationText));
+                                            $locationLines = array_filter(array_map('trim', $locationLines));
+                                        @endphp
+                                        @foreach($locationLines as $index => $line)
+                                            @if($index > 0)<br/>@endif
+                                            - {{ $line }}
+                                        @endforeach
+                                    </td>
                                 </tr>
                             @endif
                             <tr>
@@ -747,19 +759,52 @@
                             @if ($plan->daily_workflow)
                                 <tr>
                                     <td><strong>Alur Kerja Harian</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->daily_workflow)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.8;">
+                                        @php
+                                            // Convert \n literal strings to actual newlines
+                                            $workflowText = str_replace(['\\n', '\n'], "\n", $plan->daily_workflow);
+                                            $workflowLines = preg_split('/[\r\n]+/', trim($workflowText));
+                                            $workflowLines = array_filter(array_map('trim', $workflowLines));
+                                        @endphp
+                                        @foreach($workflowLines as $index => $line)
+                                            @if($index > 0)<br/>@endif
+                                            - {{ $line }}
+                                        @endforeach
+                                    </td>
                                 </tr>
                             @endif
                             @if ($plan->equipment_needs)
                                 <tr>
                                     <td><strong>Kebutuhan Peralatan</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->equipment_needs)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.8;">
+                                        @php
+                                            // Convert \n literal strings to actual newlines
+                                            $equipmentText = str_replace(['\\n', '\n'], "\n", $plan->equipment_needs);
+                                            $equipmentLines = preg_split('/[\r\n]+/', trim($equipmentText));
+                                            $equipmentLines = array_filter(array_map('trim', $equipmentLines));
+                                        @endphp
+                                        @foreach($equipmentLines as $index => $line)
+                                            @if($index > 0)<br/>@endif
+                                            - {{ $line }}
+                                        @endforeach
+                                    </td>
                                 </tr>
                             @endif
                             @if ($plan->technology_stack)
                                 <tr>
                                     <td><strong>Teknologi yang Digunakan</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->technology_stack)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.8;">
+                                        @php
+                                            // Convert \n literal strings to actual newlines
+                                            $techText = str_replace(['\\n', '\n'], "\n", $plan->technology_stack);
+                                            $techLines = preg_split('/[\r\n]+/', trim($techText));
+                                            $techLines = array_filter(array_map('trim', $techLines));
+                                        @endphp
+                                        @foreach($techLines as $index => $line)
+                                            @if($index > 0)<br/>@endif
+                                            - {{ $line }}
+                                        @endforeach
+                                    </td>
                                 </tr>
                             @endif
                         </tbody>
@@ -1005,11 +1050,12 @@
                     <div class="subsection">
                         <div class="subsection-title">Ukuran Pasar</div>
                         @php
-                            $marketSizeParagraphs = splitLongText($data['market_analysis']->market_size, 3);
+                            $marketSizeText = str_replace(['\\n', '\n'], ' ', $data['market_analysis']->market_size);
+                            $marketSizeParagraphs = splitLongText($marketSizeText, 3);
                         @endphp
                         @foreach ($marketSizeParagraphs as $para)
                             <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                                {!! nl2br($para) !!}
+                                {{ $para }}
                             </p>
                         @endforeach
                     </div>
@@ -1056,9 +1102,9 @@
 
                         <!-- TAM/SAM/SOM Pie Chart -->
                         @if (isset($marketAnalysisCharts['tam_sam_som']))
-                            <div style="margin-top: 15px; text-align: center;">
+                            <div style="text-align: center; margin-top: 15px;">
                                 <img src="{{ $marketAnalysisCharts['tam_sam_som'] }}" alt="TAM/SAM/SOM Chart"
-                                    style="max-width: 350px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;">
+                                    class="chart-image">
                             </div>
                         @endif
                     </div>
@@ -1069,11 +1115,12 @@
                     <div class="subsection">
                         <div class="subsection-title">Tren Pasar</div>
                         @php
-                            $trendsParagraphs = splitLongText($data['market_analysis']->market_trends, 3);
+                            $trendsText = str_replace(['\\n', '\n'], ' ', $data['market_analysis']->market_trends);
+                            $trendsParagraphs = splitLongText($trendsText, 3);
                         @endphp
                         @foreach ($trendsParagraphs as $para)
                             <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                                {!! nl2br($para) !!}
+                                {{ $para }}
                             </p>
                         @endforeach
                     </div>
@@ -1084,11 +1131,12 @@
                     <div class="subsection">
                         <div class="subsection-title">Target Pasar</div>
                         @php
-                            $targetMarketParagraphs = splitLongText($data['market_analysis']->target_market, 3);
+                            $targetMarketText = str_replace(['\\n', '\n'], ' ', $data['market_analysis']->target_market);
+                            $targetMarketParagraphs = splitLongText($targetMarketText, 3);
                         @endphp
                         @foreach ($targetMarketParagraphs as $para)
                             <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                                {!! nl2br($para) !!}
+                                {{ $para }}
                             </p>
                         @endforeach
                     </div>
@@ -1137,8 +1185,8 @@
                                             -
                                         @endif
                                     </td>
-                                    <td style="font-size: 8px;">{!! nl2br(e($competitor->strengths ?? '-')) !!}</td>
-                                    <td style="font-size: 8px;">{!! nl2br(e($competitor->weaknesses ?? '-')) !!}</td>
+                                    <td style="font-size: 8px;">{{ str_replace(['\n', '\\n'], ' • ', $competitor->strengths ?? '-') }}</td>
+                                    <td style="font-size: 8px;">{{ str_replace(['\n', '\\n'], ' • ', $competitor->weaknesses ?? '-') }}</td>
                                 </tr>
                             @endforeach
                         </table>
@@ -1148,11 +1196,12 @@
                     <div class="subsection">
                         <div class="subsection-title">Kompetitor Utama</div>
                         @php
-                            $mainCompetitorsParagraphs = splitLongText($data['market_analysis']->main_competitors, 3);
+                            $mainCompText = str_replace(['\\n', '\n'], ' ', $data['market_analysis']->main_competitors);
+                            $mainCompetitorsParagraphs = splitLongText($mainCompText, 3);
                         @endphp
                         @foreach ($mainCompetitorsParagraphs as $para)
                             <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                                {!! nl2br($para) !!}
+                                {{ $para }}
                             </p>
                         @endforeach
                     </div>
@@ -1168,8 +1217,8 @@
                                 <th style="width: 50%;">Kelemahan Kompetitor</th>
                             </tr>
                             <tr>
-                                <td style="vertical-align: top;">{!! nl2br(e($data['market_analysis']->competitor_strengths ?? '-')) !!}</td>
-                                <td style="vertical-align: top;">{!! nl2br(e($data['market_analysis']->competitor_weaknesses ?? '-')) !!}</td>
+                                <td style="vertical-align: top; line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $data['market_analysis']->competitor_strengths ?? '-') }}</td>
+                                <td style="vertical-align: top; line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $data['market_analysis']->competitor_weaknesses ?? '-') }}</td>
                             </tr>
                         </table>
                     </div>
@@ -1180,14 +1229,12 @@
                         <div class="subsection">
                             <div class="subsection-title">Keunggulan Kompetitif</div>
                             @php
-                                $competitiveAdvantageParagraphs = splitLongText(
-                                    $data['market_analysis']->competitive_advantage,
-                                    3,
-                                );
+                                $compAdvText = str_replace(['\\n', '\n'], ' ', $data['market_analysis']->competitive_advantage);
+                                $competitiveAdvantageParagraphs = splitLongText($compAdvText, 3);
                             @endphp
                             @foreach ($competitiveAdvantageParagraphs as $para)
                                 <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                                    {!! nl2br($para) !!}
+                                    {{ $para }}
                                 </p>
                             @endforeach
                         </div>
@@ -1229,19 +1276,19 @@
                             </tr>
                             <tr>
                                 <td><strong>Strengths (Kekuatan)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
+                                <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $data['market_analysis']->strengths) }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Weaknesses (Kelemahan)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
+                                <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $data['market_analysis']->weaknesses) }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Opportunities (Peluang)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
+                                <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $data['market_analysis']->opportunities) }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Threats (Ancaman)</strong></td>
-                                <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
+                                <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $data['market_analysis']->threats) }}</td>
                             </tr>
                         </table>
                     </div>
@@ -1294,7 +1341,7 @@
                         <table class="table">
                             <tr>
                                 <td style="width: 20%;"><strong>Deskripsi</strong></td>
-                                <td>{!! nl2br(e($product->description)) !!}</td>
+                                <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->description) }}</td>
                             </tr>
                             @if ($product->price)
                                 <tr>
@@ -1305,13 +1352,13 @@
                             @if ($product->advantages)
                                 <tr>
                                     <td><strong>Keunggulan</strong></td>
-                                    <td>{!! nl2br(e($product->advantages)) !!}</td>
+                                    <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $product->advantages) }}</td>
                                 </tr>
                             @endif
                             @if ($product->development_strategy)
                                 <tr>
                                     <td><strong>Strategi Pengembangan</strong></td>
-                                    <td>{!! nl2br(e($product->development_strategy)) !!}</td>
+                                    <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->development_strategy) }}</td>
                                 </tr>
                             @endif
                             <tr>
@@ -1348,55 +1395,55 @@
                                     @if (!empty($product->bmc_alignment['value_proposition']))
                                         <tr>
                                             <td style="width: 30%;"><strong>Value Proposition</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['value_proposition'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['value_proposition']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['customer_segment']))
                                         <tr>
                                             <td><strong>Customer Segments</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['customer_segment'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['customer_segment']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['channels']))
                                         <tr>
                                             <td><strong>Channels</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['channels'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['channels']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['customer_relationships']))
                                         <tr>
                                             <td><strong>Customer Relationships</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['customer_relationships'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['customer_relationships']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['revenue_streams']))
                                         <tr>
                                             <td><strong>Revenue Streams</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['revenue_streams'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['revenue_streams']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['key_resources']))
                                         <tr>
                                             <td><strong>Key Resources</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['key_resources'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['key_resources']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['key_activities']))
                                         <tr>
                                             <td><strong>Key Activities</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['key_activities'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['key_activities']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['key_partnerships']))
                                         <tr>
                                             <td><strong>Key Partnerships</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['key_partnerships'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['key_partnerships']) }}</td>
                                         </tr>
                                     @endif
                                     @if (!empty($product->bmc_alignment['cost_structure']))
                                         <tr>
                                             <td><strong>Cost Structure</strong></td>
-                                            <td>{!! nl2br(e($product->bmc_alignment['cost_structure'])) !!}</td>
+                                            <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $product->bmc_alignment['cost_structure']) }}</td>
                                         </tr>
                                     @endif
                                 </table>
@@ -1422,18 +1469,18 @@
                         <table class="table">
                             <tr>
                                 <td style="width: 20%;"><strong>Strategi Promosi</strong></td>
-                                <td>{!! nl2br(e($strategy->promotion_strategy ?? '-')) !!}</td>
+                                <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $strategy->promotion_strategy ?? '-') }}</td>
                             </tr>
                             @if ($strategy->media_used)
                                 <tr>
                                     <td><strong>Media yang Digunakan</strong></td>
-                                    <td>{!! nl2br(e($strategy->media_used)) !!}</td>
+                                    <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' • ', $strategy->media_used) }}</td>
                                 </tr>
                             @endif
                             @if ($strategy->pricing_strategy)
                                 <tr>
                                     <td><strong>Strategi Harga</strong></td>
-                                    <td>{!! nl2br(e($strategy->pricing_strategy)) !!}</td>
+                                    <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $strategy->pricing_strategy) }}</td>
                                 </tr>
                             @endif
                             @if ($strategy->monthly_target)
@@ -1445,7 +1492,7 @@
                             @if ($strategy->collaboration_plan)
                                 <tr>
                                     <td><strong>Rencana Kolaborasi</strong></td>
-                                    <td>{!! nl2br(e($strategy->collaboration_plan)) !!}</td>
+                                    <td style="line-height: 1.8;">{{ str_replace(['\n', '\\n'], ' ', $strategy->collaboration_plan) }}</td>
                                 </tr>
                             @endif
                         </table>
@@ -1923,8 +1970,10 @@
                         </table>
 
                         @if (isset($financialCharts['category_income_pie']))
-                            <img src="{{ $financialCharts['category_income_pie'] }}" alt="Category Income Chart"
-                                class="chart-image">
+                            <div style="text-align: center;">
+                                <img src="{{ $financialCharts['category_income_pie'] }}" alt="Category Income Chart"
+                                    class="chart-image">
+                            </div>
                             <div class="chart-analysis">
                                 <div class="chart-analysis-title"> Analisis:</div>
                                 <p style="margin: 0;">
@@ -1957,8 +2006,10 @@
                         </table>
 
                         @if (isset($financialCharts['category_expense_pie']))
-                            <img src="{{ $financialCharts['category_expense_pie'] }}" alt="Category Expense Chart"
-                                class="chart-image">
+                            <div style="text-align: center;">
+                                <img src="{{ $financialCharts['category_expense_pie'] }}" alt="Category Expense Chart"
+                                    class="chart-image">
+                            </div>
                             <div class="chart-analysis">
                                 <div class="chart-analysis-title"> Analisis:</div>
                                 <p style="margin: 0;">
@@ -2138,23 +2189,21 @@
                 @endphp
                 @foreach ($execSummaryParagraphs as $para)
                     <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
-                        {!! nl2br($para) !!}
+                        {{ $para }}
                     </p>
                 @endforeach
             </div>
 
             <!-- Ringkasan Eksekutif Forecast (Jika ada) -->
             @if ($has_forecast)
-                <div
-                    style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-left: 4px solid #2563eb; border-radius: 4px;">
-                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Ringkasan
-                        Eksekutif Forecast</h4>
+                <div class="subsection" style="margin-top: 25px;">
+                    <div class="subsection-title">Ringkasan Eksekutif Forecast</div>
                     @php
                         $forecastSummaryParagraphs = splitLongText($forecast_summary ?? '', 3);
                     @endphp
                     @foreach ($forecastSummaryParagraphs as $para)
-                        <p style="margin-bottom: 10px; text-align: justify; line-height: 1.6; font-size: 11px;">
-                            {!! nl2br($para) !!}
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {{ $para }}
                         </p>
                     @endforeach
                 </div>
@@ -2207,12 +2256,12 @@
 
             <!-- Chart Income vs Expense -->
             @if (isset($financialCharts['income_vs_expense']))
-                <div style="margin-top: 20px;">
-                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Grafik Pendapatan vs
+                <div style="margin-top: 15px;">
+                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 6px;">Grafik Pendapatan vs
                         Pengeluaran</h4>
                     <img src="{{ $financialCharts['income_vs_expense'] }}" alt="Income vs Expense Chart"
                         class="chart-image">
-                    <div class="chart-analysis">
+                    <div class="chart-analysis" style="margin-top: 8px;">
                         <div class="chart-analysis-title"> Analisis:</div>
                         <p style="margin: 0;">
                             {{ $chartAnalyses['income_vs_expense'] ?? 'Data analisis tidak tersedia.' }}</p>
@@ -2251,7 +2300,7 @@
 
                 @if (count($criticalInsights) > 0)
                     <div style="margin-bottom: 20px;">
-                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #dc2626;">🚨 Insight
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #dc2626;"> Insight
                             Kritis</h4>
                         @foreach ($criticalInsights as $insight)
                             <div
@@ -2270,7 +2319,7 @@
 
                 @if (count($warningInsights) > 0)
                     <div style="margin-bottom: 20px;">
-                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #f59e0b;">⚠️
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #f59e0b;">
                             Peringatan</h4>
                         @foreach ($warningInsights as $insight)
                             <div
@@ -2289,7 +2338,7 @@
 
                 @if (count($positiveInsights) > 0)
                     <div style="margin-bottom: 20px;">
-                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #10b981;">✅ Insight
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #10b981;"> Insight
                             Positif</h4>
                         @foreach ($positiveInsights as $insight)
                             <div
@@ -2308,7 +2357,7 @@
 
                 @if (count($infoInsights) > 0)
                     <div style="margin-bottom: 20px;">
-                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #3b82f6;">ℹ️
+                        <h4 style="font-weight: bold; font-size: 12px; margin-bottom: 10px; color: #3b82f6;">ℹ
                             Informasi Umum</h4>
                         @foreach ($infoInsights as $insight)
                             <div
@@ -2346,7 +2395,7 @@
 
             <div class="section">
                 <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 8px;">
-                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;">📊</div>
+                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;"></div>
                     <h3 style="font-size: 18px; color: #666; margin-bottom: 10px;">Data Forecast Belum Tersedia</h3>
                     <p style="font-size: 12px; color: #999;">
                         Belum ada data forecast untuk periode {{ $period_label }}.<br>
