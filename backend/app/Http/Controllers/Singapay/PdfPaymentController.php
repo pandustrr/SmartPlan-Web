@@ -30,6 +30,27 @@ class PdfPaymentController extends Controller
     }
 
     /**
+     * Check user Pro access status
+     *
+     * @return JsonResponse
+     */
+    public function checkAccess(): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $result = $this->paymentService->checkAccess($user);
+
+        return response()->json($result);
+    }
+
+    /**
      * Get user subscription
      *
      * @return JsonResponse
@@ -129,36 +150,5 @@ class PdfPaymentController extends Controller
         $statusCode = $result['success'] ? 200 : 400;
 
         return response()->json($result, $statusCode);
-    }
-
-    /**
-     * Check user access (can be used by other controllers)
-     *
-     * @return JsonResponse
-     */
-    public function checkAccess(): JsonResponse
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated',
-            ], 401);
-        }
-
-        $hasAccess = $user->pdf_access_active
-            && $user->pdf_access_expires_at
-            && $user->pdf_access_expires_at->isFuture();
-
-        return response()->json([
-            'success' => true,
-            'has_access' => $hasAccess,
-            'access_info' => $hasAccess ? [
-                'package' => $user->pdf_access_package,
-                'expires_at' => $user->pdf_access_expires_at,
-                'expires_at_formatted' => $user->pdf_access_expires_at->format('d M Y'),
-            ] : null,
-        ]);
     }
 }

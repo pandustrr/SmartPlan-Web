@@ -50,6 +50,30 @@ class PdfPaymentService
     }
 
     /**
+     * Check user Pro access status from database
+     */
+    public function checkAccess(User $user): array
+    {
+        $hasAccess = $user->pdf_access_active
+            && $user->pdf_access_expires_at
+            && $user->pdf_access_expires_at->isFuture();
+
+        $remainingDays = null;
+        if ($hasAccess && $user->pdf_access_expires_at) {
+            $remainingDays = now()->diffInDays($user->pdf_access_expires_at, false);
+            $remainingDays = max(0, (int)$remainingDays);
+        }
+
+        return [
+            'success' => true,
+            'has_access' => $hasAccess,
+            'package' => $hasAccess ? $user->pdf_access_package : null,
+            'expires_at' => $hasAccess ? $user->pdf_access_expires_at : null,
+            'remaining_days' => $remainingDays,
+        ];
+    }
+
+    /**
      * Create purchase and initiate payment
      */
     public function createPurchase(User $user, int $packageId, string $paymentMethod, ?string $bankCode = null): array
