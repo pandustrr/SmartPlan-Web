@@ -49,6 +49,14 @@ class SingapayApiService
     }
 
     /**
+     * Get merchant account ID
+     */
+    public function getMerchantAccountId(): string
+    {
+        return $this->merchantAccountId;
+    }
+
+    /**
      * Get access token
      */
     public function getAccessToken(): ?string
@@ -62,6 +70,7 @@ class SingapayApiService
         if (config('singapay.cache.enabled')) {
             $token = Cache::get($cacheKey);
             if ($token) {
+                $this->logInfo('Using cached access token');
                 return $token;
             }
         }
@@ -70,7 +79,10 @@ class SingapayApiService
         $token = $this->generateAccessToken();
 
         if ($token && config('singapay.cache.enabled')) {
-            Cache::put($cacheKey, $token, config('singapay.cache.ttl'));
+            // Cache for 50 minutes (token expires in 1 hour)
+            $ttl = config('singapay.cache.ttl', 3000);
+            Cache::put($cacheKey, $token, $ttl);
+            $this->logInfo('Access token cached', ['ttl' => $ttl]);
         }
 
         return $token;
@@ -83,9 +95,14 @@ class SingapayApiService
     {
         try {
             $timestamp = now()->format('Ymd');
-            $signature = $this->generateSignature($timestamp);
+            $signature = $this->generateAccessTokenSignature($timestamp);
 
-            $response = Http::timeout(config('singapay.timeout'))
+            $this->logInfo('Generating new access token', [
+                'endpoint' => '/api/v1.1/access-token/b2b',
+                'timestamp' => $timestamp,
+            ]);
+
+            $response = Http::timeout(config('singapay.timeout', 30))
                 ->withHeaders([
                     'X-PARTNER-ID' => $this->partnerId,
                     'X-CLIENT-ID' => $this->clientId,
@@ -99,7 +116,12 @@ class SingapayApiService
 
             if ($response->successful()) {
                 $data = $response->json();
-                return $data['data']['accessToken'] ?? null;
+                $token = $data['data']['access_token'] ?? $data['data']['accessToken'] ?? null;
+
+                if ($token) {
+                    $this->logInfo('Access token generated successfully');
+                    return $token;
+                }
             }
 
             $this->logError('Failed to generate access token', [
@@ -111,15 +133,16 @@ class SingapayApiService
         } catch (\Exception $e) {
             $this->logError('Exception generating access token', [
                 'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             return null;
         }
     }
 
     /**
-     * Generate HMAC SHA512 signature
+     * Generate HMAC SHA512 signature for access token
      */
-    protected function generateSignature(string $timestamp): string
+    protected function generateAccessTokenSignature(string $timestamp): string
     {
         $payload = $this->clientId . '_' . $this->clientSecret . '_' . $timestamp;
         return hash_hmac('sha512', $payload, $this->clientSecret);
@@ -140,6 +163,7 @@ class SingapayApiService
                 return [
                     'success' => false,
                     'message' => 'Failed to get access token',
+                    'error_code' => 'AUTH_TOKEN_FAILED',
                 ];
             }
 
@@ -153,11 +177,11 @@ class SingapayApiService
 
             $this->logInfo('Sending request', [
                 'method' => $method,
-                'url' => $url,
+                'endpoint' => $endpoint,
                 'data' => $data,
             ]);
 
-            $request = Http::timeout(config('singapay.timeout'))
+            $request = Http::timeout(config('singapay.timeout', 30))
                 ->withHeaders($headers);
 
             $response = match(strtoupper($method)) {
@@ -166,13 +190,14 @@ class SingapayApiService
                 'PUT' => $request->put($url, $data),
                 'PATCH' => $request->patch($url, $data),
                 'DELETE' => $request->delete($url, $data),
-                default => throw new \Exception('Invalid HTTP method'),
+                default => throw new \Exception('Invalid HTTP method: ' . $method),
             };
 
             $responseData = $response->json();
 
             $this->logInfo('Received response', [
                 'status' => $response->status(),
+                'success' => $response->successful(),
                 'data' => $responseData,
             ]);
 
@@ -181,24 +206,42 @@ class SingapayApiService
                     'success' => true,
                     'data' => $responseData['data'] ?? $responseData,
                     'message' => $responseData['message'] ?? 'Success',
+                    'status_code' => $response->status(),
                 ];
             }
 
+            // Handle error responses
             return [
                 'success' => false,
-                'message' => $responseData['message'] ?? 'Request failed',
+                'message' => $responseData['message'] ?? $responseData['error']['message'] ?? 'Request failed',
                 'errors' => $responseData['errors'] ?? [],
+                'error_code' => $responseData['error']['code'] ?? $response->status(),
+                'status_code' => $response->status(),
             ];
 
-        } catch (\Exception $e) {
-            $this->logError('Request exception', [
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $this->logError('Connection timeout', [
                 'endpoint' => $endpoint,
                 'message' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
+                'message' => 'Connection timeout. Please check your internet connection.',
+                'error_code' => 'CONNECTION_TIMEOUT',
+            ];
+
+        } catch (\Exception $e) {
+            $this->logError('Request exception', [
+                'endpoint' => $endpoint,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
                 'message' => 'Request exception: ' . $e->getMessage(),
+                'error_code' => 'EXCEPTION',
             ];
         }
     }
@@ -214,9 +257,10 @@ class SingapayApiService
             'method' => $method,
         ]);
 
-        // Simulate delay
-        if (config('singapay.mock.auto_approve_delay') > 0) {
-            sleep(1); // Short delay for realism
+        // Simulate realistic delay
+        $delay = config('singapay.mock.response_delay', 1);
+        if ($delay > 0) {
+            sleep($delay);
         }
 
         // Generate mock data based on endpoint
@@ -242,8 +286,9 @@ class SingapayApiService
                     'amount' => $data['amount'],
                     'kind' => $data['kind'] ?? 'temporary',
                     'status' => 'active',
-                    'expired_at' => isset($data['expired_at']) ? $data['expired_at'] : null,
+                    'expired_at' => $data['expired_at'] ?? now()->addDay()->toIso8601String(),
                     'created_at' => now()->toIso8601String(),
+                    'max_usage' => $data['max_usage'] ?? 1,
                 ],
                 'message' => 'Virtual Account created successfully (MOCK)',
             ];
@@ -255,32 +300,17 @@ class SingapayApiService
                 'success' => true,
                 'data' => [
                     'id' => rand(1000, 9999),
-                    'qris_content' => base64_encode('MOCK_QRIS_IMAGE'),
-                    'qris_string' => '00020101021226670016COM.NOBUBANK.WWW01189360050300000898740214' . rand(100000000000, 999999999999),
+                    'qris_content' => $this->generateMockQRISImage(),
+                    'qris_string' => '00020101021226670016COM.SINGAPAY.WWW01189360050300000898740214' . rand(100000000000, 999999999999),
                     'qris_url' => 'https://mock-qris-url.com/qr/' . uniqid(),
                     'amount' => $data['amount'],
-                    'expired_at' => isset($data['expired_at']) ? $data['expired_at'] : now()->addHour()->toIso8601String(),
+                    'tip_amount' => 0,
+                    'total_amount' => $data['amount'],
+                    'expired_at' => $data['expired_at'] ?? now()->addHour()->toIso8601String(),
                     'status' => 'active',
                     'created_at' => now()->toIso8601String(),
                 ],
                 'message' => 'QRIS generated successfully (MOCK)',
-            ];
-        }
-
-        // Payment Link Creation
-        if (str_contains($endpoint, 'payment-link')) {
-            return [
-                'success' => true,
-                'data' => [
-                    'id' => rand(1000, 9999),
-                    'payment_url' => 'https://mock-payment-link.com/pay/' . uniqid(),
-                    'reff_no' => $data['reff_no'] ?? 'REF' . time(),
-                    'amount' => $data['amount'],
-                    'expired_at' => now()->addDay()->toIso8601String(),
-                    'status' => 'active',
-                    'created_at' => now()->toIso8601String(),
-                ],
-                'message' => 'Payment Link created successfully (MOCK)',
             ];
         }
 
@@ -297,7 +327,7 @@ class SingapayApiService
      */
     protected function generateMockVANumber(string $bankCode): string
     {
-        $prefix = match($bankCode) {
+        $prefix = match(strtoupper($bankCode)) {
             'BRI' => '88810',
             'BNI' => '88820',
             'DANAMON' => '88830',
@@ -305,7 +335,27 @@ class SingapayApiService
             default => '88800',
         };
 
-        return $prefix . rand(1000000000, 9999999999);
+        return $prefix . rand(10000000, 99999999);
+    }
+
+    /**
+     * Generate mock QRIS image (simple base64 placeholder)
+     */
+    protected function generateMockQRISImage(): string
+    {
+        // Generate a simple 1x1 transparent PNG as base64
+        $transparentPng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+        return $transparentPng;
+    }
+
+    /**
+     * Clear cached token (useful for testing)
+     */
+    public function clearTokenCache(): void
+    {
+        $cacheKey = config('singapay.cache.prefix') . $this->mode;
+        Cache::forget($cacheKey);
+        $this->logInfo('Token cache cleared');
     }
 
     /**
@@ -314,8 +364,8 @@ class SingapayApiService
     protected function logInfo(string $message, array $context = []): void
     {
         if (config('singapay.logging.enabled')) {
-            Log::channel(config('singapay.logging.channel'))
-                ->info('[SingaPay] ' . $message, $context);
+            Log::channel(config('singapay.logging.channel', 'daily'))
+                ->info('[SingaPay API] ' . $message, $context);
         }
     }
 
@@ -325,8 +375,8 @@ class SingapayApiService
     protected function logError(string $message, array $context = []): void
     {
         if (config('singapay.logging.enabled')) {
-            Log::channel(config('singapay.logging.channel'))
-                ->error('[SingaPay] ' . $message, $context);
+            Log::channel(config('singapay.logging.channel', 'daily'))
+                ->error('[SingaPay API] ' . $message, $context);
         }
     }
 }

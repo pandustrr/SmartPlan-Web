@@ -5,6 +5,7 @@ namespace App\Services\Singapay;
 use App\Models\Singapay\PaymentTransaction;
 use App\Models\Singapay\PdfPurchase;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class VirtualAccountService
 {
@@ -17,45 +18,78 @@ class VirtualAccountService
 
     /**
      * Create Virtual Account for payment
+     * 🔧 FIXED: Type casting untuk expiry calculation
      */
     public function createVirtualAccount(PdfPurchase $purchase, string $bankCode): array
     {
         try {
-            $expiryHours = config('singapay.virtual_account.expiry_hours', 24);
-            $expiredAt = Carbon::now()->addHours($expiryHours);
+            $expiryHours = (int) config('singapay.virtual_account.expiry_hours', 24);
 
+            Log::info('[VA Service] Config values', [
+                'expiry_hours_raw' => config('singapay.virtual_account.expiry_hours'),
+                'expiry_hours_casted' => $expiryHours,
+                'type' => gettype($expiryHours),
+            ]);
+
+            $expiredAt = Carbon::now()->addHours($expiryHours);
+            $accountId = $this->apiService->getMerchantAccountId();
+
+            // Prepare VA data sesuai dokumentasi Singapay
             $data = [
-                'account_id' => config('singapay.merchant_account_id'),
                 'bank_code' => strtoupper($bankCode),
-                'name' => $purchase->user->name ?? 'SmartPlan User',
                 'amount' => $purchase->amount_paid,
+                'name' => $this->sanitizeName($purchase->user->name ?? 'Grapadi Strategix User'),
                 'kind' => config('singapay.virtual_account.kind', 'temporary'),
-                'max_usage' => config('singapay.virtual_account.max_usage', 1),
-                'reff_no' => $purchase->transaction_code,
-                'expired_at' => $expiredAt->toIso8601String(),
+                'currency' => 'IDR',
             ];
+
+            // Add fields for temporary VA
+            if ($data['kind'] === 'temporary') {
+                // Convert to milliseconds timestamp
+                $data['expired_at'] = $expiredAt->timestamp * 1000;
+                $data['max_usage'] = (int) config('singapay.virtual_account.max_usage', 1);
+            }
+
+            Log::info('[VA Service] Creating Virtual Account', [
+                'purchase_id' => $purchase->id,
+                'bank_code' => $bankCode,
+                'amount' => $purchase->amount_paid,
+                'account_id' => $accountId,
+                'expired_at' => $expiredAt->toDateTimeString(),
+            ]);
 
             // Send request to SingaPay API
             $response = $this->apiService->sendRequest(
-                '/api/v1.1/virtual-accounts',
+                "/api/v1.0/virtual-accounts/{$accountId}",
                 $data,
                 'POST'
             );
 
             if (!$response['success']) {
+                Log::error('[VA Service] Failed to create VA', [
+                    'response' => $response,
+                    'purchase_id' => $purchase->id,
+                ]);
+
                 return [
                     'success' => false,
                     'message' => $response['message'] ?? 'Failed to create Virtual Account',
+                    'error_code' => $response['error_code'] ?? null,
                 ];
             }
 
             $vaData = $response['data'];
 
+            Log::info('[VA Service] VA created successfully', [
+                'va_number' => $vaData['va_number'] ?? null,
+                'purchase_id' => $purchase->id,
+            ]);
+
             // Create payment transaction record
             $transaction = PaymentTransaction::create([
                 'pdf_purchase_id' => $purchase->id,
                 'transaction_code' => $purchase->transaction_code,
-                'reference_no' => PaymentTransaction::generateReferenceNo(),
+                'reference_no' => $vaData['reff_no'] ?? PaymentTransaction::generateReferenceNo(),
                 'payment_method' => 'virtual_account',
                 'bank_code' => $bankCode,
                 'va_number' => $vaData['va_number'],
@@ -86,11 +120,30 @@ class VirtualAccountService
             ];
 
         } catch (\Exception $e) {
+            Log::error('[VA Service] Exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'purchase_id' => $purchase->id,
+            ]);
+
             return [
                 'success' => false,
                 'message' => 'Exception: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Sanitize name for VA (remove special characters)
+     */
+    protected function sanitizeName(string $name): string
+    {
+        // Remove special characters, keep only alphanumeric and spaces
+        $sanitized = preg_replace('/[^A-Za-z0-9\s]/', '', $name);
+        // Limit to 50 characters
+        return substr($sanitized, 0, 50);
     }
 
     /**
@@ -103,8 +156,15 @@ class VirtualAccountService
         }
 
         try {
+            $accountId = $this->apiService->getMerchantAccountId();
+
+            Log::info('[VA Service] Checking payment status', [
+                'transaction_id' => $transaction->id,
+                'va_number' => $transaction->va_number,
+            ]);
+
             $response = $this->apiService->sendRequest(
-                '/api/v1.1/virtual-accounts/' . $transaction->reference_no,
+                "/api/v1.0/va-transactions/{$accountId}",
                 [],
                 'GET'
             );
@@ -116,16 +176,34 @@ class VirtualAccountService
                 ];
             }
 
-            $status = $response['data']['status'] ?? 'pending';
+            // Find transaction by VA number
+            $transactions = $response['data'] ?? [];
+            $vaTransaction = collect($transactions)->firstWhere('va_number', $transaction->va_number);
+
+            if (!$vaTransaction) {
+                return [
+                    'success' => true,
+                    'status' => 'pending',
+                    'paid' => false,
+                    'message' => 'Transaction not found in VA transactions list',
+                ];
+            }
+
+            $status = $vaTransaction['status'] ?? 'pending';
 
             return [
                 'success' => true,
                 'status' => $status,
                 'paid' => $status === 'paid',
-                'data' => $response['data'],
+                'data' => $vaTransaction,
             ];
 
         } catch (\Exception $e) {
+            Log::error('[VA Service] Check status exception', [
+                'message' => $e->getMessage(),
+                'transaction_id' => $transaction->id,
+            ]);
+
             return [
                 'success' => false,
                 'message' => 'Exception: ' . $e->getMessage(),
@@ -138,7 +216,7 @@ class VirtualAccountService
      */
     protected function checkMockPaymentStatus(PaymentTransaction $transaction): array
     {
-        $autoApprove = config('singapay.mock.auto_approve_delay', 0);
+        $autoApprove = (int) config('singapay.mock.auto_approve_delay', 0);
 
         if ($autoApprove > 0) {
             $createdTime = $transaction->created_at->timestamp;
@@ -146,9 +224,14 @@ class VirtualAccountService
             $elapsed = $currentTime - $createdTime;
 
             if ($elapsed >= $autoApprove) {
-                // Auto approve after delay
-                $successRate = config('singapay.mock.success_rate', 100);
+                $successRate = (int) config('singapay.mock.success_rate', 100);
                 $isPaid = rand(1, 100) <= $successRate;
+
+                Log::info('[VA Service] Mock auto-approval', [
+                    'transaction_id' => $transaction->id,
+                    'elapsed' => $elapsed,
+                    'paid' => $isPaid,
+                ]);
 
                 return [
                     'success' => true,
@@ -158,6 +241,7 @@ class VirtualAccountService
                         'status' => $isPaid ? 'paid' : 'failed',
                         'paid_at' => $isPaid ? now()->toIso8601String() : null,
                         'mock_mode' => true,
+                        'elapsed_seconds' => $elapsed,
                     ],
                 ];
             }
@@ -200,18 +284,18 @@ class VirtualAccountService
             'BRI' => [
                 'ATM' => [
                     'Masukkan kartu ATM dan PIN Anda',
-                    'Pilih menu Transaksi Lain',
-                    'Pilih menu Pembayaran',
-                    'Pilih menu Lainnya',
-                    'Pilih menu BRIVA',
+                    'Pilih menu "Transaksi Lain"',
+                    'Pilih menu "Pembayaran"',
+                    'Pilih menu "Lainnya"',
+                    'Pilih menu "BRIVA"',
                     'Masukkan nomor Virtual Account: ' . $vaNumber,
                     'Periksa informasi pembayaran',
                     'Ikuti instruksi untuk menyelesaikan pembayaran',
                 ],
                 'Mobile Banking' => [
                     'Login ke aplikasi BRI Mobile',
-                    'Pilih menu Pembayaran',
-                    'Pilih menu BRIVA',
+                    'Pilih menu "Pembayaran"',
+                    'Pilih menu "BRIVA"',
                     'Masukkan nomor Virtual Account: ' . $vaNumber,
                     'Masukkan nominal pembayaran',
                     'Masukkan PIN',
@@ -221,20 +305,40 @@ class VirtualAccountService
             'BNI' => [
                 'ATM' => [
                     'Masukkan kartu ATM dan PIN Anda',
-                    'Pilih menu Lainnya',
-                    'Pilih menu Transfer',
-                    'Pilih menu Rekening Tabungan',
+                    'Pilih menu "Menu Lainnya"',
+                    'Pilih menu "Transfer"',
+                    'Pilih menu "Rekening Tabungan"',
                     'Masukkan nomor Virtual Account: ' . $vaNumber,
                     'Masukkan nominal pembayaran',
                     'Konfirmasi pembayaran',
                 ],
                 'Mobile Banking' => [
                     'Login ke aplikasi BNI Mobile Banking',
-                    'Pilih menu Transfer',
-                    'Pilih menu Virtual Account Billing',
+                    'Pilih menu "Transfer"',
+                    'Pilih menu "Virtual Account Billing"',
                     'Masukkan nomor Virtual Account: ' . $vaNumber,
                     'Masukkan nominal pembayaran',
                     'Konfirmasi dengan PIN',
+                ],
+            ],
+            'DANAMON' => [
+                'ATM/Mobile Banking' => [
+                    'Login ke aplikasi D-Bank atau kunjungi ATM Danamon',
+                    'Pilih menu "Pembayaran"',
+                    'Pilih "Virtual Account"',
+                    'Masukkan nomor Virtual Account: ' . $vaNumber,
+                    'Periksa detail pembayaran',
+                    'Konfirmasi pembayaran dengan PIN',
+                ],
+            ],
+            'MAYBANK' => [
+                'ATM/Mobile Banking' => [
+                    'Login ke Maybank2u atau kunjungi ATM Maybank',
+                    'Pilih menu "Transfer & Pay"',
+                    'Pilih "JomPAY"',
+                    'Masukkan nomor Virtual Account: ' . $vaNumber,
+                    'Periksa detail pembayaran',
+                    'Konfirmasi pembayaran',
                 ],
             ],
         ];

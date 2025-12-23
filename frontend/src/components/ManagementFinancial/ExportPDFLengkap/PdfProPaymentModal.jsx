@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
-import { FiX, FiCreditCard, FiCheck, FiCopy, FiClock, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
-import { toast } from "react-hot-toast";
-import singapayApi from "../../../services/singapayApi";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { FiX, FiCreditCard, FiCheck, FiCopy, FiClock, FiAlertCircle, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
+import axios from "axios";
 
 const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
-    const [step, setStep] = useState(1); // 1: Package, 2: Payment Method, 3: Payment Info
+    const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [packages, setPackages] = useState([]);
     const [selectedPackage, setSelectedPackage] = useState(null);
@@ -13,82 +12,151 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
     const [paymentData, setPaymentData] = useState(null);
     const [transactionCode, setTransactionCode] = useState(null);
     const [checking, setChecking] = useState(false);
-    const [checkInterval, setCheckInterval] = useState(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const [paymentStatus, setPaymentStatus] = useState("pending");
+    const [timeRemaining, setTimeRemaining] = useState(null);
+    const [error, setError] = useState(null);
+
+    // Tambahkan refs untuk fix timer issue
+    const checkIntervalRef = useRef(null);
+    const countdownIntervalRef = useRef(null);
+    const isClosingRef = useRef(false);
+    const transactionCodeRef = useRef(null);
+    const onCloseRef = useRef(onClose); // Tambahkan ref untuk onClose
+
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    const MAX_RETRIES = 60;
+    const POLL_INTERVAL = 5000;
+
+    // Update onClose ref ketika prop berubah
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
 
     useEffect(() => {
         if (isOpen) {
-            // Check if user is logged in
             const token = localStorage.getItem('token');
-            console.log("🔐 Token check:", token ? "✅ Found" : "❌ Not found");
-
             if (!token) {
-                toast.error("Silakan login terlebih dahulu untuk mengakses fitur Pro", {
-                    duration: 5000,
-                });
-                console.warn("⚠️ User not logged in. Close modal or redirect to login.");
-                // Optional: close modal jika tidak ada token
-                // onClose();
+                showToast("Silakan login terlebih dahulu untuk mengakses fitur Pro", "error");
                 return;
             }
-
             fetchPackages();
         } else {
-            // Reset on close
-            setStep(1);
-            setSelectedPackage(null);
-            setPaymentData(null);
-            setTransactionCode(null);
-            if (checkInterval) {
-                clearInterval(checkInterval);
-                setCheckInterval(null);
-            }
+            cleanup();
         }
     }, [isOpen]);
+
+    // Countdown timer yang terpisah dari polling
+    useEffect(() => {
+        if (paymentData?.expired_at && paymentStatus === "pending") {
+            if (countdownIntervalRef.current) {
+                clearInterval(countdownIntervalRef.current);
+            }
+
+            countdownIntervalRef.current = setInterval(() => {
+                const expiry = new Date(paymentData.expired_at);
+                const now = new Date();
+                const diff = expiry - now;
+
+                if (diff <= 0) {
+                    setTimeRemaining("Expired");
+                    setPaymentStatus("expired");
+                    stopPolling();
+                    clearInterval(countdownIntervalRef.current);
+                } else {
+                    const hours = Math.floor(diff / 3600000);
+                    const minutes = Math.floor((diff % 3600000) / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+                    setTimeRemaining(`${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+                }
+            }, 1000);
+
+            return () => {
+                if (countdownIntervalRef.current) {
+                    clearInterval(countdownIntervalRef.current);
+                }
+            };
+        }
+    }, [paymentData?.expired_at, paymentStatus]);
+
+    const handleClose = () => {
+        if (paymentStatus === "paid") {
+            onCloseRef.current();
+            return;
+        }
+
+        if (step === 3 && paymentStatus === "pending") {
+            const confirmClose = window.confirm(
+                "Pembayaran masih dalam proses. Yakin ingin menutup? Anda bisa kembali lagi nanti untuk mengecek status."
+            );
+            
+            if (confirmClose) {
+                onCloseRef.current();
+            }
+        } else {
+            onCloseRef.current();
+        }
+    };
+
+    const cleanup = () => {
+        setStep(1);
+        setSelectedPackage(null);
+        setPaymentData(null);
+        setTransactionCode(null);
+        transactionCodeRef.current = null;
+        setPaymentStatus("pending");
+        setRetryCount(0);
+        setError(null);
+        setTimeRemaining(null);
+        isClosingRef.current = false;
+        stopPolling();
+        
+        if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+        }
+    };
+
+    const stopPolling = () => {
+        if (checkIntervalRef.current) {
+            clearInterval(checkIntervalRef.current);
+            checkIntervalRef.current = null;
+        }
+    };
 
     const fetchPackages = async () => {
         try {
             setLoading(true);
-            console.log("🚀 Fetching packages...");
+            setError(null);
 
-            const response = await singapayApi.getPackages();
-            console.log("📦 Packages response:", response);
-            console.log("📦 Packages data:", response.data);
+            const response = await axios.get(`${apiUrl}/api/payment/packages`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
 
             if (response.data.success && response.data.packages) {
-                console.log("✅ Setting packages:", response.data.packages);
                 setPackages(response.data.packages);
-                // Auto select monthly package
                 if (response.data.packages.length > 0) {
                     setSelectedPackage(response.data.packages[0]);
-                    console.log("✅ Auto-selected package:", response.data.packages[0]);
                 }
-            } else {
-                console.warn("⚠️ No packages in response:", response.data);
             }
         } catch (error) {
-            console.error("❌ Error fetching packages:", error);
-            console.error("❌ Error response:", error.response);
-            console.error("❌ Error message:", error.message);
-
-            if (error.response?.status === 401) {
-                toast.error("Silakan login terlebih dahulu");
-            } else {
-                toast.error("Gagal memuat paket: " + (error.response?.data?.message || error.message));
-            }
+            console.error("Error fetching packages:", error);
+            setError(error.response?.data?.message || "Gagal memuat paket");
+            showToast("Gagal memuat paket: " + (error.response?.data?.message || error.message), "error");
         } finally {
             setLoading(false);
-            console.log("🏁 Fetch complete. Packages count:", packages.length);
         }
     };
 
     const handlePurchase = async () => {
         if (!selectedPackage) {
-            toast.error("Silakan pilih paket");
+            showToast("Silakan pilih paket", "error");
             return;
         }
 
         try {
             setLoading(true);
+            setError(null);
 
             const purchaseData = {
                 package_id: selectedPackage.id,
@@ -99,70 +167,91 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                 purchaseData.bank_code = selectedBank;
             }
 
-            console.log("📤 Creating purchase:", purchaseData);
-
-            const response = await singapayApi.createPurchase(purchaseData);
-            console.log("✅ Purchase response:", response.data);
+            const response = await axios.post(`${apiUrl}/api/payment/purchase`, purchaseData, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
 
             if (response.data.success) {
                 setPaymentData(response.data.payment);
                 setTransactionCode(response.data.purchase.transaction_code);
+                transactionCodeRef.current = response.data.purchase.transaction_code;
+                setPaymentStatus("pending");
+                setRetryCount(0);
                 setStep(3);
 
-                // Start polling payment status
                 startPaymentPolling(response.data.purchase.transaction_code);
-
-                toast.success("Payment berhasil dibuat!");
+                showToast("Payment berhasil dibuat!", "success");
             } else {
-                toast.error(response.data.message || "Gagal membuat payment");
+                throw new Error(response.data.message || "Gagal membuat payment");
             }
         } catch (error) {
-            console.error("❌ Error creating purchase:", error);
-            toast.error(error.response?.data?.message || "Gagal membuat payment");
+            console.error("Error creating purchase:", error);
+            setError(error.response?.data?.message || error.message);
+            showToast(error.response?.data?.message || "Gagal membuat payment", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const startPaymentPolling = (txCode) => {
-        // Check immediately
+    const startPaymentPolling = useCallback((txCode) => {
+        // Hentikan polling sebelumnya jika ada
+        stopPolling();
+        
+        // Check pertama kali
         checkPaymentStatus(txCode);
-
-        // Then check every 5 seconds
-        const interval = setInterval(() => {
-            checkPaymentStatus(txCode);
-        }, 5000);
-
-        setCheckInterval(interval);
-    };
+        
+        // Setup interval baru
+        checkIntervalRef.current = setInterval(() => {
+            setRetryCount(prev => {
+                const newCount = prev + 1;
+                
+                if (newCount >= MAX_RETRIES) {
+                    stopPolling();
+                    showToast("Polling timeout. Refresh manual atau tunggu pembayaran.", "warning");
+                    return newCount;
+                }
+                
+                checkPaymentStatus(txCode);
+                return newCount;
+            });
+        }, POLL_INTERVAL);
+    }, []);
 
     const checkPaymentStatus = async (txCode) => {
+        // Prevent multiple checks
+        if (checking || isClosingRef.current) return;
+
         try {
             setChecking(true);
-            const response = await singapayApi.checkPaymentStatus(txCode);
-            console.log("🔍 Payment status:", response.data);
+            
+            const response = await axios.get(`${apiUrl}/api/payment/status/${txCode}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
 
             if (response.data.success && response.data.paid) {
-                // Payment successful!
-                if (checkInterval) {
-                    clearInterval(checkInterval);
-                    setCheckInterval(null);
-                }
+                setPaymentStatus("paid");
+                stopPolling();
+                
+                showToast("🎉 Pembayaran berhasil! Akses PDF Pro telah aktif.", "success");
 
-                toast.success("🎉 Pembayaran berhasil! Akses PDF Pro telah aktif.");
-
-                // Notify parent
                 if (onSuccess) {
                     onSuccess();
                 }
 
-                // Close modal after 2 seconds
+                // Set flag dan delay close
+                isClosingRef.current = true;
+                
                 setTimeout(() => {
-                    onClose();
-                }, 2000);
+                    // Gunakan onCloseRef.current agar mendapatkan value terbaru
+                    onCloseRef.current();
+                }, 2500);
+                
+            } else if (response.data.status === "expired" || response.data.status === "failed") {
+                setPaymentStatus(response.data.status);
+                stopPolling();
             }
         } catch (error) {
-            console.error("❌ Error checking status:", error);
+            console.error("Error checking status:", error);
         } finally {
             setChecking(false);
         }
@@ -173,35 +262,56 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
 
         try {
             setLoading(true);
-            const response = await singapayApi.testWebhook(transactionCode);
-            console.log("🧪 Webhook test:", response.data);
+            
+            const response = await axios.post(`${apiUrl}/api/webhook/singapay/test`, {
+                transaction_code: transactionCode
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
 
             if (response.data.success) {
-                toast.success("✅ Webhook triggered! Check status...");
-                // Check status immediately
+                showToast("✅ Webhook triggered! Checking status...", "success");
                 setTimeout(() => {
                     checkPaymentStatus(transactionCode);
                 }, 1000);
             }
         } catch (error) {
-            console.error("❌ Error testing webhook:", error);
-            toast.error("Gagal trigger webhook");
+            console.error("Error testing webhook:", error);
+            showToast("Gagal trigger webhook", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-        toast.success("Copied to clipboard!");
+    const handleManualRefresh = () => {
+        if (transactionCode && !checking) {
+            checkPaymentStatus(transactionCode);
+            showToast("Refreshing status...", "info");
+        }
     };
 
-    const formatRupiah = (amount) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-        }).format(amount);
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        showToast("Copied to clipboard!", "success");
+    };
+
+    const showToast = (message, type = "info") => {
+        console.log(`[${type.toUpperCase()}]`, message);
+        // Anda bisa menambahkan toast library seperti react-hot-toast di sini
+    };
+
+    const getQRISImageSrc = () => {
+        if (!paymentData) return null;
+        
+        const qrisContent = paymentData.qris_content || paymentData.qr_data;
+        
+        if (!qrisContent) return null;
+        
+        if (qrisContent.startsWith('http')) {
+            return qrisContent;
+        }
+        
+        return `data:image/png;base64,${qrisContent}`;
     };
 
     if (!isOpen) return null;
@@ -215,7 +325,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                         Export PDF Pro
                     </h2>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-2 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
                     >
                         <FiX className="text-xl" />
@@ -233,34 +343,49 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div key={s.num} className="flex items-center flex-1">
                                 <div className="flex items-center flex-1">
                                     <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step >= s.num
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
+                                            step >= s.num
                                                 ? "bg-indigo-600 text-white"
                                                 : "bg-gray-200 dark:bg-gray-700 text-gray-500"
-                                            }`}
+                                        }`}
                                     >
                                         {step > s.num ? <FiCheck /> : s.num}
                                     </div>
                                     <span
-                                        className={`ml-2 text-sm font-medium ${step >= s.num
+                                        className={`ml-2 text-sm font-medium ${
+                                            step >= s.num
                                                 ? "text-gray-900 dark:text-white"
                                                 : "text-gray-500"
-                                            }`}
+                                        }`}
                                     >
                                         {s.label}
                                     </span>
                                 </div>
                                 {idx < 2 && (
                                     <div
-                                        className={`flex-1 h-1 mx-2 ${step > s.num
+                                        className={`flex-1 h-1 mx-2 ${
+                                            step > s.num
                                                 ? "bg-indigo-600"
                                                 : "bg-gray-200 dark:bg-gray-700"
-                                            }`}
+                                        }`}
                                     />
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
+
+                {/* Error Display */}
+                {error && (
+                    <div className="p-4 mx-6 mt-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+                        <div className="flex items-start gap-2">
+                            <FiAlertCircle className="mt-0.5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                            <div className="text-sm text-red-800 dark:text-red-200">
+                                {error}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Content */}
                 <div className="p-6">
@@ -281,6 +406,12 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                     <p className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                                         Paket Tidak Tersedia
                                     </p>
+                                    <button
+                                        onClick={fetchPackages}
+                                        className="mt-4 text-indigo-600 dark:text-indigo-400 hover:underline"
+                                    >
+                                        Coba Lagi
+                                    </button>
                                 </div>
                             ) : (
                                 <div className="grid gap-4 md:grid-cols-2">
@@ -288,10 +419,11 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                         <div
                                             key={pkg.id}
                                             onClick={() => setSelectedPackage(pkg)}
-                                            className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${selectedPackage?.id === pkg.id
+                                            className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                                                selectedPackage?.id === pkg.id
                                                     ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
                                                     : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
-                                                }`}
+                                            }`}
                                         >
                                             <div className="flex items-start justify-between mb-4">
                                                 <div>
@@ -321,7 +453,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                             </div>
 
                                             <div className="space-y-2">
-                                                {pkg.features && pkg.features.map((feature, idx) => (
+                                                {pkg.features && pkg.features.slice(0, 4).map((feature, idx) => (
                                                     <div key={idx} className="flex items-start gap-2 text-sm">
                                                         <FiCheck className="mt-0.5 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
                                                         <span className="text-gray-700 dark:text-gray-300">
@@ -352,15 +484,15 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                 Pilih Metode Pembayaran
                             </h3>
 
-                            {/* Payment Method Selection */}
                             <div className="space-y-3">
                                 {/* Virtual Account */}
                                 <div
                                     onClick={() => setPaymentMethod("virtual_account")}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "virtual_account"
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                        paymentMethod === "virtual_account"
                                             ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
                                             : "border-gray-200 dark:border-gray-700"
-                                        }`}
+                                    }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -379,7 +511,6 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                         )}
                                     </div>
 
-                                    {/* Bank Selection */}
                                     {paymentMethod === "virtual_account" && (
                                         <div className="grid grid-cols-2 gap-2 mt-4 md:grid-cols-4">
                                             {["BRI", "BNI", "DANAMON", "MAYBANK"].map((bank) => (
@@ -389,10 +520,11 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                                         e.stopPropagation();
                                                         setSelectedBank(bank);
                                                     }}
-                                                    className={`py-2 px-3 rounded-lg font-medium transition-all ${selectedBank === bank
+                                                    className={`py-2 px-3 rounded-lg font-medium transition-all ${
+                                                        selectedBank === bank
                                                             ? "bg-indigo-600 text-white"
                                                             : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {bank}
                                                 </button>
@@ -404,10 +536,11 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                 {/* QRIS */}
                                 <div
                                     onClick={() => setPaymentMethod("qris")}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "qris"
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                        paymentMethod === "qris"
                                             ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
                                             : "border-gray-200 dark:border-gray-700"
-                                        }`}
+                                    }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -467,14 +600,31 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                     {/* Step 3: Payment Info */}
                     {step === 3 && paymentData && (
                         <div className="space-y-4">
+                            {/* Payment Status Banner */}
+                            {paymentStatus === "paid" && (
+                                <div className="p-4 border-2 border-green-200 rounded-lg bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+                                    <div className="flex items-center gap-3">
+                                        <FiCheckCircle className="text-2xl text-green-600 dark:text-green-400" />
+                                        <div>
+                                            <div className="font-semibold text-green-900 dark:text-green-100">
+                                                Pembayaran Berhasil!
+                                            </div>
+                                            <div className="text-sm text-green-700 dark:text-green-200">
+                                                Akses PDF Pro Anda telah aktif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Virtual Account Info */}
-                            {paymentMethod === "virtual_account" && (
+                            {paymentMethod === "virtual_account" && paymentStatus !== "paid" && (
                                 <>
                                     <div className="p-6 text-center border-2 border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800">
                                         <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                                             {paymentData.bank_name}
                                         </div>
-                                        <div className="mb-4 text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                                        <div className="mb-4 text-3xl font-bold text-indigo-600 dark:text-indigo-400 font-mono">
                                             {paymentData.va_number}
                                         </div>
                                         <button
@@ -492,18 +642,22 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                                 {paymentData.formatted_amount}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
-                                            <FiClock />
-                                            <span>Berlaku sampai: {paymentData.expired_at_formatted}</span>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                                                <FiClock />
+                                                <span>Sisa Waktu:</span>
+                                            </div>
+                                            <span className="font-mono font-semibold text-amber-600 dark:text-amber-400">
+                                                {timeRemaining || "Loading..."}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    {/* Payment Instructions */}
-                                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg max-h-64 overflow-y-auto">
                                         <h4 className="mb-3 font-semibold text-gray-900 dark:text-white">
                                             Cara Pembayaran:
                                         </h4>
-                                        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                                             {Object.entries(paymentData.payment_instructions).map(([method, steps]) => (
                                                 <div key={method}>
                                                     <div className="mb-1 font-medium text-gray-900 dark:text-white">
@@ -522,15 +676,24 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                             )}
 
                             {/* QRIS Info */}
-                            {paymentMethod === "qris" && paymentData.qris_content && (
+                            {paymentMethod === "qris" && paymentStatus !== "paid" && (
                                 <>
                                     <div className="p-6 text-center border-2 border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800">
                                         <div className="mb-4">
-                                            <img
-                                                src={`data:image/png;base64,${paymentData.qris_content}`}
-                                                alt="QRIS Code"
-                                                className="w-64 h-64 mx-auto"
-                                            />
+                                            {getQRISImageSrc() ? (
+                                                <img
+                                                    src={getQRISImageSrc()}
+                                                    alt="QRIS Code"
+                                                    className="w-64 h-64 mx-auto bg-white rounded-lg"
+                                                    onError={(e) => {
+                                                        e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect fill="%23f0f0f0" width="256" height="256"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">QR Code</text></svg>';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="flex items-center justify-center w-64 h-64 mx-auto bg-gray-200 rounded-lg dark:bg-gray-700">
+                                                    <span className="text-gray-400">QR Code Loading...</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                                             Scan dengan aplikasi e-wallet atau mobile banking
@@ -544,9 +707,14 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                                 {paymentData.formatted_amount}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
-                                            <FiClock />
-                                            <span>Berlaku sampai: {paymentData.expired_at_formatted}</span>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                                                <FiClock />
+                                                <span>Sisa Waktu:</span>
+                                            </div>
+                                            <span className="font-mono font-semibold text-amber-600 dark:text-amber-400">
+                                                {timeRemaining || "Loading..."}
+                                            </span>
                                         </div>
                                     </div>
                                 </>
@@ -556,43 +724,86 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="p-4 border-2 border-gray-200 rounded-lg dark:border-gray-700">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${checking ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'}`} />
+                                        <div className={`w-3 h-3 rounded-full ${
+                                            paymentStatus === "paid" ? "bg-green-500" :
+                                            paymentStatus === "expired" ? "bg-red-500" :
+                                            checking ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'
+                                        }`} />
                                         <span className="font-medium text-gray-900 dark:text-white">
-                                            Status Pembayaran
+                                            Status: {
+                                                paymentStatus === "paid" ? "Berhasil ✅" :
+                                                paymentStatus === "expired" ? "Kadaluarsa ⏰" :
+                                                paymentStatus === "failed" ? "Gagal ❌" :
+                                                "Menunggu Pembayaran"
+                                            }
                                         </span>
                                     </div>
-                                    {checking && (
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                                            Checking...
-                                        </span>
-                                    )}
+                                    <button
+                                        onClick={handleManualRefresh}
+                                        disabled={checking || loading || paymentStatus === "paid"}
+                                        className="p-2 text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50"
+                                        title="Refresh Status"
+                                    >
+                                        <FiRefreshCw className={checking ? "animate-spin" : ""} />
+                                    </button>
                                 </div>
-                                <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <FiAlertCircle className="mt-0.5 flex-shrink-0" />
-                                    <span>
-                                        Sistem akan otomatis mendeteksi pembayaran Anda. Proses verifikasi memakan waktu 1-5 menit setelah pembayaran berhasil.
-                                    </span>
-                                </div>
+                                {paymentStatus === "pending" && (
+                                    <>
+                                        <div className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
+                                            <FiAlertCircle className="mt-0.5 flex-shrink-0" />
+                                            <span>
+                                                Sistem akan otomatis mendeteksi pembayaran Anda. Proses verifikasi memakan waktu 1-5 menit.
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            Polling: {retryCount}/{MAX_RETRIES}
+                                            {retryCount >= MAX_RETRIES && " (Timeout)"}
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
-                            {/* Mock Mode Test Button */}
-                            <div className="p-4 border-2 border-amber-200 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800">
-                                <div className="flex items-start gap-2 mb-3 text-sm text-amber-900 dark:text-amber-100">
-                                    <FiAlertCircle className="mt-0.5 flex-shrink-0" />
-                                    <div>
-                                        <div className="font-semibold">Testing Mode</div>
-                                        <div className="text-amber-700 dark:text-amber-200">
-                                            Klik tombol di bawah untuk simulasi pembayaran berhasil (hanya untuk testing)
+                            {/* Mock Test Button */}
+                            {import.meta.env.DEV && paymentStatus === "pending" && (
+                                <div className="p-4 border-2 border-amber-200 rounded-lg bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800">
+                                    <div className="flex items-start gap-2 mb-3 text-sm text-amber-900 dark:text-amber-100">
+                                        <FiAlertCircle className="mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <div className="font-semibold">Testing Mode</div>
+                                            <div className="text-amber-700 dark:text-amber-200">
+                                                Simulasi pembayaran berhasil (development only)
+                                            </div>
                                         </div>
                                     </div>
+                                    <button
+                                        onClick={handleTestWebhook}
+                                        disabled={loading}
+                                        className="w-full py-2 font-medium text-amber-900 transition-colors bg-amber-200 rounded-lg hover:bg-amber-300 disabled:bg-gray-400"
+                                    >
+                                        🧪 Simulasi Pembayaran Berhasil
+                                    </button>
                                 </div>
+                            )}
+
+                            {/* Navigation Buttons */}
+                            <div className="flex gap-3">
                                 <button
-                                    onClick={handleTestWebhook}
-                                    disabled={loading}
-                                    className="w-full py-2 font-medium text-amber-900 transition-colors bg-amber-200 rounded-lg hover:bg-amber-300 disabled:bg-gray-400"
+                                    onClick={() => setStep(2)}
+                                    className="flex-1 py-3 font-semibold text-gray-700 transition-colors bg-gray-200 rounded-lg dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300"
                                 >
-                                    🧪 Simulasi Pembayaran Berhasil
+                                    Kembali
                                 </button>
+                                {paymentStatus === "expired" && (
+                                    <button
+                                        onClick={() => {
+                                            setStep(2);
+                                            setPaymentStatus("pending");
+                                        }}
+                                        className="flex-1 py-3 font-semibold text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
+                                    >
+                                        Buat Pembayaran Baru
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}

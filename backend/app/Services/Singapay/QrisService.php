@@ -5,6 +5,7 @@ namespace App\Services\Singapay;
 use App\Models\Singapay\PaymentTransaction;
 use App\Models\Singapay\PdfPurchase;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class QrisService
 {
@@ -17,44 +18,77 @@ class QrisService
 
     /**
      * Generate QRIS for payment
+     * 🔧 FIXED: Type casting untuk expiry calculation
      */
     public function generateQris(PdfPurchase $purchase): array
     {
         try {
-            $expiryHours = config('singapay.qris.expiry_hours', 1);
-            $expiredAt = Carbon::now()->addHours($expiryHours);
+            // 🔧 CRITICAL FIX: Cast to integer
+            $expiryHours = (int) config('singapay.qris.expiry_hours', 1);
 
+            Log::info('[QRIS Service] Config values', [
+                'expiry_hours_raw' => config('singapay.qris.expiry_hours'),
+                'expiry_hours_casted' => $expiryHours,
+                'type' => gettype($expiryHours),
+            ]);
+
+            $expiredAt = Carbon::now()->addHours($expiryHours);
+            $accountId = $this->apiService->getMerchantAccountId();
+
+            // Prepare QRIS data sesuai dokumentasi Singapay
             $data = [
-                'account_id' => config('singapay.merchant_account_id'),
                 'amount' => $purchase->amount_paid,
-                'reff_no' => $purchase->transaction_code,
-                'expired_at' => $expiredAt->toIso8601String(),
-                'description' => 'SmartPlan Export PDF Pro - ' . ucfirst($purchase->package_type),
+                'expired_at' => $expiredAt->format('Y-m-d H:i:s'), // Format: Y-m-d H:i:s
             ];
+
+            // Optional: Add tip
+            if (config('singapay.qris.enable_tip', false)) {
+                $data['tip_indicator'] = 'fixed_amount';
+                $data['tip_value'] = 0;
+            }
+
+            Log::info('[QRIS Service] Generating QRIS', [
+                'purchase_id' => $purchase->id,
+                'amount' => $purchase->amount_paid,
+                'account_id' => $accountId,
+                'expired_at' => $expiredAt->toDateTimeString(),
+            ]);
 
             // Send request to SingaPay API
             $response = $this->apiService->sendRequest(
-                '/api/v1.1/qris',
+                "/api/v1.0/qris-dynamic/{$accountId}/generate-qr",
                 $data,
                 'POST'
             );
 
             if (!$response['success']) {
+                Log::error('[QRIS Service] Failed to generate QRIS', [
+                    'response' => $response,
+                    'purchase_id' => $purchase->id,
+                ]);
+
                 return [
                     'success' => false,
                     'message' => $response['message'] ?? 'Failed to generate QRIS',
+                    'error_code' => $response['error_code'] ?? null,
                 ];
             }
 
             $qrisData = $response['data'];
 
+            Log::info('[QRIS Service] QRIS generated successfully', [
+                'qris_id' => $qrisData['id'] ?? null,
+                'reff_no' => $qrisData['reff_no'] ?? null,
+                'purchase_id' => $purchase->id,
+            ]);
+
             // Create payment transaction record
             $transaction = PaymentTransaction::create([
                 'pdf_purchase_id' => $purchase->id,
                 'transaction_code' => $purchase->transaction_code,
-                'reference_no' => PaymentTransaction::generateReferenceNo(),
+                'reference_no' => $qrisData['reff_no'] ?? PaymentTransaction::generateReferenceNo(),
                 'payment_method' => 'qris',
-                'qris_content' => $qrisData['qris_content'] ?? null,
+                'qris_content' => $qrisData['qr_data'] ?? $qrisData['qris_content'] ?? null,
                 'qris_url' => $qrisData['qris_url'] ?? null,
                 'amount' => $purchase->amount_paid,
                 'currency' => 'IDR',
@@ -71,8 +105,8 @@ class QrisService
                 'data' => [
                     'transaction_id' => $transaction->id,
                     'transaction_code' => $transaction->transaction_code,
-                    'qris_content' => $qrisData['qris_content'] ?? null,
-                    'qris_string' => $qrisData['qris_string'] ?? null,
+                    'qris_content' => $qrisData['qr_data'] ?? $qrisData['qris_content'] ?? null,
+                    'qris_string' => $qrisData['qr_string'] ?? $qrisData['qris_string'] ?? null,
                     'qris_url' => $qrisData['qris_url'] ?? null,
                     'amount' => $purchase->amount_paid,
                     'formatted_amount' => $transaction->formatted_amount,
@@ -83,6 +117,14 @@ class QrisService
             ];
 
         } catch (\Exception $e) {
+            Log::error('[QRIS Service] Exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'purchase_id' => $purchase->id,
+            ]);
+
             return [
                 'success' => false,
                 'message' => 'Exception: ' . $e->getMessage(),
@@ -100,8 +142,26 @@ class QrisService
         }
 
         try {
+            $accountId = $this->apiService->getMerchantAccountId();
+            $qrisId = $transaction->singapay_response['id'] ?? null;
+
+            if (!$qrisId) {
+                Log::warning('[QRIS Service] QRIS ID not found in transaction', [
+                    'transaction_id' => $transaction->id,
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'QRIS ID not found',
+                ];
+            }
+
+            Log::info('[QRIS Service] Checking payment status', [
+                'transaction_id' => $transaction->id,
+                'qris_id' => $qrisId,
+            ]);
+
             $response = $this->apiService->sendRequest(
-                '/api/v1.1/qris/' . $transaction->reference_no,
+                "/api/v1.0/qris-dynamic/{$accountId}/show/{$qrisId}",
                 [],
                 'GET'
             );
@@ -113,16 +173,30 @@ class QrisService
                 ];
             }
 
-            $status = $response['data']['status'] ?? 'pending';
+            $qrisData = $response['data'];
+            $status = $qrisData['status'] ?? 'pending';
+
+            // Map QRIS status to transaction status
+            $transactionStatus = match($status) {
+                'paid', 'success' => 'paid',
+                'open', 'active' => 'pending',
+                'closed', 'expired' => 'expired',
+                default => 'pending',
+            };
 
             return [
                 'success' => true,
-                'status' => $status,
-                'paid' => $status === 'paid',
-                'data' => $response['data'],
+                'status' => $transactionStatus,
+                'paid' => $transactionStatus === 'paid',
+                'data' => $qrisData,
             ];
 
         } catch (\Exception $e) {
+            Log::error('[QRIS Service] Check status exception', [
+                'message' => $e->getMessage(),
+                'transaction_id' => $transaction->id,
+            ]);
+
             return [
                 'success' => false,
                 'message' => 'Exception: ' . $e->getMessage(),
@@ -135,7 +209,7 @@ class QrisService
      */
     protected function checkMockPaymentStatus(PaymentTransaction $transaction): array
     {
-        $autoApprove = config('singapay.mock.auto_approve_delay', 0);
+        $autoApprove = (int) config('singapay.mock.auto_approve_delay', 0);
 
         if ($autoApprove > 0) {
             $createdTime = $transaction->created_at->timestamp;
@@ -143,9 +217,14 @@ class QrisService
             $elapsed = $currentTime - $createdTime;
 
             if ($elapsed >= $autoApprove) {
-                // Auto approve after delay
-                $successRate = config('singapay.mock.success_rate', 100);
+                $successRate = (int) config('singapay.mock.success_rate', 100);
                 $isPaid = rand(1, 100) <= $successRate;
+
+                Log::info('[QRIS Service] Mock auto-approval', [
+                    'transaction_id' => $transaction->id,
+                    'elapsed' => $elapsed,
+                    'paid' => $isPaid,
+                ]);
 
                 return [
                     'success' => true,
@@ -155,6 +234,7 @@ class QrisService
                         'status' => $isPaid ? 'paid' : 'failed',
                         'paid_at' => $isPaid ? now()->toIso8601String() : null,
                         'mock_mode' => true,
+                        'elapsed_seconds' => $elapsed,
                     ],
                 ];
             }
@@ -218,7 +298,7 @@ class QrisService
             return $qrisContent;
         }
 
-        // Generate using external QR code service
+        // Generate using external QR code service as fallback
         return 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisContent);
     }
 }

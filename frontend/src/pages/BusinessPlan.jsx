@@ -55,7 +55,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
         </p>
       </div>
 
-      {/* Quick Actions Section */}
+      {/* Quick Actions Section
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -76,7 +76,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Latar Belakang Bisnis Card */}
@@ -318,7 +318,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
         */}
 
         {/* PDF Business Plan Card */}
-        <div
+        {/* <div
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-300 dark:hover:border-blue-600"
           onClick={() => handleSubSectionClick("pdf-business-plan")}
         >
@@ -347,7 +347,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
               />
             </svg>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

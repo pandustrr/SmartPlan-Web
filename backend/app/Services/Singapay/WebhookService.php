@@ -8,28 +8,41 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class WebhookService
 {
     /**
      * Process payment webhook from SingaPay
      */
-    public function processPaymentWebhook(array $payload): array
+    public function processPaymentWebhook(array $payload, Request $request): array
     {
         try {
             // Validate webhook signature
-            if (!$this->validateSignature($payload)) {
-                Log::warning('[SingaPay Webhook] Invalid signature', $payload);
+            if (!$this->validateWebhookSignature($request)) {
+                Log::warning('[SingaPay Webhook] Invalid signature', [
+                    'payload' => $payload,
+                    'headers' => $request->headers->all(),
+                ]);
                 return [
                     'success' => false,
                     'message' => 'Invalid signature',
                 ];
             }
 
-            // Extract transaction data
-            $transactionCode = $payload['reff_no'] ?? null;
-            $status = $payload['status'] ?? 'pending';
-            $paidAt = $payload['paid_at'] ?? null;
+            // Extract transaction data from nested structure
+            $transactionData = $payload['data']['transaction'] ?? null;
+            if (!$transactionData) {
+                Log::error('[SingaPay Webhook] Transaction data not found', $payload);
+                return [
+                    'success' => false,
+                    'message' => 'Transaction data not found in payload',
+                ];
+            }
+
+            $transactionCode = $transactionData['reff_no'] ?? null;
+            $status = $transactionData['status'] ?? 'pending';
+            $paidAt = $transactionData['processed_timestamp'] ?? $transactionData['post_timestamp'] ?? null;
 
             if (!$transactionCode) {
                 return [
@@ -39,7 +52,9 @@ class WebhookService
             }
 
             // Find payment transaction
-            $transaction = PaymentTransaction::where('transaction_code', $transactionCode)->first();
+            $transaction = PaymentTransaction::where('transaction_code', $transactionCode)
+                ->orWhere('reference_no', $transactionCode)
+                ->first();
 
             if (!$transaction) {
                 Log::warning('[SingaPay Webhook] Transaction not found', [
@@ -62,13 +77,14 @@ class WebhookService
                 'failed', 'expired' => $this->handleFailedTransaction($transaction, $payload),
                 default => [
                     'success' => true,
-                    'message' => 'Webhook received but not processed',
+                    'message' => 'Webhook received but not processed (status: ' . $status . ')',
                 ],
             };
 
         } catch (\Exception $e) {
             Log::error('[SingaPay Webhook] Exception', [
                 'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'payload' => $payload,
             ]);
 
@@ -90,20 +106,36 @@ class WebhookService
             // Check if already processed
             if ($transaction->isPaid()) {
                 DB::commit();
+                Log::info('[SingaPay Webhook] Transaction already processed', [
+                    'transaction_id' => $transaction->id,
+                ]);
                 return [
                     'success' => true,
                     'message' => 'Transaction already processed',
                 ];
             }
 
+            // Parse paid_at timestamp
+            $paidAtTimestamp = null;
+            if ($paidAt) {
+                // Handle different timestamp formats
+                if (is_numeric($paidAt)) {
+                    // Unix timestamp in milliseconds
+                    $paidAtTimestamp = Carbon::createFromTimestampMs($paidAt);
+                } else {
+                    // Date string format
+                    $paidAtTimestamp = Carbon::parse($paidAt);
+                }
+            }
+
             // Update transaction status
-            $transaction->markAsPaid($paidAt ? Carbon::parse($paidAt) : now());
+            $transaction->markAsPaid($paidAtTimestamp ?? now(), $payload);
 
             // Get purchase
             $purchase = $transaction->pdfPurchase;
 
             if (!$purchase) {
-                throw new \Exception('Purchase not found');
+                throw new \Exception('Purchase not found for transaction ' . $transaction->id);
             }
 
             // Activate purchase
@@ -121,6 +153,8 @@ class WebhookService
                 'transaction_id' => $transaction->id,
                 'purchase_id' => $purchase->id,
                 'user_id' => $user->id ?? null,
+                'package_type' => $purchase->package_type,
+                'expires_at' => $purchase->expires_at,
             ]);
 
             return [
@@ -139,6 +173,7 @@ class WebhookService
             Log::error('[SingaPay Webhook] Failed to process payment', [
                 'transaction_id' => $transaction->id,
                 'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
@@ -196,55 +231,86 @@ class WebhookService
             'pdf_access_package' => $purchase->package_type,
             'pdf_access_active' => true,
         ]);
+
+        Log::info('[SingaPay Webhook] User access updated', [
+            'user_id' => $user->id,
+            'package' => $purchase->package_type,
+            'expires_at' => $purchase->expires_at,
+        ]);
     }
 
     /**
-     * Validate webhook signature
+     * Validate webhook signature (VA & QRIS)
+     * Sesuai dokumentasi: HMAC-SHA256 dengan sorted JSON body dan client_id sebagai secret
      */
-    protected function validateSignature(array $payload): bool
+    protected function validateWebhookSignature(Request $request): bool
     {
         // In mock mode, skip signature validation
         if (config('singapay.mode') === 'mock') {
+            Log::info('[SingaPay Webhook] Skipping signature validation (mock mode)');
             return true;
         }
 
-        $signature = $payload['signature'] ?? null;
-        $webhookSecret = config('singapay.webhook.secret');
+        $signature = $request->header('X-Signature');
+        $clientId = config('singapay.client_id');
 
-        if (!$signature || !$webhookSecret) {
+        if (!$signature || !$clientId) {
+            Log::error('[SingaPay Webhook] Missing signature or client_id', [
+                'has_signature' => !empty($signature),
+                'has_client_id' => !empty($clientId),
+            ]);
             return false;
         }
 
-        // Remove signature from payload for validation
-        $dataToSign = $payload;
-        unset($dataToSign['signature']);
+        try {
+            // Get raw body
+            $body = $request->getContent();
+            $data = json_decode($body, true);
 
-        // Generate expected signature
-        $expectedSignature = $this->generateSignature($dataToSign, $webhookSecret);
+            if (!$data) {
+                Log::error('[SingaPay Webhook] Invalid JSON body');
+                return false;
+            }
 
-        return hash_equals($expectedSignature, $signature);
+            // Sort JSON by key recursively
+            $sortedData = $this->sortArrayRecursive($data);
+
+            // Encode with exact format: no slashes escaped, consistent spacing
+            $sortedBody = json_encode($sortedData, JSON_UNESCAPED_SLASHES);
+
+            // Generate expected signature using client_id as secret
+            $expectedSignature = hash_hmac('sha256', $sortedBody, $clientId);
+
+            Log::info('[SingaPay Webhook] Signature validation', [
+                'received_signature' => $signature,
+                'expected_signature' => $expectedSignature,
+                'sorted_body_length' => strlen($sortedBody),
+            ]);
+
+            return hash_equals($expectedSignature, $signature);
+
+        } catch (\Exception $e) {
+            Log::error('[SingaPay Webhook] Signature validation error', [
+                'message' => $e->getMessage(),
+            ]);
+            return false;
+        }
     }
 
     /**
-     * Generate webhook signature
+     * Sort array recursively by key
      */
-    protected function generateSignature(array $data, string $secret): string
+    protected function sortArrayRecursive(array $array): array
     {
-        // Sort data by key
-        ksort($data);
+        ksort($array);
 
-        // Create signature string
-        $signatureString = '';
-        foreach ($data as $key => $value) {
+        foreach ($array as $key => $value) {
             if (is_array($value)) {
-                $value = json_encode($value);
+                $array[$key] = $this->sortArrayRecursive($value);
             }
-            $signatureString .= $key . '=' . $value . '&';
         }
-        $signatureString = rtrim($signatureString, '&');
 
-        // Generate HMAC SHA512
-        return hash_hmac('sha512', $signatureString, $secret);
+        return $array;
     }
 
     /**
@@ -253,14 +319,46 @@ class WebhookService
     public function processMockWebhook(PaymentTransaction $transaction): array
     {
         $payload = [
-            'reff_no' => $transaction->transaction_code,
-            'status' => 'paid',
-            'paid_at' => now()->toIso8601String(),
-            'amount' => $transaction->amount,
-            'payment_method' => $transaction->payment_method,
-            'mock_mode' => true,
+            'status' => 200,
+            'success' => true,
+            'data' => [
+                'transaction' => [
+                    'reff_no' => $transaction->transaction_code,
+                    'type' => $transaction->payment_method === 'virtual_account' ? 'va' : 'qris',
+                    'status' => 'paid',
+                    'amount' => [
+                        'value' => number_format($transaction->amount, 2, '.', ''),
+                        'currency' => 'IDR',
+                    ],
+                    'post_timestamp' => now()->format('d M Y H:i:s'),
+                    'processed_timestamp' => now()->format('d M Y H:i:s'),
+                ],
+                'customer' => [
+                    'id' => $transaction->pdfPurchase->user_id,
+                    'name' => $transaction->pdfPurchase->user->name ?? 'Test User',
+                    'email' => $transaction->pdfPurchase->user->email ?? 'test@example.com',
+                    'phone' => '081234567890',
+                ],
+                'payment' => [
+                    'method' => $transaction->payment_method === 'virtual_account' ? 'va' : 'qris',
+                    'additional_info' => $transaction->payment_method === 'virtual_account' ? [
+                        'va_number' => $transaction->va_number,
+                        'bank' => [
+                            'short_name' => $transaction->bank_code,
+                            'bank_code' => $transaction->bank_code,
+                        ],
+                    ] : [
+                        'qr_string' => $transaction->qris_content,
+                    ],
+                ],
+            ],
         ];
 
-        return $this->processPaymentWebhook($payload);
+        // Create mock request
+        $mockRequest = Request::create('/webhook/test', 'POST', [], [], [], [], json_encode($payload));
+        $mockRequest->headers->set('X-Signature', 'mock_signature');
+        $mockRequest->headers->set('Content-Type', 'application/json');
+
+        return $this->processPaymentWebhook($payload, $mockRequest);
     }
 }

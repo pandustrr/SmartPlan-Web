@@ -30,12 +30,24 @@ class WebhookController extends Controller
 
             Log::info('[SingaPay Webhook] Received payment webhook', [
                 'payload' => $payload,
-                'headers' => $request->headers->all(),
+                'headers' => [
+                    'X-Signature' => $request->header('X-Signature'),
+                    'X-Partner-ID' => $request->header('X-Partner-ID'),
+                    'Content-Type' => $request->header('Content-Type'),
+                ],
+                'ip' => $request->ip(),
             ]);
 
-            $result = $this->webhookService->processPaymentWebhook($payload);
+            // Process webhook - PERBAIKAN: Pass Request object untuk signature validation
+            $result = $this->webhookService->processPaymentWebhook($payload, $request);
 
             $statusCode = $result['success'] ? 200 : 400;
+
+            Log::info('[SingaPay Webhook] Response sent', [
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'status_code' => $statusCode,
+            ]);
 
             return response()->json([
                 'success' => $result['success'],
@@ -46,6 +58,8 @@ class WebhookController extends Controller
             Log::error('[SingaPay Webhook] Exception', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([
@@ -63,6 +77,7 @@ class WebhookController extends Controller
      */
     public function handleVirtualAccount(Request $request): JsonResponse
     {
+        Log::info('[SingaPay Webhook] Virtual Account webhook received');
         return $this->handlePayment($request);
     }
 
@@ -74,6 +89,7 @@ class WebhookController extends Controller
      */
     public function handleQris(Request $request): JsonResponse
     {
+        Log::info('[SingaPay Webhook] QRIS webhook received');
         return $this->handlePayment($request);
     }
 
@@ -96,7 +112,8 @@ class WebhookController extends Controller
             'transaction_code' => 'required|string',
         ]);
 
-        $transaction = \App\Models\Singapay\PaymentTransaction::where('transaction_code', $validated['transaction_code'])->first();
+        $transaction = \App\Models\Singapay\PaymentTransaction::where('transaction_code', $validated['transaction_code'])
+            ->first();
 
         if (!$transaction) {
             return response()->json([
@@ -104,6 +121,11 @@ class WebhookController extends Controller
                 'message' => 'Transaction not found',
             ], 404);
         }
+
+        Log::info('[SingaPay Webhook] Test webhook triggered', [
+            'transaction_code' => $validated['transaction_code'],
+            'transaction_id' => $transaction->id,
+        ]);
 
         $result = $this->webhookService->processMockWebhook($transaction);
 

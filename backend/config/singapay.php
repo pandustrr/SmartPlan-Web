@@ -3,6 +3,8 @@
 /**
  * SINGAPAY B2B PAYMENT GATEWAY CONFIGURATION
  * For Export PDF Pro Payment System
+ *
+ * @see https://docs-payment-b2b.singapay.id
  */
 
 return [
@@ -12,6 +14,9 @@ return [
     | Operating Mode
     |--------------------------------------------------------------------------
     | Supported: "mock", "sandbox", "production"
+    | - mock: For local development, no real API calls
+    | - sandbox: For testing with Singapay sandbox environment
+    | - production: For live transactions
     */
     'mode' => env('SINGAPAY_MODE', 'mock'),
 
@@ -19,6 +24,7 @@ return [
     |--------------------------------------------------------------------------
     | API Credentials
     |--------------------------------------------------------------------------
+    | Get these from Singapay Merchant Dashboard
     */
     'partner_id' => env('SINGAPAY_PARTNER_ID'),
     'client_id' => env('SINGAPAY_CLIENT_ID'),
@@ -37,18 +43,19 @@ return [
     |--------------------------------------------------------------------------
     | PDF Payment Packages
     |--------------------------------------------------------------------------
+    | Default package configurations (also seeded in database)
     */
     'packages' => [
         'monthly' => [
             'name' => 'Paket Bulanan',
             'duration_days' => 30,
-            'price' => 200000,
+            'price' => 200000, // Rp 200,000
             'description' => 'Export PDF Pro tanpa watermark - 30 hari',
         ],
         'yearly' => [
             'name' => 'Paket Tahunan',
             'duration_days' => 365,
-            'price' => 1680000,
+            'price' => 1680000, // Rp 1,680,000 (hemat 30%)
             'description' => 'Export PDF Pro tanpa watermark - 365 hari (Hemat 30%)',
         ],
     ],
@@ -60,9 +67,9 @@ return [
     */
     'virtual_account' => [
         'banks' => ['BRI', 'BNI', 'DANAMON', 'MAYBANK'],
-        'expiry_hours' => 24,
-        'kind' => 'temporary',
-        'max_usage' => 1,
+        'expiry_hours' => env('SINGAPAY_VA_EXPIRY_HOURS', 24),
+        'kind' => env('SINGAPAY_VA_KIND', 'temporary'), // temporary or permanent
+        'max_usage' => env('SINGAPAY_VA_MAX_USAGE', 1), // 1-255 for temporary VA
     ],
 
     /*
@@ -71,7 +78,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'qris' => [
-        'expiry_hours' => 1,
+        'expiry_hours' => env('SINGAPAY_QRIS_EXPIRY_HOURS', 1),
+        'enable_tip' => env('SINGAPAY_QRIS_ENABLE_TIP', false),
     ],
 
     /*
@@ -81,27 +89,39 @@ return [
     */
     'webhook' => [
         'secret' => env('SINGAPAY_WEBHOOK_SECRET'),
-        'url' => env('SINGAPAY_WEBHOOK_URL', env('APP_URL') . '/api/webhooks/singapay/pdf-payment'),
+        'url' => env('SINGAPAY_WEBHOOK_URL', env('APP_URL') . '/api/webhook/singapay/payment'),
+        'signature_validation' => env('SINGAPAY_WEBHOOK_SIGNATURE_VALIDATION', true),
+        'ip_whitelist' => env('SINGAPAY_WEBHOOK_IP_WHITELIST', ''), // Comma-separated IPs
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Mock Configuration
+    | Mock Configuration (for local testing)
     |--------------------------------------------------------------------------
     */
     'mock' => [
-        'auto_approve_delay' => 5,
-        'success_rate' => 100,
+        // Auto-approve payment after X seconds (0 = disabled)
+        'auto_approve_delay' => env('SINGAPAY_MOCK_AUTO_APPROVE_DELAY', 5),
+
+        // Success rate percentage (0-100)
+        'success_rate' => env('SINGAPAY_MOCK_SUCCESS_RATE', 100),
+
+        // Simulate API response delay in seconds
+        'response_delay' => env('SINGAPAY_MOCK_RESPONSE_DELAY', 1),
+
+        // Enable detailed mock logging
+        'verbose_logging' => env('SINGAPAY_MOCK_VERBOSE_LOGGING', true),
     ],
 
     /*
     |--------------------------------------------------------------------------
     | Cache Configuration
     |--------------------------------------------------------------------------
+    | Access token caching to reduce API calls
     */
     'cache' => [
-        'enabled' => true,
-        'ttl' => 3600,
+        'enabled' => env('SINGAPAY_CACHE_ENABLED', true),
+        'ttl' => env('SINGAPAY_CACHE_TTL', 3000), // 50 minutes (token expires in 60)
         'prefix' => 'singapay_token_',
     ],
 
@@ -113,16 +133,30 @@ return [
     'logging' => [
         'enabled' => env('SINGAPAY_LOGGING', true),
         'channel' => env('SINGAPAY_LOG_CHANNEL', 'daily'),
+        'level' => env('SINGAPAY_LOG_LEVEL', 'info'), // debug, info, warning, error
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Timeout & Retry
+    | Timeout & Retry Configuration
     |--------------------------------------------------------------------------
     */
-    'timeout' => env('SINGAPAY_TIMEOUT', 30),
+    'timeout' => env('SINGAPAY_TIMEOUT', 30), // seconds
+
     'retry' => [
-        'max_attempts' => 3,
-        'delay' => 1000,
+        'max_attempts' => env('SINGAPAY_RETRY_MAX_ATTEMPTS', 3),
+        'delay' => env('SINGAPAY_RETRY_DELAY', 1000), // milliseconds
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Feature Flags
+    |--------------------------------------------------------------------------
+    */
+    'features' => [
+        'enable_payment_link' => env('SINGAPAY_ENABLE_PAYMENT_LINK', false),
+        'enable_disbursement' => env('SINGAPAY_ENABLE_DISBURSEMENT', false),
+        'enable_qris' => env('SINGAPAY_ENABLE_QRIS', true),
+        'enable_virtual_account' => env('SINGAPAY_ENABLE_VIRTUAL_ACCOUNT', true),
     ],
 ];

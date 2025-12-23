@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PdfPurchase extends Model
 {
@@ -115,6 +116,7 @@ class PdfPurchase extends Model
 
     /**
      * Activate purchase
+     * 🔧 FIXED: Type casting untuk duration_days
      */
     public function activate(): bool
     {
@@ -122,9 +124,16 @@ class PdfPurchase extends Model
         $this->started_at = now();
         $this->paid_at = now();
 
-        // Calculate expiry based on package duration
+        // 🔧 FIX: Ensure duration_days is integer
         if ($this->premiumPdf) {
-            $this->expires_at = now()->addDays($this->premiumPdf->duration_days);
+            $durationDays = (int) $this->premiumPdf->duration_days;
+            $this->expires_at = now()->addDays($durationDays);
+
+            Log::info('[PdfPurchase] Activating purchase', [
+                'purchase_id' => $this->id,
+                'duration_days' => $durationDays,
+                'expires_at' => $this->expires_at->toDateTimeString(),
+            ]);
         }
 
         return $this->save();

@@ -92,7 +92,19 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+      <style>{`
+        @media (prefers-color-scheme: dark) {
+          .custom-green { color: #10b517 !important; }
+          .custom-green-bg { background-color: rgba(16, 181, 23, 0.2) !important; }
+          .custom-green-border:hover { border-color: rgba(16, 181, 23, 0.5) !important; }
+        }
+        @media (prefers-color-scheme: light) {
+          .custom-green { color: #084404 !important; }
+          .custom-green-bg { background-color: rgba(8, 68, 4, 0.15) !important; }
+          .custom-green-border:hover { border-color: rgba(8, 68, 4, 0.3) !important; }
+        }
+      `}</style>
       {/* Navigation */}
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
@@ -100,14 +112,14 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       <section className="pt-32 pb-20 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-6 custom-green-bg custom-green">
               <Zap className="w-4 h-4 mr-2" />
-              Platform Manajemen Bisni
+              Platform Manajemen Bisnis
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
               Kelola Bisnis Lebih
-              <span className="text-green-600 dark:text-green-400 block">
+              <span className="block custom-green">
                 Cerdas & Efisien
               </span>
             </h1>
@@ -121,14 +133,19 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 to="/register"
-                className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-all duration-200 font-medium text-lg inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="text-white px-8 py-4 rounded-lg transition-all duration-200 font-medium text-lg inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                style={{ backgroundColor: isDarkMode ? '#10b517' : '#084404' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#0d9414' : '#0a5505'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#10b517' : '#084404'}
               >
                 Mulai Sekarang Gratis
                 <ArrowRight className="ml-2" size={20} />
               </Link>
               <Link
                 to="#features"
-                className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-lg hover:border-green-600 dark:hover:border-green-400 transition-all duration-200 font-medium text-lg hover:shadow-lg"
+                className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-lg transition-all duration-200 font-medium text-lg hover:shadow-lg"
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = isDarkMode ? '#10b517' : '#084404'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
               >
                 Pelajari Fitur
               </Link>
@@ -139,7 +156,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                <div className="text-3xl font-bold mb-2 custom-green">
                   {stat.number}
                 </div>
                 <div className="text-gray-600 dark:text-gray-400 font-medium">
@@ -171,11 +188,11 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               return (
                 <div
                   key={index}
-                  className="bg-gray-50 dark:bg-gray-700 p-8 rounded-2xl hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-600 hover:border-green-200 dark:hover:border-green-800 group"
+                  className="bg-gray-50 dark:bg-gray-700 p-8 rounded-2xl hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-600 group custom-green-border"
                 >
-                  <div className="w-14 h-14 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 custom-green-bg">
                     <Icon
-                      className="text-green-600 dark:text-green-400"
+                      className="custom-green"
                       size={28}
                     />
                   </div>
@@ -210,9 +227,9 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               const Icon = benefit.icon;
               return (
                 <div key={index} className="text-center group">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300 custom-green-bg">
                     <Icon
-                      className="text-green-600 dark:text-green-400"
+                      className="custom-green"
                       size={32}
                     />
                   </div>
@@ -245,14 +262,14 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-2xl">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4" style={{ backgroundColor: isDarkMode ? '#10b517' : '#084404' }}>
                   AS
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white">
                     Ahmad Setyawan
                   </h4>
-                  <p className="text-green-600 dark:text-green-400 text-sm">
+                  <p className="text-sm custom-green">
                     CEO RetailHub
                   </p>
                 </div>
@@ -273,7 +290,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                   <h4 className="font-bold text-gray-900 dark:text-white">
                     Dewi Sartika
                   </h4>
-                  <p className="text-green-600 dark:text-green-400 text-sm">
+                  <p className="text-sm custom-green">
                     Founder TechStart
                   </p>
                 </div>
@@ -291,32 +308,35 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       {/* CTA Section */}
       <section
         id="contact"
-        className="py-20 px-6 bg-linear-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700"
+        className="py-20 px-6"
+        style={{ background: isDarkMode ? 'linear-gradient(to right, #10b517, #0d9414)' : 'linear-gradient(to right, #084404, #0a5505)' }}
       >
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Siap Mengoptimalkan Bisnis Anda?
           </h2>
-          <p className="text-green-100 text-xl mb-8 max-w-2xl mx-auto">
+          <p className="text-xl mb-8 max-w-2xl mx-auto" style={{ color: 'rgb(255 255 255 / 0.9)' }}>
             Bergabung dengan ratusan bisnis yang sudah mengalami transformasi
             digital dan mencapai pertumbuhan yang signifikan dengan Grapadi Strategix.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="bg-white text-green-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-all duration-200 font-bold text-lg inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="bg-white px-8 py-4 rounded-lg hover:bg-gray-100 transition-all duration-200 font-bold text-lg inline-flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              style={{ color: isDarkMode ? '#10b517' : '#084404' }}
             >
               Mulai Gratis Sekarang
               <ArrowRight className="ml-2" size={20} />
             </Link>
             <Link
               to="/login"
-              className="border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white hover:text-green-600 transition-all duration-200 font-bold text-lg"
+              className="border-2 border-white text-white px-8 py-4 rounded-lg transition-all duration-200 font-bold text-lg"
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = isDarkMode ? '#10b517' : '#084404' }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'white' }}
             >
               Masuk ke Akun
             </Link>
           </div>
-          <p className="text-green-200 mt-4 text-sm">
+          <p className="mt-4 text-sm" style={{ color: 'rgb(255 255 255 / 0.7)' }}>
             Tidak perlu kartu kredit • Akses penuh 14 hari • Setup dalam 5 menit
           </p>
         </div>
