@@ -24,35 +24,40 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           to="/"
           className="text-2xl font-bold text-gray-900 dark:text-white"
         >
-          <span className="text-green-600 dark:text-green-400">Grapadi</span> Strategix
+          <span style={{ color: '#167814' }}>Grapadi</span> Strategix
         </Link>
 
         {/* ========== DESKTOP MENU ========== */}
         <div className="hidden md:flex items-center space-x-8">
           <Link
             to="/"
-            className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors"
+            className="text-gray-700 dark:text-gray-300 font-medium transition-colors"
+            style={{ ':hover': { color: '#084404' } }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#084404'}
+            onMouseLeave={(e) => e.currentTarget.style.color = ''}
           >
             Home
           </Link>
           <a
             href="#features"
-            className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors"
+            className="text-gray-700 dark:text-gray-300 font-medium transition-colors"
+            onMouseEnter={(e) => e.currentTarget.style.color = '#084404'}
+            onMouseLeave={(e) => e.currentTarget.style.color = ''}
           >
             Features
           </a>
-          <a
+          {/* <a
             href="#about"
             className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors"
           >
             About
-          </a>
-          <a
+          </a> */}
+          {/* <a
             href="#contact"
             className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors"
           >
             Contact
-          </a>
+          </a> */}
         </div>
 
         {/* ========== DARK MODE + CTA BUTTONS (DESKTOP) ========== */}
@@ -71,13 +76,18 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
 
           <Link
             to="/login"
-            className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors"
+            className="text-gray-700 dark:text-gray-300 font-medium transition-colors"
+            onMouseEnter={(e) => e.currentTarget.style.color = '#084404'}
+            onMouseLeave={(e) => e.currentTarget.style.color = ''}
           >
             Sign In
           </Link>
           <Link
             to="/register"
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-all font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
+            className="text-white px-6 py-2 rounded-lg transition-all font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
+            style={{ backgroundColor: '#084404' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0a5505'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#084404'}
           >
             Mulai Gratis
           </Link>
@@ -97,11 +107,10 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
 
         {/* ========== MOBILE MENU (FULLSCREEN) ========== */}
         <div
-          className={`fixed inset-0 z-40 flex flex-col items-center justify-center dark:bg-gray-800 bg-white h-200 transition-all duration-500 ease-in-out transform ${
-            isOpen
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 -translate-y-full pointer-events-none"
-          }`}
+          className={`fixed inset-0 z-40 flex flex-col items-center justify-center dark:bg-gray-800 bg-white h-200 transition-all duration-500 ease-in-out transform ${isOpen
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-full pointer-events-none"
+            }`}
         >
           <ul className="w-full space-y-6 text-center dark:text-white font-medium text-lg">
             <li>
