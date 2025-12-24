@@ -84,13 +84,6 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
     },
   ];
 
-  const stats = [
-    { number: "500+", label: "Bisnis Terkelola" },
-    { number: "98%", label: "Kepuasan Pengguna" },
-    { number: "24/7", label: "Support Available" },
-    { number: "50K+", label: "Laporan Dibuat" },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
       <style>{`
@@ -152,19 +145,6 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
           </div>
 
-          {/* Stats Section */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold mb-2 custom-green">
-                  {stat.number}
-                </div>
-                <div className="text-gray-600 dark:text-gray-400 font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
