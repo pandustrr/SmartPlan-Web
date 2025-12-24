@@ -89,14 +89,14 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
       <style>{`
         @media (prefers-color-scheme: dark) {
-          .custom-green { color: #10b517 !important; }
+          .custom-green { color: #10B517 !important; }
           .custom-green-bg { background-color: rgba(16, 181, 23, 0.2) !important; }
           .custom-green-border:hover { border-color: rgba(16, 181, 23, 0.5) !important; }
         }
         @media (prefers-color-scheme: light) {
-          .custom-green { color: #084404 !important; }
-          .custom-green-bg { background-color: rgba(8, 68, 4, 0.15) !important; }
-          .custom-green-border:hover { border-color: rgba(8, 68, 4, 0.3) !important; }
+          .custom-green { color: #167814 !important; }
+          .custom-green-bg { background-color: rgba(22, 120, 20, 0.15) !important; }
+          .custom-green-border:hover { border-color: rgba(22, 120, 20, 0.3) !important; }
         }
       `}</style>
       {/* Navigation */}
@@ -138,7 +138,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               <Link
                 to="#features"
                 className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-lg transition-all duration-200 font-medium text-lg hover:shadow-lg"
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = isDarkMode ? '#10b517' : '#084404'}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = isDarkMode ? '#10B517' : '#167814'}
                 onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
               >
                 Pelajari Fitur
@@ -361,7 +361,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       <section
         id="contact"
         className="relative py-24 px-6 overflow-hidden"
-        style={{ background: isDarkMode ? 'linear-gradient(135deg, #10b517 0%, #0d9414 50%, #084404 100%)' : 'linear-gradient(135deg, #084404 0%, #0a5505 50%, #10b517 100%)' }}
+        style={{ background: isDarkMode ? 'linear-gradient(135deg, #10B517 0%, #0d9414 50%, #084404 100%)' : 'linear-gradient(135deg, #167814 0%, #10B517 50%, #084404 100%)' }}
       >
         {/* Animated Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
@@ -389,7 +389,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               <Link
                 to="/register"
                 className="bg-white px-8 py-4 rounded-xl hover:bg-gray-100 transition-all duration-200 font-bold text-lg inline-flex items-center justify-center shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 hover:scale-105"
-                style={{ color: isDarkMode ? '#10b517' : '#084404' }}
+                style={{ color: isDarkMode ? '#10B517' : '#167814' }}
               >
                 <CheckCircle className="mr-2" size={20} />
                 Mulai Gratis Sekarang
@@ -398,7 +398,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               <Link
                 to="/login"
                 className="border-2 border-white/80 text-white px-8 py-4 rounded-xl transition-all duration-200 font-bold text-lg backdrop-blur-sm bg-white/10 hover:bg-white hover:scale-105 transform"
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = isDarkMode ? '#10b517' : '#084404' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = isDarkMode ? '#10B517' : '#167814' }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white' }}
               >
                 Masuk ke Akun

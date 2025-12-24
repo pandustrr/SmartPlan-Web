@@ -33,7 +33,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
             to="/"
             className="text-gray-700 dark:text-gray-300 font-medium transition-colors"
             style={{ ':hover': { color: '#084404' } }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#084404'}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#167814'}
             onMouseLeave={(e) => e.currentTarget.style.color = ''}
           >
             Home
@@ -41,7 +41,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           <a
             href="#features"
             className="text-gray-700 dark:text-gray-300 font-medium transition-colors"
-            onMouseEnter={(e) => e.currentTarget.style.color = '#084404'}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#167814'}
             onMouseLeave={(e) => e.currentTarget.style.color = ''}
           >
             Features
@@ -85,9 +85,9 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           <Link
             to="/register"
             className="text-white px-6 py-2 rounded-lg transition-all font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
-            style={{ backgroundColor: '#084404' }}
+            style={{ backgroundColor: '#167814' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0a5505'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#084404'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167814'}
           >
             Mulai Gratis
           </Link>

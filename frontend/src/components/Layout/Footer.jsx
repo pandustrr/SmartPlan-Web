@@ -24,15 +24,15 @@ const Footer = () => {
                         {/* Contact Info */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
-                                <Mail size={18} style={{ color: '#10b517' }} />
+                                <Mail size={18} style={{ color: '#167814' }} />
                                 <a href="mailto:support@grapadistrategix.com">support@grapadistrategix.com</a>
                             </div>
                             <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
-                                <Phone size={18} style={{ color: '#10b517' }} />
+                                <Phone size={18} style={{ color: '#167814' }} />
                                 <a href="tel:+6281234567890">+62 812-3456-7890</a>
                             </div>
                             <div className="flex items-center gap-3 text-gray-400">
-                                <MapPin size={18} style={{ color: '#10b517' }} />
+                                <MapPin size={18} style={{ color: '#167814' }} />
                                 <span>Jakarta, Indonesia</span>
                             </div>
                         </div>
@@ -69,7 +69,7 @@ const Footer = () => {
                         {/* Copyright */}
                         <div className="text-gray-400 text-sm text-center md:text-left">
                             <p>&copy; 2025 Grapadi Strategix. All rights reserved.</p>
-                            <p className="mt-1">Built with <span style={{ color: '#10b517' }}></span> for business growth</p>
+                            <p className="mt-1">Built with <span style={{ color: '#167814' }}></span> for business growth</p>
                         </div>
 
                         {/* Social Media Links */}
