@@ -22,6 +22,7 @@ use App\Http\Controllers\Forecast\PdfForecastController;
 use App\Http\Controllers\Affiliate\AffiliateLinkController;
 use App\Http\Controllers\Affiliate\AffiliateTrackController;
 use App\Http\Controllers\Affiliate\AffiliateLeadController;
+use App\Http\Controllers\Affiliate\AffiliateCommissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Singapay\PdfPaymentController;
 use App\Http\Controllers\Singapay\WebhookController;
@@ -267,6 +268,13 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::get('/{lead}', [AffiliateLeadController::class, 'show']);
             Route::patch('/{lead}/status', [AffiliateLeadController::class, 'updateStatus']);
         });
+
+        Route::prefix('commissions')->group(function () {
+            Route::get('/statistics', [AffiliateCommissionController::class, 'getStatistics']);
+            Route::get('/history', [AffiliateCommissionController::class, 'getHistory']);
+            Route::get('/withdrawable', [AffiliateCommissionController::class, 'getWithdrawableBalance']);
+            Route::post('/withdraw', [AffiliateCommissionController::class, 'requestWithdrawal']);
+        });
     });
 
     // =====================================
@@ -317,10 +325,10 @@ Route::prefix('webhook/singapay')->group(function () {
     // 🔒 Rate limiting: 60 webhooks/minute untuk mencegah DoS/spam
     Route::post('/payment', [WebhookController::class, 'handlePayment'])
         ->middleware('throttle:60,1');
-    
+
     Route::post('/virtual-account', [WebhookController::class, 'handleVirtualAccount'])
         ->middleware('throttle:60,1');
-    
+
     Route::post('/qris', [WebhookController::class, 'handleQris'])
         ->middleware('throttle:60,1');
 

@@ -58,6 +58,14 @@ class PdfPurchase extends Model
     }
 
     /**
+     * Get the affiliate commission (if exists)
+     */
+    public function affiliateCommission(): HasOne
+    {
+        return $this->hasOne(\App\Models\Affiliate\AffiliateCommission::class, 'purchase_id');
+    }
+
+    /**
      * Scope active purchases
      */
     public function scopeActive($query)
@@ -89,8 +97,8 @@ class PdfPurchase extends Model
     public function isActive(): bool
     {
         return $this->status === 'paid' &&
-               $this->expires_at &&
-               $this->expires_at->isFuture();
+            $this->expires_at &&
+            $this->expires_at->isFuture();
     }
 
     /**
@@ -99,8 +107,8 @@ class PdfPurchase extends Model
     public function isExpired(): bool
     {
         return $this->status === 'paid' &&
-               $this->expires_at &&
-               $this->expires_at->isPast();
+            $this->expires_at &&
+            $this->expires_at->isPast();
     }
 
     /**

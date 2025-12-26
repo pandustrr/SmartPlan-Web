@@ -44,6 +44,7 @@ class AuthController extends Controller
                 },
             ],
             'password' => 'required|string|min:8|confirmed',
+            'referral_code' => 'nullable|string', // Affiliate referral code
         ], [
             'phone.unique' => 'Nomor WhatsApp sudah terdaftar.',
         ]);
@@ -56,12 +57,29 @@ class AuthController extends Controller
             ], 422);
         }
 
+        // Check referral code and get referrer user ID
+        $referredByUserId = null;
+        if ($request->filled('referral_code')) {
+            $affiliateLink = AffiliateLink::where('slug', $request->referral_code)
+                ->where('is_active', true)
+                ->first();
+
+            if ($affiliateLink) {
+                $referredByUserId = $affiliateLink->user_id;
+                Log::info('[Register] User registered via affiliate link', [
+                    'referral_code' => $request->referral_code,
+                    'referrer_user_id' => $referredByUserId,
+                ]);
+            }
+        }
+
         // Buat user baru
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'referred_by_user_id' => $referredByUserId,
         ]);
 
         // Generate dan kirim OTP
@@ -234,8 +252,7 @@ class AuthController extends Controller
         }
 
         // Cek apakah input adalah phone atau username
-        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' :
-                    (preg_match('/^[0-9+]+$/', $request->login) ? 'phone' : 'username');
+        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : (preg_match('/^[0-9+]+$/', $request->login) ? 'phone' : 'username');
 
         // Attempt login
         $credentials = [

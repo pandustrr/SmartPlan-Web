@@ -2,6 +2,7 @@ import React from "react";
 import AffiliateLink from "./AffiliateLink";
 import AffiliateTracking from "./AffiliateTracking";
 import AffiliateLeads from "./AffiliateLeads";
+import AffiliateCommissions from "./AffiliateCommissions";
 
 const Affiliate = ({ activeSubSection }) => {
   const renderComponent = () => {
@@ -12,6 +13,8 @@ const Affiliate = ({ activeSubSection }) => {
         return <AffiliateTracking />;
       case "affiliate-leads":
         return <AffiliateLeads />;
+      case "affiliate-commissions":
+        return <AffiliateCommissions />;
       default:
         return <AffiliateLink />;
     }

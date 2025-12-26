@@ -25,6 +25,7 @@ class User extends Authenticatable
         'pdf_access_expires_at',
         'pdf_access_package',
         'pdf_access_active',
+        'referred_by_user_id',
     ];
 
     protected $hidden = [
@@ -127,5 +128,41 @@ class User extends Authenticatable
         return $this->pdf_access_active
             && $this->pdf_access_expires_at
             && $this->pdf_access_expires_at->isFuture();
+    }
+
+    // =====================================
+    // Affiliate Relations
+    // =====================================
+
+    /**
+     * Get the user who referred this user (User A who owns the affiliate link)
+     */
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referred_by_user_id');
+    }
+
+    /**
+     * Get all users referred by this user
+     */
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referred_by_user_id');
+    }
+
+    /**
+     * Get affiliate commissions earned by this user
+     */
+    public function affiliateCommissions()
+    {
+        return $this->hasMany(\App\Models\Affiliate\AffiliateCommission::class, 'affiliate_user_id');
+    }
+
+    /**
+     * Get affiliate link for this user
+     */
+    public function affiliateLink()
+    {
+        return $this->hasOne(\App\Models\Affiliate\AffiliateLink::class);
     }
 }

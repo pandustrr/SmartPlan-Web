@@ -72,7 +72,7 @@ class WebhookService
             ]);
 
             // Process based on status
-            return match(strtolower($status)) {
+            return match (strtolower($status)) {
                 'paid', 'success' => $this->handlePaidTransaction($transaction, $payload, $paidAt),
                 'failed', 'expired' => $this->handleFailedTransaction($transaction, $payload),
                 default => [
@@ -80,7 +80,6 @@ class WebhookService
                     'message' => 'Webhook received but not processed (status: ' . $status . ')',
                 ],
             };
-
         } catch (\Exception $e) {
             Log::error('[SingaPay Webhook] Exception', [
                 'message' => $e->getMessage(),
@@ -147,6 +146,17 @@ class WebhookService
                 $this->updateUserAccess($user, $purchase);
             }
 
+            // Calculate affiliate commission (if applicable)
+            $affiliateCommissionService = app(\App\Services\AffiliateCommissionService::class);
+            $commission = $affiliateCommissionService->calculateCommission($purchase);
+
+            if ($commission) {
+                Log::info('[SingaPay Webhook] Affiliate commission created', [
+                    'commission_id' => $commission->id,
+                    'commission_amount' => $commission->commission_amount,
+                ]);
+            }
+
             DB::commit();
 
             Log::info('[SingaPay Webhook] Payment processed successfully', [
@@ -166,7 +176,6 @@ class WebhookService
                     'expires_at' => $purchase->expires_at,
                 ],
             ];
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -207,7 +216,6 @@ class WebhookService
                 'success' => true,
                 'message' => 'Transaction marked as failed',
             ];
-
         } catch (\Exception $e) {
             Log::error('[SingaPay Webhook] Failed to mark transaction as failed', [
                 'transaction_id' => $transaction->id,
@@ -288,7 +296,6 @@ class WebhookService
             ]);
 
             return hash_equals($expectedSignature, $signature);
-
         } catch (\Exception $e) {
             Log::error('[SingaPay Webhook] Signature validation error', [
                 'message' => $e->getMessage(),

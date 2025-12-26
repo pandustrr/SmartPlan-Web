@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -14,6 +9,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import OtpVerification from "./pages/OtpVerification";
 import AffiliateLandingPage from "./components/Affiliate/AffiliateLandingPage";
+import AffiliateLinkRedirect from "./components/Affiliate/AffiliateLinkRedirect";
 
 // 🔔 Import react-toastify
 import { ToastContainer } from "react-toastify";
@@ -99,30 +95,19 @@ function AppContent() {
       <Router>
         <Routes>
           {/* 🌍 Public Routes */}
-          <Route
-            path="/"
-            element={
-              <LandingPage
-                isDarkMode={isDarkMode}
-                toggleDarkMode={toggleDarkMode}
-              />
-            }
-          />
+          <Route path="/" element={<LandingPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
 
-          {/* 🔗 Affiliate Landing Page Route */}
-          <Route
-            path="/affiliate/:slug"
-            element={<AffiliateLandingPage />}
-          />
+          {/* 🔗 Affiliate Landing Page Route (OLD - for lead capture) */}
+          <Route path="/affiliate/landing/:slug" element={<AffiliateLandingPage />} />
+
+          {/* 🔗 Affiliate Link Redirect (NEW - for tracking & redirect) */}
+          <Route path="/affiliate/:slug" element={<AffiliateLinkRedirect />} />
 
           <Route
             path="/login"
             element={
               <PublicRoute>
-                <Login
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+                <Login isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
               </PublicRoute>
             }
           />
@@ -131,10 +116,7 @@ function AppContent() {
             path="/register"
             element={
               <PublicRoute>
-                <Register
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+                <Register isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
               </PublicRoute>
             }
           />
@@ -144,10 +126,7 @@ function AppContent() {
             path="/verify-otp"
             element={
               <VerificationRoute>
-                <OtpVerification
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+                <OtpVerification isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
               </VerificationRoute>
             }
           />
@@ -156,10 +135,7 @@ function AppContent() {
             path="/forgot-password"
             element={
               <PublicRoute>
-                <ForgotPassword
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+                <ForgotPassword isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
               </PublicRoute>
             }
           />
@@ -168,10 +144,7 @@ function AppContent() {
             path="/reset-password"
             element={
               <PublicRoute>
-                <ResetPassword
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+                <ResetPassword isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
               </PublicRoute>
             }
           />
@@ -181,10 +154,7 @@ function AppContent() {
             path="/dashboard/*"
             element={
               <ProtectedRoute>
-                <Dashboard
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+                <Dashboard isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
               </ProtectedRoute>
             }
           />
@@ -203,18 +173,7 @@ function App() {
       <AppContent />
 
       {/* ✅ ToastContainer biar toast muncul */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-        style={{ zIndex: 9999 }}
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="colored" style={{ zIndex: 9999 }} />
     </AuthProvider>
   );
 }

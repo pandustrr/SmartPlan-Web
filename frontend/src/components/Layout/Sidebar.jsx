@@ -171,6 +171,11 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           label: "Lead Management",
           icon: Users2,
         },
+        {
+          id: "affiliate-commissions",
+          label: "Komisi",
+          icon: DollarSign,
+        },
       ],
     },
 
