@@ -89,7 +89,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
             const confirmClose = window.confirm(
                 "Pembayaran masih dalam proses. Yakin ingin menutup? Anda bisa kembali lagi nanti untuk mengecek status."
             );
-            
+
             if (confirmClose) {
                 onCloseRef.current();
             }
@@ -110,7 +110,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
         setTimeRemaining(null);
         isClosingRef.current = false;
         stopPolling();
-        
+
         if (countdownIntervalRef.current) {
             clearInterval(countdownIntervalRef.current);
             countdownIntervalRef.current = null;
@@ -196,21 +196,21 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
     const startPaymentPolling = useCallback((txCode) => {
         // Hentikan polling sebelumnya jika ada
         stopPolling();
-        
+
         // Check pertama kali
         checkPaymentStatus(txCode);
-        
+
         // Setup interval baru
         checkIntervalRef.current = setInterval(() => {
             setRetryCount(prev => {
                 const newCount = prev + 1;
-                
+
                 if (newCount >= MAX_RETRIES) {
                     stopPolling();
                     showToast("Polling timeout. Refresh manual atau tunggu pembayaran.", "warning");
                     return newCount;
                 }
-                
+
                 checkPaymentStatus(txCode);
                 return newCount;
             });
@@ -223,7 +223,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
 
         try {
             setChecking(true);
-            
+
             const response = await axios.get(`${apiUrl}/api/payment/status/${txCode}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
@@ -231,7 +231,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
             if (response.data.success && response.data.paid) {
                 setPaymentStatus("paid");
                 stopPolling();
-                
+
                 showToast("🎉 Pembayaran berhasil! Akses PDF Pro telah aktif.", "success");
 
                 if (onSuccess) {
@@ -240,12 +240,12 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
 
                 // Set flag dan delay close
                 isClosingRef.current = true;
-                
+
                 setTimeout(() => {
                     // Gunakan onCloseRef.current agar mendapatkan value terbaru
                     onCloseRef.current();
                 }, 2500);
-                
+
             } else if (response.data.status === "expired" || response.data.status === "failed") {
                 setPaymentStatus(response.data.status);
                 stopPolling();
@@ -262,7 +262,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
 
         try {
             setLoading(true);
-            
+
             const response = await axios.post(`${apiUrl}/api/webhook/singapay/test`, {
                 transaction_code: transactionCode
             }, {
@@ -302,15 +302,15 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
 
     const getQRISImageSrc = () => {
         if (!paymentData) return null;
-        
+
         const qrisContent = paymentData.qris_content || paymentData.qr_data;
-        
+
         if (!qrisContent) return null;
-        
+
         if (qrisContent.startsWith('http')) {
             return qrisContent;
         }
-        
+
         return `data:image/png;base64,${qrisContent}`;
     };
 
@@ -343,31 +343,28 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div key={s.num} className="flex items-center flex-1">
                                 <div className="flex items-center flex-1">
                                     <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
-                                            step >= s.num
-                                                ? "bg-indigo-600 text-white"
-                                                : "bg-gray-200 dark:bg-gray-700 text-gray-500"
-                                        }`}
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step >= s.num
+                                            ? "bg-indigo-600 text-white"
+                                            : "bg-gray-200 dark:bg-gray-700 text-gray-500"
+                                            }`}
                                     >
                                         {step > s.num ? <FiCheck /> : s.num}
                                     </div>
                                     <span
-                                        className={`ml-2 text-sm font-medium ${
-                                            step >= s.num
-                                                ? "text-gray-900 dark:text-white"
-                                                : "text-gray-500"
-                                        }`}
+                                        className={`ml-2 text-sm font-medium ${step >= s.num
+                                            ? "text-gray-900 dark:text-white"
+                                            : "text-gray-500"
+                                            }`}
                                     >
                                         {s.label}
                                     </span>
                                 </div>
                                 {idx < 2 && (
                                     <div
-                                        className={`flex-1 h-1 mx-2 ${
-                                            step > s.num
-                                                ? "bg-indigo-600"
-                                                : "bg-gray-200 dark:bg-gray-700"
-                                        }`}
+                                        className={`flex-1 h-1 mx-2 ${step > s.num
+                                            ? "bg-indigo-600"
+                                            : "bg-gray-200 dark:bg-gray-700"
+                                            }`}
                                     />
                                 )}
                             </div>
@@ -419,11 +416,10 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                         <div
                                             key={pkg.id}
                                             onClick={() => setSelectedPackage(pkg)}
-                                            className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${
-                                                selectedPackage?.id === pkg.id
-                                                    ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
-                                                    : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
-                                            }`}
+                                            className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${selectedPackage?.id === pkg.id
+                                                ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                                                : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
+                                                }`}
                                         >
                                             <div className="flex items-start justify-between mb-4">
                                                 <div>
@@ -488,11 +484,10 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                 {/* Virtual Account */}
                                 <div
                                     onClick={() => setPaymentMethod("virtual_account")}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                                        paymentMethod === "virtual_account"
-                                            ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
-                                            : "border-gray-200 dark:border-gray-700"
-                                    }`}
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "virtual_account"
+                                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                                        : "border-gray-200 dark:border-gray-700"
+                                        }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -520,11 +515,10 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                                         e.stopPropagation();
                                                         setSelectedBank(bank);
                                                     }}
-                                                    className={`py-2 px-3 rounded-lg font-medium transition-all ${
-                                                        selectedBank === bank
-                                                            ? "bg-indigo-600 text-white"
-                                                            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
-                                                    }`}
+                                                    className={`py-2 px-3 rounded-lg font-medium transition-all ${selectedBank === bank
+                                                        ? "bg-indigo-600 text-white"
+                                                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
+                                                        }`}
                                                 >
                                                     {bank}
                                                 </button>
@@ -536,11 +530,10 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                 {/* QRIS */}
                                 <div
                                     onClick={() => setPaymentMethod("qris")}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                                        paymentMethod === "qris"
-                                            ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
-                                            : "border-gray-200 dark:border-gray-700"
-                                    }`}
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "qris"
+                                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                                        : "border-gray-200 dark:border-gray-700"
+                                        }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -724,17 +717,16 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="p-4 border-2 border-gray-200 rounded-lg dark:border-gray-700">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                            paymentStatus === "paid" ? "bg-green-500" :
+                                        <div className={`w-3 h-3 rounded-full ${paymentStatus === "paid" ? "bg-green-500" :
                                             paymentStatus === "expired" ? "bg-red-500" :
-                                            checking ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'
-                                        }`} />
+                                                checking ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'
+                                            }`} />
                                         <span className="font-medium text-gray-900 dark:text-white">
                                             Status: {
                                                 paymentStatus === "paid" ? "Berhasil ✅" :
-                                                paymentStatus === "expired" ? "Kadaluarsa ⏰" :
-                                                paymentStatus === "failed" ? "Gagal ❌" :
-                                                "Menunggu Pembayaran"
+                                                    paymentStatus === "expired" ? "Kadaluarsa ⏰" :
+                                                        paymentStatus === "failed" ? "Gagal ❌" :
+                                                            "Menunggu Pembayaran"
                                             }
                                         </span>
                                     </div>

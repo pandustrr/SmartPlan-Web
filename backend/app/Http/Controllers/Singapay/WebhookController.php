@@ -53,7 +53,6 @@ class WebhookController extends Controller
                 'success' => $result['success'],
                 'message' => $result['message'],
             ], $statusCode);
-
         } catch (\Exception $e) {
             Log::error('[SingaPay Webhook] Exception', [
                 'message' => $e->getMessage(),
@@ -91,6 +90,53 @@ class WebhookController extends Controller
     {
         Log::info('[SingaPay Webhook] QRIS webhook received');
         return $this->handlePayment($request);
+    }
+
+    /**
+     * Handle Disbursement webhook from SingaPay
+     * Called when withdrawal/payout is completed (success/failed)
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function handleDisbursement(Request $request): JsonResponse
+    {
+        try {
+            $payload = $request->all();
+
+            Log::info('[SingaPay Webhook] Disbursement webhook received', [
+                'payload' => $payload,
+                'headers' => [
+                    'X-Signature' => $request->header('X-Signature'),
+                    'X-Timestamp' => $request->header('X-Timestamp'),
+                ],
+            ]);
+
+            // Process disbursement webhook
+            $result = $this->webhookService->processDisbursementWebhook($payload);
+
+            $statusCode = $result['success'] ? 200 : 400;
+
+            Log::info('[SingaPay Webhook] Disbursement response sent', [
+                'success' => $result['success'],
+                'message' => $result['message'],
+            ]);
+
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+            ], $statusCode);
+        } catch (\Exception $e) {
+            Log::error('[SingaPay Webhook] Disbursement exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Webhook processing failed',
+            ], 500);
+        }
     }
 
     /**

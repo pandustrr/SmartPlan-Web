@@ -34,7 +34,7 @@ class PdfPaymentService
 
         return [
             'success' => true,
-            'packages' => $packages->map(function($package) {
+            'packages' => $packages->map(function ($package) {
                 return [
                     'id' => $package->id,
                     'package_type' => $package->package_type,
@@ -154,7 +154,7 @@ class PdfPaymentService
             ]);
 
             // Process based on payment method
-            $paymentResult = match($paymentMethod) {
+            $paymentResult = match ($paymentMethod) {
                 'virtual_account' => $this->processVirtualAccount($purchase, $bankCode),
                 'qris' => $this->processQris($purchase),
                 default => [
@@ -182,7 +182,6 @@ class PdfPaymentService
                 ],
                 'payment' => $paymentResult['data'] ?? [],
             ];
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -263,7 +262,7 @@ class PdfPaymentService
             }
 
             // Check with payment gateway
-            $result = match($transaction->payment_method) {
+            $result = match ($transaction->payment_method) {
                 'virtual_account' => $this->vaService->checkPaymentStatus($transaction),
                 'qris' => $this->qrisService->checkPaymentStatus($transaction),
                 default => ['success' => false, 'message' => 'Invalid payment method'],
@@ -275,7 +274,6 @@ class PdfPaymentService
                 'paid' => $result['paid'] ?? false,
                 'message' => $result['message'] ?? null,
             ];
-
         } catch (\Exception $e) {
             Log::error('[PDF Payment] Failed to check status', [
                 'transaction_code' => $transactionCode,
@@ -346,12 +344,92 @@ class PdfPaymentService
                 'success' => true,
                 'message' => 'Purchase cancelled successfully',
             ];
-
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'message' => 'Failed to cancel purchase: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Get transaction history for user
+     */
+    public function getTransactionHistory(User $user): array
+    {
+        try {
+            $purchases = $user->pdfPurchases()
+                ->with(['premiumPdf', 'paymentTransaction'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $history = $purchases->map(function ($purchase) {
+                $transaction = $purchase->paymentTransaction;
+
+                return [
+                    'id' => $purchase->id,
+                    'transaction_code' => $purchase->transaction_code,
+                    'package_name' => $purchase->premiumPdf->name ?? 'Unknown Package',
+                    'package_type' => $purchase->package_type,
+                    'amount' => $purchase->amount_paid,
+                    'formatted_amount' => 'Rp ' . number_format($purchase->amount_paid, 0, ',', '.'),
+                    'payment_method' => $purchase->payment_method,
+                    'payment_method_label' => $this->getPaymentMethodLabel($purchase->payment_method),
+                    'status' => $purchase->status,
+                    'status_label' => $this->getStatusLabel($purchase->status),
+                    'created_at' => $purchase->created_at->toIso8601String(),
+                    'formatted_date' => $purchase->created_at->format('d M Y H:i'),
+                    'expires_at' => $purchase->expires_at?->toIso8601String(),
+                    'formatted_expires_at' => $purchase->expires_at?->format('d M Y'),
+                    // Payment details (if available)
+                    'va_number' => $transaction?->va_number,
+                    'bank_code' => $transaction?->bank_code,
+                    'qris_url' => $transaction?->qris_url,
+                ];
+            });
+
+            return [
+                'success' => true,
+                'data' => $history->toArray(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('[PDF Payment] Failed to get transaction history', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to get transaction history: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Get payment method label
+     */
+    protected function getPaymentMethodLabel(string $method): string
+    {
+        return match ($method) {
+            'virtual_account' => 'Virtual Account',
+            'qris' => 'QRIS',
+            default => ucfirst($method),
+        };
+    }
+
+    /**
+     * Get status label
+     */
+    protected function getStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'Menunggu Pembayaran',
+            'paid' => 'Berhasil',
+            'active' => 'Aktif',
+            'expired' => 'Kadaluarsa',
+            'failed' => 'Gagal',
+            'cancelled' => 'Dibatalkan',
+            default => ucfirst($status),
+        };
     }
 }

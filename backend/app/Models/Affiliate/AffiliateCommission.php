@@ -33,7 +33,7 @@ class AffiliateCommission extends Model
     const STATUS_PAID = 'paid';
 
     const COMMISSION_PERCENTAGE = 17; // 17%
-    const MINIMUM_WITHDRAWAL = 100000; // Rp 100,000
+    const MINIMUM_WITHDRAWAL = 50000; // Rp 100,000
 
     /**
      * Get the affiliate user (User A who owns the link)

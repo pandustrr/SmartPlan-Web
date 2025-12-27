@@ -125,11 +125,10 @@ const AffiliateLink = () => {
           {/* Status Badge */}
           <div className="flex items-center gap-3">
             <div
-              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 ${
-                affiliateLink?.is_active
+              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 ${affiliateLink?.is_active
                   ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                   : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-              }`}
+                }`}
             >
               <Power size={16} />
               {affiliateLink?.is_active ? "Aktif" : "Nonaktif"}
@@ -137,11 +136,10 @@ const AffiliateLink = () => {
             <button
               onClick={handleToggleActive}
               disabled={submitLoading}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                affiliateLink?.is_active
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${affiliateLink?.is_active
                   ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
                   : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
-              }`}
+                }`}
             >
               {submitLoading ? "Memproses..." : affiliateLink?.is_active ? "Nonaktifkan" : "Aktifkan"}
             </button>
@@ -246,33 +244,7 @@ const AffiliateLink = () => {
           {/* Change Limit Info */}
 
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {affiliateLink?.total_clicks}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Total Klik
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {affiliateLink?.total_leads}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Total Lead
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                {affiliateLink?.conversion_rate}%
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Conversion Rate
-              </p>
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -281,17 +253,11 @@ const AffiliateLink = () => {
         <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-400 mb-4">
           💡 Cara Menggunakan Link Affiliate
         </h3>
-        <ul className="space-y-2 text-yellow-800 dark:text-yellow-300 text-sm">
-          <li>
-            ✅ Salin URL affiliate Anda dan bagikan di media sosial, WhatsApp, email, atau platform lainnya
-          </li>
-          <li>✅ Setiap orang yang klik link Anda akan tercatat dalam sistem tracking</li>
-          <li>✅ Jika pengunjung mengisi form lead, mereka akan masuk ke dalam daftar lead Anda</li>
-          <li>✅ Pantau performa link Anda di menu Tracking & Analytics</li>
-          <li>
-            ✅ Kelola lead yang masuk di menu Lead Management untuk follow-up dengan calon pelanggan
-          </li>
-        </ul>
+        <li>
+          ✅ Salin URL affiliate Anda dan bagikan di media sosial, WhatsApp, email, atau platform lainnya
+        </li>
+        <li>✅ Setiap user yang mendaftar melalui link ini akan terhubung dengan akun Anda</li>
+        <li>✅ Dapatkan komisi dari setiap transaksi yang mereka lakukan</li>
       </div>
     </div>
   );

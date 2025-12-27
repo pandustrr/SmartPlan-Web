@@ -5,7 +5,7 @@ namespace App\Models\Affiliate;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class AffiliateLink extends Model
 {
@@ -34,21 +34,7 @@ class AffiliateLink extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get all tracks for this affiliate link
-     */
-    public function tracks(): HasMany
-    {
-        return $this->hasMany(AffiliateTrack::class);
-    }
 
-    /**
-     * Get all leads for this affiliate link
-     */
-    public function leads(): HasMany
-    {
-        return $this->hasMany(AffiliateLead::class);
-    }
 
     /**
      * Generate the full affiliate URL
@@ -58,33 +44,5 @@ class AffiliateLink extends Model
         // Use frontend URL for shareable affiliate link
         $frontendUrl = config('app.frontend_url') ?? 'http://localhost:5173';
         return "{$frontendUrl}/affiliate/{$this->slug}";
-    }
-
-    /**
-     * Get total clicks for this affiliate link
-     */
-    public function getTotalClicksAttribute(): int
-    {
-        return $this->tracks()->count();
-    }
-
-    /**
-     * Get total leads for this affiliate link
-     */
-    public function getTotalLeadsAttribute(): int
-    {
-        return $this->leads()->count();
-    }
-
-    /**
-     * Calculate conversion rate
-     */
-    public function getConversionRateAttribute(): float
-    {
-        $clicks = $this->total_clicks;
-        if ($clicks === 0) {
-            return 0;
-        }
-        return round(($this->total_leads / $clicks) * 100, 2);
     }
 }

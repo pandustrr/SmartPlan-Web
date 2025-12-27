@@ -50,6 +50,13 @@ const singapayApi = {
   },
 
   /**
+   * Get transaction history
+   */
+  getHistory: () => {
+    return api.get("/payment/history");
+  },
+
+  /**
    * Test webhook (MOCK MODE ONLY)
    * @param {string} transactionCode - Transaction code
    */

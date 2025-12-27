@@ -151,4 +151,25 @@ class PdfPaymentController extends Controller
 
         return response()->json($result, $statusCode);
     }
+
+    /**
+     * Get transaction history
+     *
+     * @return JsonResponse
+     */
+    public function history(): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $result = $this->paymentService->getTransactionHistory($user);
+
+        return response()->json($result);
+    }
 }

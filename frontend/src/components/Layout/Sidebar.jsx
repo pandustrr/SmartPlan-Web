@@ -161,16 +161,7 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           label: "Link Affiliate",
           icon: Link2,
         },
-        {
-          id: "affiliate-tracking",
-          label: "Tracking & Analytics",
-          icon: BarChart2,
-        },
-        {
-          id: "affiliate-leads",
-          label: "Lead Management",
-          icon: Users2,
-        },
+
         {
           id: "affiliate-commissions",
           label: "Komisi",
@@ -269,11 +260,10 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
                 {/* Main Menu Item */}
                 <button
                   onClick={() => handleMenuClick(item.id)}
-                  className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${
-                    isActive || (hasSubItems && hasActiveSubItem)
+                  className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${isActive || (hasSubItems && hasActiveSubItem)
                       ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
                       : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
-                  }`}
+                    }`}
                 >
                   <Icon size={20} className={`shrink-0 ${isActive || (hasSubItems && hasActiveSubItem) ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`} />
 
@@ -324,11 +314,10 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
                         <button
                           key={subItem.id}
                           onClick={(e) => handleSubMenuClick(subItem.id, e, item.id)}
-                          className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${
-                            isSubActive
+                          className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${isSubActive
                               ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
                               : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
-                          }`}
+                            }`}
                         >
                           <SubIcon size={16} className={`shrink-0 mr-3 ${isSubActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`} />
                           <span className="flex-1 text-left truncate">{subItem.label}</span>
@@ -371,9 +360,8 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 border border-transparent hover:border-red-200 dark:hover:border-red-800 ${
-              !isOpen && "lg:justify-center"
-            }`}
+            className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 border border-transparent hover:border-red-200 dark:hover:border-red-800 ${!isOpen && "lg:justify-center"
+              }`}
           >
             <LogOut size={20} className="shrink-0" />
 

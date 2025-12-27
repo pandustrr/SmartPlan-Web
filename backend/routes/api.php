@@ -20,9 +20,9 @@ use App\Http\Controllers\Forecast\ForecastDataController;
 use App\Http\Controllers\Forecast\ForecastResultController;
 use App\Http\Controllers\Forecast\PdfForecastController;
 use App\Http\Controllers\Affiliate\AffiliateLinkController;
-use App\Http\Controllers\Affiliate\AffiliateTrackController;
-use App\Http\Controllers\Affiliate\AffiliateLeadController;
+
 use App\Http\Controllers\Affiliate\AffiliateCommissionController;
+use App\Http\Controllers\Affiliate\AffiliateWithdrawalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Singapay\PdfPaymentController;
 use App\Http\Controllers\Singapay\WebhookController;
@@ -255,26 +255,17 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
         Route::put('/slug', [AffiliateLinkController::class, 'updateSlug']);
         Route::patch('/{affiliateLink}/toggle-active', [AffiliateLinkController::class, 'toggleActive']);
 
-        Route::prefix('tracking')->group(function () {
-            Route::get('/statistics', [AffiliateTrackController::class, 'getStatistics']);
-            Route::get('/tracks', [AffiliateTrackController::class, 'getTracks']);
-            Route::get('/device-breakdown', [AffiliateTrackController::class, 'getDeviceBreakdown']);
-            Route::get('/monthly-breakdown', [AffiliateTrackController::class, 'getMonthlyBreakdown']);
-        });
 
-        Route::prefix('leads')->group(function () {
-            Route::get('/my-leads', [AffiliateLeadController::class, 'getMyLeads']);
-            Route::get('/statistics', [AffiliateLeadController::class, 'getStatistics']);
-            Route::get('/{lead}', [AffiliateLeadController::class, 'show']);
-            Route::patch('/{lead}/status', [AffiliateLeadController::class, 'updateStatus']);
-        });
 
         Route::prefix('commissions')->group(function () {
             Route::get('/statistics', [AffiliateCommissionController::class, 'getStatistics']);
             Route::get('/history', [AffiliateCommissionController::class, 'getHistory']);
             Route::get('/withdrawable', [AffiliateCommissionController::class, 'getWithdrawableBalance']);
-            Route::post('/withdraw', [AffiliateCommissionController::class, 'requestWithdrawal']);
         });
+
+        // Withdrawals (outside commissions prefix)
+        Route::post('/withdraw', [AffiliateWithdrawalController::class, 'withdraw']);
+        Route::get('/withdrawals', [AffiliateWithdrawalController::class, 'history']);
     });
 
     // =====================================
@@ -290,6 +281,9 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
         Route::post('/purchase', [PdfPaymentController::class, 'purchase']);
         Route::get('/status/{transactionCode}', [PdfPaymentController::class, 'checkStatus']);
         Route::post('/cancel/{transactionCode}', [PdfPaymentController::class, 'cancel']);
+
+        // Transaction History
+        Route::get('/history', [PdfPaymentController::class, 'history']);
     });
 });
 
@@ -306,16 +300,7 @@ Route::prefix('user')->group(function () {
 // =====================================
 // Public Affiliate Routes (NO AUTH REQUIRED)
 // =====================================
-Route::prefix('affiliate/public')->group(function () {
-    // Get landing page data
-    Route::get('/landing/{slug}', [AffiliateLeadController::class, 'getLandingPage']);
 
-    // Track affiliate click
-    Route::post('/track/{slug}', [AffiliateTrackController::class, 'track']);
-
-    // Submit lead from landing page
-    Route::post('/leads/{slug}/submit', [AffiliateLeadController::class, 'submit']);
-});
 
 // =====================================
 // SingaPay Webhook Routes (PUBLIC - NO AUTH)
@@ -330,6 +315,10 @@ Route::prefix('webhook/singapay')->group(function () {
         ->middleware('throttle:60,1');
 
     Route::post('/qris', [WebhookController::class, 'handleQris'])
+        ->middleware('throttle:60,1');
+
+    // Disbursement webhook (for withdrawal/payout status updates)
+    Route::post('/disbursement', [WebhookController::class, 'handleDisbursement'])
         ->middleware('throttle:60,1');
 
     // Test webhook (mock mode only) - Strict rate limit

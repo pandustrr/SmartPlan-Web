@@ -8,7 +8,7 @@ import LandingPage from "./pages/LandingPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import OtpVerification from "./pages/OtpVerification";
-import AffiliateLandingPage from "./components/Affiliate/AffiliateLandingPage";
+
 import AffiliateLinkRedirect from "./components/Affiliate/AffiliateLinkRedirect";
 
 // 🔔 Import react-toastify
@@ -97,8 +97,7 @@ function AppContent() {
           {/* 🌍 Public Routes */}
           <Route path="/" element={<LandingPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
 
-          {/* 🔗 Affiliate Landing Page Route (OLD - for lead capture) */}
-          <Route path="/affiliate/landing/:slug" element={<AffiliateLandingPage />} />
+
 
           {/* 🔗 Affiliate Link Redirect (NEW - for tracking & redirect) */}
           <Route path="/affiliate/:slug" element={<AffiliateLinkRedirect />} />

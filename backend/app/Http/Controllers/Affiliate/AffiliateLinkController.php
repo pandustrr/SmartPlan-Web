@@ -51,9 +51,7 @@ class AffiliateLinkController extends Controller
                 'remaining_changes' => $affiliateLink->max_changes - $affiliateLink->change_count,
                 'is_active' => $affiliateLink->is_active,
                 'full_url' => $affiliateLink->full_url,
-                'total_clicks' => $affiliateLink->total_clicks,
-                'total_leads' => $affiliateLink->total_leads,
-                'conversion_rate' => $affiliateLink->conversion_rate,
+
                 'created_at' => $affiliateLink->created_at,
             ],
         ], Response::HTTP_OK);
@@ -118,9 +116,7 @@ class AffiliateLinkController extends Controller
                 'remaining_changes' => $affiliateLink->max_changes - $affiliateLink->change_count,
                 'is_active' => $affiliateLink->is_active,
                 'full_url' => $affiliateLink->full_url,
-                'total_clicks' => $affiliateLink->total_clicks,
-                'total_leads' => $affiliateLink->total_leads,
-                'conversion_rate' => $affiliateLink->conversion_rate,
+
                 'created_at' => $affiliateLink->created_at,
             ],
         ], Response::HTTP_OK);

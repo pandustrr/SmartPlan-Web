@@ -26,15 +26,7 @@ const AffiliateLinkRedirect = () => {
         affiliate_ref_timestamp: localStorage.getItem("affiliate_ref_timestamp"),
       });
 
-      try {
-        // 2. Track click via API (don't wait for it, do it in background)
-        // Note: API_URL already includes /api, so path starts with /affiliate
-        axios.post(`${API_URL.replace("/api", "")}/api/affiliate/public/track/${slug}`).catch((error) => {
-          console.error("[Affiliate] Failed to track click:", error);
-        });
-      } catch (error) {
-        console.error("[Affiliate] Error:", error);
-      }
+
 
       // 3. Small delay to ensure localStorage is saved before redirect
       setTimeout(() => {

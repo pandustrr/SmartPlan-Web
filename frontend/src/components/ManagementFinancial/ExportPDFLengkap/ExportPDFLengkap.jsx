@@ -6,6 +6,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import combinedPdfApi from "../../../services/managementFinancial/combinedPdfApi";
 import singapayApi from "../../../services/singapayApi";
 import PdfProPaymentModal from "./PdfProPaymentModal";
+import SubscriptionHistory from "./SubscriptionHistory";
 // TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
 // import { financialPlanApi } from "../../../services/businessPlan";
 
@@ -83,7 +84,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
       setCheckingAccess(true);
       const response = await singapayApi.checkAccess();
       console.log("✅ Access check:", response.data);
-      
+
       if (response.data.success && response.data.has_access) {
         setHasProAccess(true);
         setMode("pro");
@@ -305,9 +306,8 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleModeChange("free")}
-                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
-                    mode === "free" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
+                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${mode === "free" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <span>Free</span>
@@ -317,9 +317,8 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
                 </button>
                 <button
                   onClick={() => handleModeChange("pro")}
-                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all relative ${
-                    mode === "pro" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
+                  className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all relative ${mode === "pro" ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-md" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
                 >
                   <div className="flex items-center justify-center gap-2">
                     <span>Pro</span>
@@ -384,9 +383,8 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
             <button
               onClick={handleGeneratePDF}
               disabled={loading}
-              className={`w-full py-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-3 ${
-                loading ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed" : "bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-              }`}
+              className={`w-full py-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-3 ${loading ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed" : "bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                }`}
             >
               {loading ? (
                 <>
@@ -436,6 +434,11 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
             <span>Pastikan bisnis Anda memiliki data lengkap (business plan dan transaksi keuangan)</span>
           </li>
         </ul>
+      </div>
+
+      {/* Subscription History */}
+      <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 rounded-xl">
+        <SubscriptionHistory />
       </div>
 
       {/* Payment Modal */}

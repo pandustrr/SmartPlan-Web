@@ -368,4 +368,85 @@ class WebhookService
 
         return $this->processPaymentWebhook($payload, $mockRequest);
     }
+
+    /**
+     * Process disbursement webhook from SingaPay
+     * Updates withdrawal status when SingaPay sends notification
+     */
+    public function processDisbursementWebhook(array $payload): array
+    {
+        try {
+            // Extract data from payload
+            $data = $payload['data'] ?? null;
+            if (!$data) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid payload structure',
+                ];
+            }
+
+            $referenceNumber = $data['reference_number'] ?? null;
+            $status = $data['status'] ?? null; // 'success' or 'failed'
+            $transactionId = $data['transaction_id'] ?? null;
+
+            if (!$referenceNumber) {
+                Log::warning('[Webhook] Disbursement reference number missing', $payload);
+                return [
+                    'success' => false,
+                    'message' => 'Reference number missing',
+                ];
+            }
+
+            // Find withdrawal by reference number
+            $withdrawal = \App\Models\Affiliate\AffiliateWithdrawal::where('singapay_reference', $referenceNumber)
+                ->orWhere('singapay_reference', 'LIKE', "%{$referenceNumber}%")
+                ->first();
+
+            if (!$withdrawal) {
+                Log::warning('[Webhook] Withdrawal not found', [
+                    'reference_number' => $referenceNumber,
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Withdrawal not found',
+                ];
+            }
+
+            // Update withdrawal status based on SingaPay response
+            $newStatus = match (strtolower($status)) {
+                'success' => \App\Models\Affiliate\AffiliateWithdrawal::STATUS_PROCESSED,
+                'failed' => \App\Models\Affiliate\AffiliateWithdrawal::STATUS_FAILED,
+                default => $withdrawal->status, // Keep current status if unknown
+            };
+
+            $withdrawal->update([
+                'status' => $newStatus,
+                'singapay_response' => array_merge(
+                    $withdrawal->singapay_response ?? [],
+                    ['webhook_received' => now()->toIso8601String(), 'webhook_data' => $data]
+                ),
+            ]);
+
+            Log::info('[Webhook] Disbursement status updated', [
+                'withdrawal_id' => $withdrawal->id,
+                'status' => $newStatus,
+                'reference_number' => $referenceNumber,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Withdrawal status updated',
+            ];
+        } catch (\Exception $e) {
+            Log::error('[Webhook] Disbursement processing failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Processing failed: ' . $e->getMessage(),
+            ];
+        }
+    }
 }

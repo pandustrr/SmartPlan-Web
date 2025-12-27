@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Affiliate\AffiliateCommission;
+use App\Models\Affiliate\AffiliateWithdrawal;
 use App\Models\Singapay\PdfPurchase;
 use App\Models\User;
+use App\Services\Singapay\SingaPayPayoutService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -131,13 +133,70 @@ class AffiliateCommissionService
     }
 
     /**
-     * Get withdrawable balance (approved commissions only)
+     * Get withdrawable balance (Total Approved - Total Withdrawn)
      */
     public function getWithdrawableBalance(int $userId): float
     {
-        return (float) AffiliateCommission::where('affiliate_user_id', $userId)
+        $totalApproved = (float) AffiliateCommission::where('affiliate_user_id', $userId)
             ->where('status', AffiliateCommission::STATUS_APPROVED)
             ->sum('commission_amount');
+
+        $totalWithdrawn = (float) AffiliateWithdrawal::where('user_id', $userId)
+            ->whereIn('status', [AffiliateWithdrawal::STATUS_PENDING, AffiliateWithdrawal::STATUS_PROCESSED])
+            ->sum('amount');
+
+        return max(0, $totalApproved - $totalWithdrawn);
+    }
+
+    /**
+     * Request a withdrawal
+     */
+    public function withdraw(int $userId, float $amount, array $bankDetails): array
+    {
+        // 1. Validate Balance
+        $balance = $this->getWithdrawableBalance($userId);
+        if ($amount > $balance) {
+            throw new \Exception('Saldo tidak mencukupi untuk melakukan penarikan.');
+        }
+
+        if ($amount < AffiliateCommission::MINIMUM_WITHDRAWAL) {
+            throw new \Exception('Jumlah penarikan di bawah minimum (' . number_format(AffiliateCommission::MINIMUM_WITHDRAWAL) . ').');
+        }
+
+        DB::beginTransaction();
+        try {
+            // 2. Create Withdrawal Record
+            $withdrawal = AffiliateWithdrawal::create([
+                'user_id' => $userId,
+                'amount' => $amount,
+                'status' => AffiliateWithdrawal::STATUS_PENDING,
+                'bank_name' => $bankDetails['bank_name'],
+                'bank_code' => $bankDetails['bank_code'] ?? null,
+                'account_number' => $bankDetails['account_number'],
+                'account_name' => $bankDetails['account_name'],
+                'notes' => $bankDetails['notes'] ?? null,
+            ]);
+
+            // 3. Process Payout with SingaPay (or Mock)
+            $payoutService = app(SingaPayPayoutService::class);
+            $result = $payoutService->requestPayout($withdrawal);
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => $result['message'],
+                'data' => $withdrawal->refresh()
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('[Affiliate Withdrawal] Failed', [
+                'user_id' => $userId,
+                'amount' => $amount,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 
     /**
