@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { FiArrowLeft, FiCamera, FiSave, FiLock, FiUser, FiMail, FiAtSign, FiShield, FiPhone } from "react-icons/fi";
 import userApi from "../../services/userApi";
 import { toast } from "react-toastify";
 
@@ -11,17 +12,12 @@ export default function UserProfileEdit({ onBack }) {
 
   const [form, setForm] = useState({
     name: "",
-    email: "",
     username: "",
+    phone: "",
     status: "active",
   });
 
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const fileInputRef = useRef();
-
-  // ---------------------------------------------------------
   // Load user data
-  // ---------------------------------------------------------
   useEffect(() => {
     if (!userId) return;
 
@@ -35,66 +31,34 @@ export default function UserProfileEdit({ onBack }) {
         setUser(data);
         setForm({
           name: data.name || "",
-          email: data.email || "",
           username: data.username || "",
-          status: data.status || "active",
+          phone: data.phone || "",
+          status: data.account_status || "active",
         });
-
-        if (data.profile_photo) {
-          setPhotoPreview(`/storage/${data.profile_photo}`);
-        } else {
-          // default avatar
-          setPhotoPreview(
-            "https://ui-avatars.com/api/?name=Unknown&background=ccc&color=555"
-          );
-        }
       })
       .catch(() => toast.error("Gagal memuat data pengguna"))
       .finally(() => setLoading(false));
   }, [userId]);
 
-  // ---------------------------------------------------------
   // Handle inputs
-  // ---------------------------------------------------------
-
   const handleInput = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleFile = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 2MB");
-      fileInputRef.current.value = "";
-      return;
-    }
-
-    setPhotoPreview(URL.createObjectURL(file));
-    setForm((prev) => ({ ...prev, profile_photo: file }));
-  };
-
-  // ---------------------------------------------------------
   // Save profile
-  // ---------------------------------------------------------
-
   const handleSaveProfile = async (e) => {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      const fd = new FormData();
-      fd.append("name", form.name);
-      fd.append("email", form.email);
-      fd.append("username", form.username);
-      fd.append("status", form.status);
+      const payload = {
+        name: form.name,
+        username: form.username,
+        phone: form.phone,
+        status: form.status,
+      };
 
-      if (form.profile_photo instanceof File) {
-        fd.append("profile_photo", form.profile_photo);
-      }
-
-      const res = await userApi.update(userId, fd);
+      const res = await userApi.update(userId, payload);
 
       toast.success("Profil berhasil diperbarui");
 
@@ -105,15 +69,14 @@ export default function UserProfileEdit({ onBack }) {
         JSON.stringify({
           ...storedUser,
           name: updated.name,
-          email: updated.email,
           username: updated.username,
-          profile_photo: updated.profile_photo,
+          phone: updated.phone,
         })
       );
 
       setUser(updated);
 
-      // otomatis kembali ke view profile
+      // Auto back to view profile
       onBack && onBack();
     } catch (err) {
       console.error(err);
@@ -123,10 +86,7 @@ export default function UserProfileEdit({ onBack }) {
     }
   };
 
-  // ---------------------------------------------------------
   // Change password
-  // ---------------------------------------------------------
-
   const handleChangePassword = async (e) => {
     e.preventDefault();
 
@@ -168,159 +128,198 @@ export default function UserProfileEdit({ onBack }) {
     }
   };
 
-  // ---------------------------------------------------------
   // Loading state
-  // ---------------------------------------------------------
-  if (loading && !user)
-    return <div className="py-8 text-center">Memuat...</div>;
+  if (loading && !user) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow">
-      {/* BACK BUTTON */}
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Back Button */}
       <button
         onClick={onBack}
-        className="mb-4 px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm"
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
       >
-        ← Kembali
+        <FiArrowLeft className="text-xl" />
+        <span className="font-medium">Kembali</span>
       </button>
 
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-        Edit Profil
-      </h2>
+      {/* Edit Profile Card */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+          <FiUser className="text-indigo-600 dark:text-indigo-400" />
+          Edit Profil
+        </h2>
 
-      {/* FORM EDIT PROFIL */}
-      <form onSubmit={handleSaveProfile} className="space-y-4">
-        {/* Foto Profil */}
-        <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full shadow overflow-hidden bg-gray-200 dark:bg-gray-700">
-            <img
-              src={photoPreview}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
+        <form onSubmit={handleSaveProfile} className="space-y-6">
+          {/* Avatar Preview Only */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="w-24 h-24 rounded-full shadow-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+              <img
+                src={"https://ui-avatars.com/api/?name=" + encodeURIComponent(form.name || "User") + "&background=6366f1&color=fff&size=128"}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                Data Diri
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Sesuaikan informasi profil Anda sesuai dengan data yang terdaftar.
+              </p>
+            </div>
           </div>
 
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200">
-              Foto Profil
+          {/* Form Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  <FiUser className="text-gray-500" />
+                  Nama Lengkap
+                </div>
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleInput}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                required
+                placeholder="Masukkan nama lengkap"
+              />
+            </div>
+
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  <FiAtSign className="text-gray-500" />
+                  Username
+                </div>
+              </label>
+              <input
+                name="username"
+                value={form.username}
+                onChange={handleInput}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                placeholder="Masukkan username"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  <FiPhone className="text-gray-500" />
+                  No WhatsApp
+                </div>
+              </label>
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleInput}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                required
+                placeholder="Masukkan nomor WhatsApp"
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  <FiShield className="text-gray-500" />
+                  Status Akun
+                </div>
+              </label>
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleInput}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+              >
+                <option value="active">Aktif</option>
+                <option value="inactive">Tidak Aktif</option>
+                <option value="suspended">Ditangguhkan</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors shadow-sm"
+          >
+            <FiSave className="text-lg" />
+            {loading ? "Menyimpan..." : "Simpan Perubahan"}
+          </button>
+        </form>
+      </div>
+
+      {/* Change Password Card */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+          <FiLock className="text-indigo-600 dark:text-indigo-400" />
+          Ubah Password
+        </h3>
+
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Password Lama
             </label>
             <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="text-gray-800 dark:text-gray-100"
-              onChange={handleFile}
+              name="current_password"
+              type="password"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+              required
+              placeholder="Masukkan password lama"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              JPG/PNG max 2MB
-            </p>
           </div>
-        </div>
 
-        {/* Nama */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-            Nama
-          </label>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleInput}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            required
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Password Baru
+            </label>
+            <input
+              name="new_password"
+              type="password"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+              required
+              placeholder="Minimal 8 karakter"
+            />
+          </div>
 
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-            Email
-          </label>
-          <input
-            name="username"
-            value={form.username}
-            onChange={handleInput}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Konfirmasi Password Baru
+            </label>
+            <input
+              name="new_password_confirmation"
+              type="password"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+              required
+              placeholder="Ulangi password baru"
+            />
+          </div>
 
-        {/* Status Akun */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-            Status Akun
-          </label>
-          <select
-            name="status"
-            value={form.status}
-            onChange={handleInput}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors shadow-sm"
           >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </div>
-
-        {/* Save Button */}
-        <button
-          type="submit"
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded w-full font-semibold"
-        >
-          Simpan Profil
-        </button>
-      </form>
-
-      {/* FORM UBAH PASSWORD */}
-      <hr className="my-6 border-gray-300 dark:border-gray-600" />
-
-      <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">
-        Ubah Password
-      </h3>
-
-      <form onSubmit={handleChangePassword} className="space-y-3">
-        <div>
-          <label className="block text-sm text-gray-700 dark:text-gray-200">
-            Password Lama
-          </label>
-          <input
-            name="current_password"
-            type="password"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-700 dark:text-gray-200">
-            Password Baru
-          </label>
-          <input
-            name="new_password"
-            type="password"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-700 dark:text-gray-200">
-            Konfirmasi Password Baru
-          </label>
-          <input
-            name="new_password_confirmation"
-            type="password"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded w-full font-semibold"
-        >
-          Ganti Password
-        </button>
-      </form>
+            <FiLock className="text-lg" />
+            {loading ? "Mengubah..." : "Ganti Password"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

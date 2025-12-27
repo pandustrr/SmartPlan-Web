@@ -18,34 +18,21 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        // optional: verify ownership
-        $authUser = $request->user(); // if you use auth
-        // if using localStorage id pattern, client must ensure id matches
-
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'profile_photo' => ['nullable', 'file', 'image', 'max:2048'], // 2MB
+            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
+            'status' => ['nullable', Rule::in(['active', 'inactive', 'banned', 'suspended'])],
         ]);
 
-        // handle profile photo
-        if ($request->hasFile('profile_photo')) {
-            // delete old
-            if ($user->profile_photo) {
-                Storage::disk('public')->delete($user->profile_photo);
-            }
-            $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $user->profile_photo = $path;
-        }
-
         $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        $user->username = $validated['username'];
+        $user->phone = $validated['phone'];
 
-        // optional: update status only if provided and caller allowed
-        if ($request->filled('status')) {
-            $user->status = $request->input('status');
+        if (isset($validated['status'])) {
+            $user->account_status = $validated['status'];
         }
 
         $user->save();
@@ -79,7 +66,7 @@ class UserController extends Controller
         ]);
 
         $user = User::findOrFail($id);
-        $user->status = $validated['status'];
+        $user->account_status = $validated['status'];
         $user->save();
 
         return response()->json(['status' => 'success', 'data' => $user, 'message' => 'Status akun diperbarui']);
