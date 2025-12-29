@@ -98,8 +98,12 @@ class SingapayApiService
             $signature = $this->generateAccessTokenSignature($timestamp);
 
             $this->logInfo('Generating new access token', [
+                'mode' => $this->mode,
+                'base_url' => $this->baseUrl,
                 'endpoint' => '/api/v1.1/access-token/b2b',
                 'timestamp' => $timestamp,
+                'partner_id' => substr($this->partnerId, 0, 8) . '...',
+                'client_id' => substr($this->clientId, 0, 8) . '...',
             ]);
 
             $response = Http::timeout(config('singapay.timeout', 30))
@@ -111,28 +115,44 @@ class SingapayApiService
                     'Content-Type' => 'application/json',
                 ])
                 ->post($this->baseUrl . '/api/v1.1/access-token/b2b', [
-                    'grantType' => 'client_credentials',
+                    'grant_type' => 'client_credentials',
                 ]);
+
+            $this->logInfo('Access token API response received', [
+                'status_code' => $response->status(),
+                'successful' => $response->successful(),
+            ]);
 
             if ($response->successful()) {
                 $data = $response->json();
                 $token = $data['data']['access_token'] ?? $data['data']['accessToken'] ?? null;
 
                 if ($token) {
-                    $this->logInfo('Access token generated successfully');
+                    $this->logInfo('Access token generated successfully', [
+                        'token_length' => strlen($token),
+                        'token_preview' => substr($token, 0, 10) . '...',
+                    ]);
                     return $token;
+                } else {
+                    $this->logError('Access token not found in response', [
+                        'response_structure' => array_keys($data),
+                        'data_keys' => isset($data['data']) ? array_keys($data['data']) : 'no data key',
+                    ]);
                 }
             }
 
             $this->logError('Failed to generate access token', [
                 'status' => $response->status(),
-                'response' => $response->json(),
+                'response_body' => $response->body(),
+                'response_json' => $response->json(),
             ]);
 
             return null;
         } catch (\Exception $e) {
             $this->logError('Exception generating access token', [
                 'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
             return null;
@@ -184,7 +204,7 @@ class SingapayApiService
             $request = Http::timeout(config('singapay.timeout', 30))
                 ->withHeaders($headers);
 
-            $response = match(strtoupper($method)) {
+            $response = match (strtoupper($method)) {
                 'GET' => $request->get($url, $data),
                 'POST' => $request->post($url, $data),
                 'PUT' => $request->put($url, $data),
@@ -218,7 +238,6 @@ class SingapayApiService
                 'error_code' => $responseData['error']['code'] ?? $response->status(),
                 'status_code' => $response->status(),
             ];
-
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             $this->logError('Connection timeout', [
                 'endpoint' => $endpoint,
@@ -230,7 +249,6 @@ class SingapayApiService
                 'message' => 'Connection timeout. Please check your internet connection.',
                 'error_code' => 'CONNECTION_TIMEOUT',
             ];
-
         } catch (\Exception $e) {
             $this->logError('Request exception', [
                 'endpoint' => $endpoint,
@@ -327,7 +345,7 @@ class SingapayApiService
      */
     protected function generateMockVANumber(string $bankCode): string
     {
-        $prefix = match(strtoupper($bankCode)) {
+        $prefix = match (strtoupper($bankCode)) {
             'BRI' => '88810',
             'BNI' => '88820',
             'DANAMON' => '88830',

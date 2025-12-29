@@ -77,12 +77,12 @@ const ProductServiceList = ({
         if (selectedBusiness !== 'all' && product.business_background?.id !== selectedBusiness) {
             return false;
         }
-        
+
         // Filter type
         if (selectedType !== 'all' && product.type !== selectedType) {
             return false;
         }
-        
+
         return true;
     });
 
@@ -146,7 +146,7 @@ const ProductServiceList = ({
 
         // Fallback ke path langsung jika image_url tidak ada
         if (product.image_path) {
-            return `/storage/${product.image_path}`;
+            return `/get-image/${product.image_path}`;
         }
 
         return null;
@@ -342,24 +342,22 @@ const ProductServiceList = ({
                             </button>
                         )}
                     </div>
-                    
+
                     {/* Filter Bisnis - Button Style */}
                     <div className="flex flex-wrap gap-2 mb-4">
                         <button
                             onClick={() => setSelectedBusiness('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedBusiness === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === 'all'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <Building size={14} />
                             <span>Semua Bisnis</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedBusiness === 'all' 
-                                    ? 'bg-green-600 text-white' 
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === 'all'
+                                    ? 'bg-green-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {products.length}
                             </span>
                         </button>
@@ -368,22 +366,20 @@ const ProductServiceList = ({
                             <button
                                 key={business.id}
                                 onClick={() => setSelectedBusiness(business.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                    selectedBusiness === business.id
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === business.id
                                         ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                         : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                }`}
+                                    }`}
                             >
                                 <Building size={14} />
                                 <div className="text-left">
                                     <div className="font-medium">{business.name}</div>
                                     <div className="text-xs opacity-80 hidden sm:block">{business.category}</div>
                                 </div>
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                    selectedBusiness === business.id 
-                                        ? 'bg-blue-600 text-white' 
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === business.id
+                                        ? 'bg-blue-600 text-white'
                                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}>
+                                    }`}>
                                     {products.filter(p => p.business_background?.id === business.id).length}
                                 </span>
                             </button>
@@ -394,57 +390,51 @@ const ProductServiceList = ({
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => setSelectedType('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedType === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedType === 'all'
                                     ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <Package size={14} />
                             <span>Semua Tipe</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedType === 'all' 
-                                    ? 'bg-purple-600 text-white' 
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedType === 'all'
+                                    ? 'bg-purple-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {products.length}
                             </span>
                         </button>
 
                         <button
                             onClick={() => setSelectedType('product')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedType === 'product'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedType === 'product'
                                     ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <Package size={14} />
                             <span>Produk</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedType === 'product' 
-                                    ? 'bg-blue-600 text-white' 
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedType === 'product'
+                                    ? 'bg-blue-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {products.filter(p => p.type === 'product').length}
                             </span>
                         </button>
 
                         <button
                             onClick={() => setSelectedType('service')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedType === 'service'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedType === 'service'
                                     ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <TrendingUp size={14} />
                             <span>Layanan</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedType === 'service' 
-                                    ? 'bg-purple-600 text-white' 
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedType === 'service'
+                                    ? 'bg-purple-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {products.filter(p => p.type === 'service').length}
                             </span>
                         </button>

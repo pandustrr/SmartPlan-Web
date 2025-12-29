@@ -31,8 +31,17 @@ use App\Http\Controllers\Singapay\WebhookController;
 // CORS preflight untuk semua route
 // =====================================
 Route::options('{any}', function () {
+    $allowedOrigins = [
+        env('FRONTEND_URL', 'http://localhost:5173'),
+        'http://localhost:5173',
+        'http://localhost:3000',
+    ];
+
+    $origin = request()->header('Origin');
+    $allowOrigin = in_array($origin, $allowedOrigins) ? $origin : $allowedOrigins[0];
+
     return response()->json([], 200)
-        ->header('Access-Control-Allow-Origin', 'http://localhost:5173')
+        ->header('Access-Control-Allow-Origin', $allowOrigin)
         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN, Accept, Origin')
         ->header('Access-Control-Allow-Credentials', 'true');
@@ -324,4 +333,14 @@ Route::prefix('webhook/singapay')->group(function () {
     // Test webhook (mock mode only) - Strict rate limit
     Route::post('/test', [WebhookController::class, 'test'])
         ->middleware('throttle:10,1'); // Lebih ketat untuk testing
+});
+
+// =====================================
+// Test Singapay Routes (DEBUG MODE ONLY)
+// Only accessible when APP_DEBUG=true
+// =====================================
+Route::prefix('test/singapay')->group(function () {
+    Route::get('/token', [\App\Http\Controllers\TestSingapayController::class, 'testAccessToken']);
+    Route::get('/config', [\App\Http\Controllers\TestSingapayController::class, 'testConfig']);
+    Route::post('/clear-cache', [\App\Http\Controllers\TestSingapayController::class, 'clearCache']);
 });

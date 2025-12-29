@@ -32,7 +32,9 @@ class QrisService
                 'type' => gettype($expiryHours),
             ]);
 
-            $expiredAt = Carbon::now()->addHours($expiryHours);
+            // 🔧 TIMEZONE FIX: Force Asia/Jakarta untuk memastikan sinkron dengan Singapay
+            $now = Carbon::now('Asia/Jakarta');
+            $expiredAt = $now->copy()->addHours($expiryHours);
             $accountId = $this->apiService->getMerchantAccountId();
 
             // Prepare QRIS data sesuai dokumentasi Singapay
@@ -51,6 +53,8 @@ class QrisService
                 'purchase_id' => $purchase->id,
                 'amount' => $purchase->amount_paid,
                 'account_id' => $accountId,
+                'server_time' => now()->toDateTimeString(),
+                'jakarta_time' => $now->toDateTimeString(),
                 'expired_at' => $expiredAt->toDateTimeString(),
             ]);
 
@@ -74,11 +78,30 @@ class QrisService
                 ];
             }
 
-            $qrisData = $response['data'];
+            // Singapay response structure: { data: { data: { ... } } }
+            // Extract the actual QRIS data from nested structure
+            $qrisData = $response['data']['data'] ?? $response['data'];
+
+            // Log full response structure untuk debugging
+            Log::info('[QRIS Service] QRIS API Response Structure', [
+                'response_keys' => array_keys($qrisData),
+                'full_response' => $qrisData,
+                'purchase_id' => $purchase->id,
+            ]);
+
+            // Get QR content - check various possible keys
+            $qrisContent = $qrisData['qr_data'] ?? $qrisData['qris_content'] ?? $qrisData['content'] ?? null;
+            $reffNo = $qrisData['reff_no'] ?? $qrisData['reference_no'] ?? $qrisData['id'] ?? PaymentTransaction::generateReferenceNo();
+
+            if (!$qrisContent) {
+                Log::warning('[QRIS Service] QRIS content keys not found', [
+                    'available_keys' => array_keys($qrisData),
+                ]);
+            }
 
             Log::info('[QRIS Service] QRIS generated successfully', [
                 'qris_id' => $qrisData['id'] ?? null,
-                'reff_no' => $qrisData['reff_no'] ?? null,
+                'reff_no' => $reffNo,
                 'purchase_id' => $purchase->id,
             ]);
 
@@ -86,9 +109,9 @@ class QrisService
             $transaction = PaymentTransaction::create([
                 'pdf_purchase_id' => $purchase->id,
                 'transaction_code' => $purchase->transaction_code,
-                'reference_no' => $qrisData['reff_no'] ?? PaymentTransaction::generateReferenceNo(),
+                'reference_no' => $reffNo,
                 'payment_method' => 'qris',
-                'qris_content' => $qrisData['qr_data'] ?? $qrisData['qris_content'] ?? null,
+                'qris_content' => $qrisContent,
                 'qris_url' => $qrisData['qris_url'] ?? null,
                 'amount' => $purchase->amount_paid,
                 'currency' => 'IDR',
@@ -105,7 +128,7 @@ class QrisService
                 'data' => [
                     'transaction_id' => $transaction->id,
                     'transaction_code' => $transaction->transaction_code,
-                    'qris_content' => $qrisData['qr_data'] ?? $qrisData['qris_content'] ?? null,
+                    'qris_content' => $qrisContent,
                     'qris_string' => $qrisData['qr_string'] ?? $qrisData['qris_string'] ?? null,
                     'qris_url' => $qrisData['qris_url'] ?? null,
                     'amount' => $purchase->amount_paid,
@@ -115,7 +138,6 @@ class QrisService
                     'payment_instructions' => $this->getPaymentInstructions(),
                 ],
             ];
-
         } catch (\Exception $e) {
             Log::error('[QRIS Service] Exception', [
                 'message' => $e->getMessage(),
@@ -177,7 +199,7 @@ class QrisService
             $status = $qrisData['status'] ?? 'pending';
 
             // Map QRIS status to transaction status
-            $transactionStatus = match($status) {
+            $transactionStatus = match ($status) {
                 'paid', 'success' => 'paid',
                 'open', 'active' => 'pending',
                 'closed', 'expired' => 'expired',
@@ -190,7 +212,6 @@ class QrisService
                 'paid' => $transactionStatus === 'paid',
                 'data' => $qrisData,
             ];
-
         } catch (\Exception $e) {
             Log::error('[QRIS Service] Check status exception', [
                 'message' => $e->getMessage(),
@@ -254,7 +275,7 @@ class QrisService
     /**
      * Get payment instructions
      */
-    protected function getPaymentInstructions(): array
+    public function getPaymentInstructions(): array
     {
         return [
             'steps' => [
@@ -288,17 +309,30 @@ class QrisService
      */
     public function getQrisImageUrl(string $qrisContent): string
     {
-        // If qrisContent is base64, return data URL
-        if (base64_decode($qrisContent, true) !== false) {
-            return 'data:image/png;base64,' . $qrisContent;
-        }
-
-        // If it's already a URL, return as is
+        // Check if it's already a URL
         if (filter_var($qrisContent, FILTER_VALIDATE_URL)) {
             return $qrisContent;
         }
 
-        // Generate using external QR code service as fallback
-        return 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrisContent);
+        // Check if it's a valid Base64 IMAGE (bukan sekedar valid base64 string)
+        // QR String Singapay mulainya "000201..." yang terdiri dari hex-like characters
+        // Valid base64 image biasanya lebih panjang dan complex
+        if (preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $qrisContent) && strlen($qrisContent) > 100) {
+            $decoded = base64_decode($qrisContent, true);
+            // Cek apakah decoded content memiliki header PNG/JPG/GIF
+            if ($decoded !== false) {
+                $f = finfo_open();
+                $mimeType = finfo_buffer($f, $decoded, FILEINFO_MIME_TYPE);
+                finfo_close($f);
+
+                if (in_array($mimeType, ['image/png', 'image/jpeg', 'image/gif'])) {
+                    return 'data:' . $mimeType . ';base64,' . $qrisContent;
+                }
+            }
+        }
+
+        // Fallback: Generate QR Code image URL dari QR String
+        // Menggunakan goqr.me atau qrserver.com
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=' . urlencode($qrisContent);
     }
 }

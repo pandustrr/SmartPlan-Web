@@ -2,7 +2,7 @@ import { Edit3, Building, MapPin, Calendar, Users, Target } from 'lucide-react';
 
 const BackgroundView = ({ business, onBack, onEdit }) => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    
+
     if (!business) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -24,7 +24,7 @@ const BackgroundView = ({ business, onBack, onEdit }) => {
                     </svg>
                     Back
                 </button>
-                
+
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Detail Bisnis</h1>
@@ -41,28 +41,28 @@ const BackgroundView = ({ business, onBack, onEdit }) => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-8">
-                
+
                 {/* Background Image Section */}
                 {business.background_image && (
                     <div className="pb-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Background Bisnis</h3>
                         <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-                            <img 
-                                src={`${API_URL}/storage/${business.background_image}`} 
+                            <img
+                                src={`${API_URL}/get-image/${business.background_image}`}
                                 alt="Background"
                                 className="w-full h-full object-cover"
                             />
                         </div>
                     </div>
                 )}
-                
+
                 {/* Header dengan Logo */}
                 <div className="flex items-start gap-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex-shrink-0">
                         <div className="w-24 h-24 border-2 border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-700/50">
                             {business.logo ? (
-                                <img 
-                                    src={`${API_URL}/storage/${business.logo}`} 
+                                <img
+                                    src={`${API_URL}/get-image/${business.logo}`}
                                     alt={business.name}
                                     className="w-20 h-20 rounded-lg object-cover"
                                 />

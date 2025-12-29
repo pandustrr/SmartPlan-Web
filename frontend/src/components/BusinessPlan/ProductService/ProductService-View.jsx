@@ -69,11 +69,11 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
         if (product.image_url) {
             return product.image_url;
         }
-        
+
         if (product.image_path) {
-            return `/storage/${product.image_path}`;
+            return `/get-image/${product.image_path}`;
         }
-        
+
         return null;
     };
 
@@ -184,7 +184,7 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                     </svg>
                     Kembali
                 </button>
-                
+
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Detail Produk/Layanan</h1>
@@ -201,13 +201,13 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-8">
-                
+
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start gap-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex-shrink-0">
                         {imageUrl && !imageError ? (
                             <div className="w-24 h-24 border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                <img 
+                                <img
                                     src={imageUrl}
                                     alt={product.name || 'Produk/Layanan'}
                                     className="w-full h-full object-cover"
@@ -283,7 +283,7 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                         </h3>
                         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex justify-center">
                             <div className="max-w-md w-full">
-                                <img 
+                                <img
                                     src={imageUrl}
                                     alt={product.name || 'Produk/Layanan'}
                                     className="w-full h-auto max-h-96 object-contain rounded-lg shadow-sm"
@@ -400,7 +400,7 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                                 {bmcFields.map((field) => {
                                     const IconComponent = field.icon;
                                     const value = product.bmc_alignment?.[field.key];
-                                    
+
                                     if (!value || value.trim() === '') return null;
 
                                     return (
@@ -426,7 +426,7 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                                         BMC Integration Active
                                     </h4>
                                     <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                        Produk/layanan ini telah terintegrasi dengan Business Model Canvas. 
+                                        Produk/layanan ini telah terintegrasi dengan Business Model Canvas.
                                         Klik "Tampilkan Detail" untuk melihat analisis lengkap.
                                     </p>
                                 </div>
@@ -443,8 +443,8 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                             <div>
                                 <p className="text-gray-600 dark:text-gray-400">Dibuat Pada</p>
                                 <p className="font-semibold text-gray-900 dark:text-white">
-                                    {product.created_at ? 
-                                        `${new Date(product.created_at).toLocaleDateString('id-ID')} ${new Date(product.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` 
+                                    {product.created_at ?
+                                        `${new Date(product.created_at).toLocaleDateString('id-ID')} ${new Date(product.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
                                         : 'Tidak tersedia'
                                     }
                                 </p>
@@ -452,8 +452,8 @@ const ProductServiceView = ({ product, onBack, onEdit }) => {
                             <div>
                                 <p className="text-gray-600 dark:text-gray-400">Diperbarui Pada</p>
                                 <p className="font-semibold text-gray-900 dark:text-white">
-                                    {product.updated_at ? 
-                                        `${new Date(product.updated_at).toLocaleDateString('id-ID')} ${new Date(product.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` 
+                                    {product.updated_at ?
+                                        `${new Date(product.updated_at).toLocaleDateString('id-ID')} ${new Date(product.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
                                         : 'Tidak tersedia'
                                     }
                                 </p>

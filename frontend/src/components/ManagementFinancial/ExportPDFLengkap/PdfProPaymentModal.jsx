@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { FiX, FiCreditCard, FiCheck, FiCopy, FiClock, FiAlertCircle, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
 import axios from "axios";
 
-const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
+const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = null }) => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [packages, setPackages] = useState([]);
@@ -40,11 +40,41 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess }) => {
                 showToast("Silakan login terlebih dahulu untuk mengakses fitur Pro", "error");
                 return;
             }
-            fetchPackages();
+
+            // Hydrate from initial transaction if provided
+            if (initialTransaction) {
+                hydrateTransaction(initialTransaction);
+            } else {
+                fetchPackages();
+            }
         } else {
             cleanup();
         }
-    }, [isOpen]);
+    }, [isOpen, initialTransaction]);
+
+    const hydrateTransaction = (tx) => {
+        setPaymentData({
+            va_number: tx.va_number,
+            bank_code: tx.bank_code,
+            bank_name: tx.bank_code || 'QRIS',
+            formatted_amount: tx.formatted_amount,
+            expired_at: tx.expires_at, // Ensure backend returns this
+            payment_instructions: tx.payment_instructions || {},
+            qris_content: tx.qris_content,
+            qris_url: tx.qris_url,
+            // Add other necessary fields
+        });
+        setTransactionCode(tx.transaction_code);
+        transactionCodeRef.current = tx.transaction_code;
+        setPaymentMethod(tx.payment_method);
+        setPaymentStatus(tx.status);
+        setStep(3);
+
+        // Start polling immediately
+        if (tx.status === 'pending') {
+            startPaymentPolling(tx.transaction_code);
+        }
+    };
 
     // Countdown timer yang terpisah dari polling
     useEffect(() => {

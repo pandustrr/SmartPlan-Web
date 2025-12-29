@@ -26,7 +26,7 @@ class VirtualAccountService
             // Amount validation sesuai dokumentasi Singapay (10K - 100M IDR)
             $minAmount = config('singapay.virtual_account.min_amount', 10000);
             $maxAmount = config('singapay.virtual_account.max_amount', 100000000);
-            
+
             if ($purchase->amount_paid < $minAmount || $purchase->amount_paid > $maxAmount) {
                 Log::warning('[VA Service] Amount out of range', [
                     'amount' => $purchase->amount_paid,
@@ -34,7 +34,7 @@ class VirtualAccountService
                     'max' => $maxAmount,
                     'purchase_id' => $purchase->id,
                 ]);
-                
+
                 return [
                     'success' => false,
                     'message' => sprintf(
@@ -45,7 +45,7 @@ class VirtualAccountService
                     'error_code' => 'AMOUNT_OUT_OF_RANGE',
                 ];
             }
-            
+
             $expiryHours = (int) config('singapay.virtual_account.expiry_hours', 24);
 
             Log::info('[VA Service] Config values', [
@@ -101,10 +101,40 @@ class VirtualAccountService
                 ];
             }
 
-            $vaData = $response['data'];
+            // Singapay response structure: { data: { data: { ... } } }
+            // Extract the actual VA data from nested structure
+            $vaData = $response['data']['data'] ?? $response['data'];
+
+            // Log full response structure untuk debugging
+            Log::info('[VA Service] VA API Response Structure', [
+                'response_keys' => array_keys($vaData),
+                'full_response' => $vaData,
+                'purchase_id' => $purchase->id,
+            ]);
+
+            // Singapay menggunakan key "number" bukan "va_number"
+            $vaNumber = $vaData['number'] ?? $vaData['va_number'] ?? $vaData['vaNumber'] ?? $vaData['account_number'] ?? null;
+
+            if (!$vaNumber) {
+                Log::error('[VA Service] VA number not found in response', [
+                    'response_structure' => array_keys($vaData),
+                    'full_response' => $vaData,
+                    'purchase_id' => $purchase->id,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'VA number not found in Singapay response',
+                    'error_code' => 'VA_NUMBER_MISSING',
+                    'debug_info' => [
+                        'response_keys' => array_keys($vaData),
+                    ],
+                ];
+            }
 
             Log::info('[VA Service] VA created successfully', [
-                'va_number' => $vaData['va_number'] ?? null,
+                'va_number' => $vaNumber,
+                'va_id' => $vaData['id'] ?? null,
                 'purchase_id' => $purchase->id,
             ]);
 
@@ -112,10 +142,10 @@ class VirtualAccountService
             $transaction = PaymentTransaction::create([
                 'pdf_purchase_id' => $purchase->id,
                 'transaction_code' => $purchase->transaction_code,
-                'reference_no' => $vaData['reff_no'] ?? PaymentTransaction::generateReferenceNo(),
+                'reference_no' => $vaData['id'] ?? $vaData['reff_no'] ?? $vaData['reference_no'] ?? PaymentTransaction::generateReferenceNo(),
                 'payment_method' => 'virtual_account',
                 'bank_code' => $bankCode,
-                'va_number' => $vaData['va_number'],
+                'va_number' => $vaNumber,
                 'amount' => $purchase->amount_paid,
                 'currency' => 'IDR',
                 'status' => 'pending',
@@ -133,15 +163,14 @@ class VirtualAccountService
                     'transaction_code' => $transaction->transaction_code,
                     'bank_code' => $bankCode,
                     'bank_name' => $this->getBankName($bankCode),
-                    'va_number' => $vaData['va_number'],
+                    'va_number' => $vaNumber,
                     'amount' => $purchase->amount_paid,
                     'formatted_amount' => $transaction->formatted_amount,
                     'expired_at' => $expiredAt->toIso8601String(),
                     'expired_at_formatted' => $expiredAt->format('d M Y H:i'),
-                    'payment_instructions' => $this->getPaymentInstructions($bankCode, $vaData['va_number']),
+                    'payment_instructions' => $this->getPaymentInstructions($bankCode, $vaNumber),
                 ],
             ];
-
         } catch (\Exception $e) {
             Log::error('[VA Service] Exception', [
                 'message' => $e->getMessage(),
@@ -220,7 +249,6 @@ class VirtualAccountService
                 'paid' => $status === 'paid',
                 'data' => $vaTransaction,
             ];
-
         } catch (\Exception $e) {
             Log::error('[VA Service] Check status exception', [
                 'message' => $e->getMessage(),
@@ -299,7 +327,7 @@ class VirtualAccountService
     /**
      * Get payment instructions
      */
-    protected function getPaymentInstructions(string $bankCode, string $vaNumber): array
+    public function getPaymentInstructions(string $bankCode, string $vaNumber): array
     {
         $bankName = $this->getBankName($bankCode);
 

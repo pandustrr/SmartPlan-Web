@@ -338,7 +338,7 @@ class PdfPaymentService
                 ];
             }
 
-            $purchase->markAsFailed();
+            $purchase->update(['status' => 'cancelled']);
 
             return [
                 'success' => true,
@@ -385,6 +385,15 @@ class PdfPaymentService
                     'va_number' => $transaction?->va_number,
                     'bank_code' => $transaction?->bank_code,
                     'qris_url' => $transaction?->qris_url,
+                    'va_number' => $transaction?->va_number,
+                    'bank_code' => $transaction?->bank_code,
+                    'qris_url' => $transaction?->qris_url,
+                    'qris_content' => $transaction?->qris_content,
+                    'payment_instructions' => match ($purchase->payment_method) {
+                        'virtual_account' => $this->vaService->getPaymentInstructions($transaction?->bank_code, $transaction?->va_number),
+                        'qris' => $this->qrisService->getPaymentInstructions(),
+                        default => [],
+                    },
                 ];
             });
 

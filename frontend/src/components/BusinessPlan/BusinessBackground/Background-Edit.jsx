@@ -45,14 +45,14 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
                 logo: undefined,
                 background_image: undefined
             });
-            
+
             if (business.logo) {
-                setLogoPreview(`${API_URL}/storage/${business.logo}`);
+                setLogoPreview(`${API_URL}/get-image/${business.logo}`);
                 setCurrentLogo(business.logo);
             }
 
             if (business.background_image) {
-                setBackgroundPreview(`${API_URL}/storage/${business.background_image}`);
+                setBackgroundPreview(`${API_URL}/get-image/${business.background_image}`);
                 setCurrentBackground(business.background_image);
             }
         }
@@ -72,13 +72,13 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
                 toast.error(`Ukuran file maksimal ${sizeInMB}MB`);
                 return;
             }
-            
+
             if (fileType === 'logo') {
                 setFormData(prev => ({ ...prev, logo: file }));
             } else if (fileType === 'background') {
                 setFormData(prev => ({ ...prev, background_image: file }));
             }
-            
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 if (fileType === 'logo') {
@@ -109,7 +109,7 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
 
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            
+
             if (!user || !user.id) {
                 throw new Error('User data not found');
             }
@@ -142,7 +142,7 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
         } catch (error) {
             console.error('Error updating business:', error);
             console.error('Error response:', error.response?.data);
-            
+
             let errorMessage = 'Terjadi kesalahan saat memperbarui data bisnis';
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
@@ -150,7 +150,7 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
                 const errors = Object.values(error.response.data.errors).flat();
                 errorMessage = errors.join(', ');
             }
-            
+
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
@@ -170,8 +170,8 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
             title="Edit Data Bisnis"
             subtitle="Perbarui informasi bisnis"
             formData={formData}
-            logoPreview={logoPreview || (currentLogo ? `${API_URL}/storage/${currentLogo}` : null)}
-            backgroundPreview={backgroundPreview || (currentBackground ? `${API_URL}/storage/${currentBackground}` : null)}
+            logoPreview={logoPreview || (currentLogo ? `${API_URL}/get-image/${currentLogo}` : null)}
+            backgroundPreview={backgroundPreview || (currentBackground ? `${API_URL}/get-image/${currentBackground}` : null)}
             isLoading={isLoading}
             onInputChange={handleInputChange}
             onFileChange={handleFileChange}

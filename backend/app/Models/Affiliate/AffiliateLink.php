@@ -42,7 +42,7 @@ class AffiliateLink extends Model
     public function getFullUrlAttribute(): string
     {
         // Use frontend URL for shareable affiliate link
-        $frontendUrl = config('app.frontend_url') ?? 'http://localhost:5173';
+        $frontendUrl = config('app.frontend_url');
         return "{$frontendUrl}/affiliate/{$this->slug}";
     }
 }

@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiRefreshCw } from "react-icons/fi";
+import { FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiRefreshCw, FiEye, FiTrash2 } from "react-icons/fi";
 import singapayApi from "../../../services/singapayApi";
+import PdfProPaymentModal from "./PdfProPaymentModal";
 
 const SubscriptionHistory = () => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
 
     useEffect(() => {
         fetchHistory();
@@ -28,6 +31,31 @@ const SubscriptionHistory = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleViewPayment = (transaction) => {
+        setSelectedTransaction(transaction);
+        setShowPaymentModal(true);
+    };
+
+    const handleCancelPayment = async (transactionCode) => {
+        if (!window.confirm("Apakah Anda yakin ingin membatalkan pembayaran ini?")) {
+            return;
+        }
+
+        try {
+            await singapayApi.cancelPurchase(transactionCode);
+            // Refresh history without full loading state if possible, or just re-fetch
+            fetchHistory();
+        } catch (err) {
+            console.error("Error cancelling payment:", err);
+            alert(err.response?.data?.message || "Gagal membatalkan pembayaran");
+        }
+    };
+
+    const handlePdfSuccess = () => {
+        setShowPaymentModal(false);
+        fetchHistory();
     };
 
     const getStatusBadge = (status) => {
@@ -90,6 +118,15 @@ const SubscriptionHistory = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                     Riwayat pembelian paket PDF Pro Anda akan muncul di sini
                 </p>
+                <div className="mt-6 flex justify-center">
+                    <button
+                        onClick={fetchHistory}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                    >
+                        <FiRefreshCw className="text-sm" />
+                        Refresh Data
+                    </button>
+                </div>
             </div>
         );
     }
@@ -129,6 +166,9 @@ const SubscriptionHistory = () => {
                             <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase dark:text-gray-300">
                                 Status
                             </th>
+                            <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase dark:text-gray-300">
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
@@ -158,6 +198,26 @@ const SubscriptionHistory = () => {
                                 </td>
                                 <td className="px-4 py-4 text-center">
                                     {getStatusBadge(item.status)}
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                    {item.status === 'pending' && (
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => handleViewPayment(item)}
+                                                className="p-1.5 text-indigo-600 transition-colors rounded hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30"
+                                                title="Lihat Detail Pembayaran"
+                                            >
+                                                <FiEye size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleCancelPayment(item.transaction_code)}
+                                                className="p-1.5 text-red-600 transition-colors rounded hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                                                title="Batalkan Pembayaran"
+                                            >
+                                                <FiTrash2 size={18} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -201,10 +261,35 @@ const SubscriptionHistory = () => {
                             <div className="pt-2 text-xs text-gray-500 border-t dark:text-gray-400 dark:border-gray-700">
                                 ID: {item.transaction_code}
                             </div>
+
+                            {item.status === 'pending' && (
+                                <div className="grid grid-cols-2 gap-2 pt-2 mt-2 border-t dark:border-gray-700">
+                                    <button
+                                        onClick={() => handleViewPayment(item)}
+                                        className="flex items-center justify-center gap-1 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg dark:bg-indigo-900/20 dark:text-indigo-400"
+                                    >
+                                        <FiEye /> Lihat
+                                    </button>
+                                    <button
+                                        onClick={() => handleCancelPayment(item.transaction_code)}
+                                        className="flex items-center justify-center gap-1 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400"
+                                    >
+                                        <FiTrash2 /> Batal
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
+
+            {/* Payment Modal */}
+            <PdfProPaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                onSuccess={handlePdfSuccess}
+                initialTransaction={selectedTransaction}
+            />
         </div>
     );
 };

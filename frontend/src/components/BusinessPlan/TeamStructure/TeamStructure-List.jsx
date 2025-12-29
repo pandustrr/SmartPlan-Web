@@ -147,7 +147,7 @@ const TeamStructureList = ({
                 // Fallback jika tidak ada URL, construct dari path
                 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
                 const orgChartPath = businessBg.org_chart_image;
-                const fullURL = orgChartPath.startsWith('http') ? orgChartPath : `${baseURL}/storage/${orgChartPath}`;
+                const fullURL = orgChartPath.startsWith('http') ? orgChartPath : `${baseURL}/get-image/${orgChartPath}`;
                 setOrgChartPreview(fullURL);
             } else {
                 setOrgChartPreview(null);
@@ -561,9 +561,8 @@ const TeamStructureList = ({
                             />
                             <label
                                 htmlFor="orgChartUpload"
-                                className={`block w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-center cursor-pointer ${
-                                    isUploadingOrgChart ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
+                                className={`block w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-center cursor-pointer ${isUploadingOrgChart ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
                             >
                                 {isUploadingOrgChart ? (
                                     <span className="flex items-center justify-center gap-2">
@@ -654,19 +653,17 @@ const TeamStructureList = ({
                         {/* Tombol Semua Bisnis */}
                         <button
                             onClick={() => handleBusinessFilterSelect('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedBusiness === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === 'all'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <Building size={14} />
                             <span>Semua Bisnis</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedBusiness === 'all'
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === 'all'
                                     ? 'bg-green-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {teams.length}
                             </span>
                         </button>
@@ -676,22 +673,20 @@ const TeamStructureList = ({
                             <button
                                 key={business.id}
                                 onClick={() => handleBusinessFilterSelect(business.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                    selectedBusiness === business.id
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === business.id
                                         ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                         : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                }`}
+                                    }`}
                             >
                                 <Building size={14} />
                                 <div className="text-left">
                                     <div className="font-medium">{business.name}</div>
                                     <div className="text-xs opacity-80 hidden sm:block">{business.category}</div>
                                 </div>
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                    selectedBusiness === business.id
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedBusiness === business.id
                                         ? 'bg-blue-600 text-white'
                                         : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                                }`}>
+                                    }`}>
                                     {teams.filter(t => t.business_background?.id === business.id).length}
                                 </span>
                             </button>
@@ -702,57 +697,51 @@ const TeamStructureList = ({
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => setSelectedStatus('all')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedStatus === 'all'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedStatus === 'all'
                                     ? 'bg-purple-500 border-purple-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <User size={14} />
                             <span>Semua Status</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedStatus === 'all'
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedStatus === 'all'
                                     ? 'bg-purple-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {teams.length}
                             </span>
                         </button>
 
                         <button
                             onClick={() => setSelectedStatus('draft')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedStatus === 'draft'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedStatus === 'draft'
                                     ? 'bg-yellow-500 border-yellow-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <User size={14} />
                             <span>Draft</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedStatus === 'draft'
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedStatus === 'draft'
                                     ? 'bg-yellow-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {teams.filter(t => t.status === 'draft').length}
                             </span>
                         </button>
 
                         <button
                             onClick={() => setSelectedStatus('active')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
-                                selectedStatus === 'active'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedStatus === 'active'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
+                                }`}
                         >
                             <User size={14} />
                             <span>Aktif</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                selectedStatus === 'active'
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedStatus === 'active'
                                     ? 'bg-green-600 text-white'
                                     : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                            }`}>
+                                }`}>
                                 {teams.filter(t => t.status === 'active').length}
                             </span>
                         </button>

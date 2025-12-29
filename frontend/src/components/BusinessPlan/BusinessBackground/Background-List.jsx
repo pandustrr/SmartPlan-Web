@@ -204,7 +204,7 @@ const BackgroundList = ({
                                 <div className="flex items-center gap-3">
                                     {business.logo ? (
                                         <img
-                                            src={`${API_URL}/storage/${business.logo}`}
+                                            src={`${API_URL}/get-image/${business.logo}`}
                                             alt={business.name}
                                             className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600"
                                             onError={(e) => {
@@ -250,21 +250,21 @@ const BackgroundList = ({
                                     className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Eye size={16} />
-                                        
+
                                 </button>
                                 <button
                                     onClick={() => onEdit(business)}
                                     className="flex-1 bg-yellow-600 text-white py-2 px-3 rounded text-sm hover:bg-yellow-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Edit3 size={16} />
-                                    
+
                                 </button>
                                 <button
                                     onClick={() => handleDeleteClick(business.id, business.name)}
                                     className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Trash2 size={16} />
-                                
+
                                 </button>
                             </div>
                         </div>
