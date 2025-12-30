@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class FinancialPlanController extends Controller
 {
@@ -18,12 +19,8 @@ class FinancialPlanController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = FinancialPlan::with(['businessBackground', 'user']);
-
-            // Filtering
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
+            $query = FinancialPlan::with(['businessBackground', 'user'])
+                ->where('user_id', Auth::id());
 
             if ($request->has('business_background_id')) {
                 $query->where('business_background_id', $request->business_background_id);
@@ -126,6 +123,7 @@ class FinancialPlanController extends Controller
             }
 
             $planData = $validator->validated();
+            $planData['user_id'] = Auth::id();
 
             // Set default values
             $planData['tax_rate'] = $planData['tax_rate'] ?? 10;
@@ -159,7 +157,10 @@ class FinancialPlanController extends Controller
     public function show($id)
     {
         try {
-            $plan = FinancialPlan::with(['businessBackground', 'user'])->findOrFail($id);
+            $plan = FinancialPlan::with(['businessBackground', 'user'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
 
             return response()->json([
                 'status' => 'success',
@@ -182,7 +183,9 @@ class FinancialPlanController extends Controller
         try {
             DB::beginTransaction();
 
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
 
             $validator = Validator::make($request->all(), [
                 'plan_name' => 'sometimes|required|string|max:255',
@@ -246,7 +249,9 @@ class FinancialPlanController extends Controller
     public function destroy($id)
     {
         try {
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
             $plan->delete();
 
             return response()->json([
@@ -268,11 +273,8 @@ class FinancialPlanController extends Controller
     public function getFinancialSummary(Request $request)
     {
         try {
-            $query = FinancialPlan::with('businessBackground');
-
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
+            $query = FinancialPlan::with('businessBackground')
+                ->where('user_id', Auth::id());
 
             if ($request->has('business_background_id')) {
                 $query->where('business_background_id', $request->business_background_id);
@@ -333,7 +335,9 @@ class FinancialPlanController extends Controller
     public function getCashFlowSimulation($id, Request $request)
     {
         try {
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
 
             $year = $request->get('year', date('Y'));
             $month = $request->get('month');
@@ -448,7 +452,9 @@ class FinancialPlanController extends Controller
     public function getFeasibilityAnalysis($id)
     {
         try {
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
 
             // Generate recommendations based on metrics
             $recommendations = $this->generateRecommendations($plan);
@@ -492,7 +498,9 @@ class FinancialPlanController extends Controller
     public function getChartData($id, Request $request)
     {
         try {
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
             $chartType = $request->get('chart_type', 'profit_loss');
             $timeRange = $request->get('time_range', 'monthly');
 
@@ -552,11 +560,8 @@ class FinancialPlanController extends Controller
     public function getDashboardCharts(Request $request)
     {
         try {
-            $query = FinancialPlan::with('businessBackground');
-
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
+            $query = FinancialPlan::with('businessBackground')
+                ->where('user_id', Auth::id());
 
             $plans = $query->get();
 
@@ -588,7 +593,9 @@ class FinancialPlanController extends Controller
     public function getFinancialForecast($id, Request $request)
     {
         try {
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
             $period = $request->get('period', 12); // 12 bulan default
 
             $forecastData = $this->generateFinancialForecast($plan, $period);
@@ -613,7 +620,9 @@ class FinancialPlanController extends Controller
     public function getSensitivityAnalysis($id, Request $request)
     {
         try {
-            $plan = FinancialPlan::findOrFail($id);
+            $plan = FinancialPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
             $scenarios = $request->get('scenarios', ['optimistic', 'pessimistic', 'base']);
 
             $sensitivityAnalysis = $this->generateSensitivityAnalysis($plan, $scenarios);

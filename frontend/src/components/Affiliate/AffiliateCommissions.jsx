@@ -323,7 +323,7 @@ const AffiliateCommissions = () => {
             <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex items-start">
               <AlertCircle className="text-blue-600 flex-shrink-0 mr-3 mt-0.5" size={20} />
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                Saldo akan ditransfer melalui SingaPay (Mock). Estimasi proses 1 hari kerja.
+                Saldo akan ditransfer melalui SingaPay B2B Disbursement. Proses pencairan dana mengikuti jadwal operasional bank.
               </p>
             </div>
 
@@ -594,6 +594,9 @@ const AffiliateCommissions = () => {
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-gray-900 dark:text-white">{withdrawal.bank_name}</span>
                             <span className="text-xs text-gray-500">{withdrawal.account_number} - {withdrawal.account_name}</span>
+                            {withdrawal.singapay_reference && (
+                              <span className="text-[10px] text-blue-500 font-mono mt-0.5">Ref: {withdrawal.singapay_reference}</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-black text-gray-900 dark:text-white">{formatCurrency(withdrawal.amount)}</td>

@@ -10,6 +10,7 @@ use App\Models\BusinessBackground;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class MarketAnalysisController extends Controller
 {
@@ -22,11 +23,8 @@ class MarketAnalysisController extends Controller
             ]);
 
             // Gunakan eager loading dengan cara yang lebih eksplisit
-            $query = MarketAnalysis::with(['businessBackground', 'competitors']);
-
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
+            $query = MarketAnalysis::with(['businessBackground', 'competitors'])
+                ->where('user_id', Auth::id());
 
             $analyses = $query->get();
 
@@ -59,7 +57,6 @@ class MarketAnalysisController extends Controller
                 'status' => 'success',
                 'data' => $analyses
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error fetching market analyses: ' . $e->getMessage());
             return response()->json([
@@ -73,12 +70,15 @@ class MarketAnalysisController extends Controller
     public function show($id)
     {
         try {
-            $analysis = MarketAnalysis::with(['businessBackground', 'competitors'])->find($id);
+            $analysis = MarketAnalysis::with(['businessBackground', 'competitors'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$analysis) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Market analysis not found'
+                    'message' => 'Market analysis not found or unauthorized'
                 ], 404);
             }
 
@@ -91,7 +91,6 @@ class MarketAnalysisController extends Controller
                 'status' => 'success',
                 'data' => $analysis
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error fetching market analysis: ' . $e->getMessage());
             return response()->json([
@@ -151,7 +150,7 @@ class MarketAnalysisController extends Controller
         try {
             // Create main market analysis
             $analysis = MarketAnalysis::create([
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
                 'target_market' => $request->target_market,
                 'market_size' => $request->market_size,
@@ -206,7 +205,6 @@ class MarketAnalysisController extends Controller
                 'status' => 'success',
                 'data' => $analysis
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating market analysis: ' . $e->getMessage());
@@ -229,10 +227,10 @@ class MarketAnalysisController extends Controller
             ], 404);
         }
 
-        if (!$request->has('user_id') || $request->user_id != $analysis->user_id) {
+        if ($analysis->user_id != Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: user_id missing or does not match owner'
+                'message' => 'Unauthorized: You cannot access this data'
             ], 403);
         }
 
@@ -365,7 +363,6 @@ class MarketAnalysisController extends Controller
                 'message' => 'Market analysis updated successfully',
                 'data' => $analysis
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating market analysis: ' . $e->getMessage());
@@ -388,10 +385,10 @@ class MarketAnalysisController extends Controller
             ], 404);
         }
 
-        if (!$request->has('user_id') || $request->user_id != $analysis->user_id) {
+        if ($analysis->user_id != Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: user_id missing or does not match owner'
+                'message' => 'Unauthorized: You cannot access this data'
             ], 403);
         }
 
@@ -410,7 +407,6 @@ class MarketAnalysisController extends Controller
                 'status' => 'success',
                 'message' => 'Market analysis deleted successfully'
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error deleting market analysis: ' . $e->getMessage());
@@ -470,7 +466,6 @@ class MarketAnalysisController extends Controller
                     ]
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error calculating market size: ' . $e->getMessage());
             return response()->json([

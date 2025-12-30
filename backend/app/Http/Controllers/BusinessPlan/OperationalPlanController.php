@@ -8,17 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class OperationalPlanController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = OperationalPlan::with(['user', 'businessBackground']);
-
-            if ($request->user_id) {
-                $query->where('user_id', $request->user_id);
-            }
+            $query = OperationalPlan::with(['user', 'businessBackground'])
+                ->where('user_id', Auth::id());
 
             if ($request->business_background_id) {
                 $query->where('business_background_id', $request->business_background_id);
@@ -56,12 +54,15 @@ class OperationalPlanController extends Controller
     public function show($id)
     {
         try {
-            $plan = OperationalPlan::with(['user', 'businessBackground'])->find($id);
+            $plan = OperationalPlan::with(['user', 'businessBackground'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$plan) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Operational plan not found'
+                    'message' => 'Operational plan not found or unauthorized'
                 ], 404);
             }
 
@@ -108,6 +109,7 @@ class OperationalPlanController extends Controller
 
         try {
             $planData = $request->all();
+            $planData['user_id'] = Auth::id();
 
             // Handle workflow_diagram - sesuaikan dengan struktur model
             if ($request->has('workflow_diagram') && is_array($request->workflow_diagram)) {
@@ -144,21 +146,15 @@ class OperationalPlanController extends Controller
 
     public function update(Request $request, $id)
     {
-        $plan = OperationalPlan::find($id);
+        $plan = OperationalPlan::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$plan) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Operational plan not found'
+                'message' => 'Operational plan not found or unauthorized'
             ], 404);
-        }
-
-        // Cek apakah user_id cocok dengan pemilik data
-        if ($request->user_id && $request->user_id != $plan->user_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: You cannot update this data'
-            ], 403);
         }
 
         $validator = Validator::make($request->all(), [
@@ -201,7 +197,7 @@ class OperationalPlanController extends Controller
 
             // Regenerate workflow diagram hanya jika daily_workflow berubah DAN tidak ada workflow_diagram yang dikirim
             $workflowChanged = $request->has('daily_workflow') &&
-                             $request->daily_workflow !== $plan->daily_workflow;
+                $request->daily_workflow !== $plan->daily_workflow;
 
             if ($workflowChanged && !$request->has('workflow_diagram') && !empty($request->daily_workflow)) {
                 $workflowDiagram = $plan->generateWorkflowDiagram();
@@ -235,20 +231,15 @@ class OperationalPlanController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $plan = OperationalPlan::find($id);
+        $plan = OperationalPlan::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$plan) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Operational plan not found'
+                'message' => 'Operational plan not found or unauthorized'
             ], 404);
-        }
-
-        if ($request->user_id != $plan->user_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: You cannot delete this data'
-            ], 403);
         }
 
         try {
@@ -278,12 +269,14 @@ class OperationalPlanController extends Controller
     public function generateWorkflowDiagram($id)
     {
         try {
-            $plan = OperationalPlan::find($id);
+            $plan = OperationalPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$plan) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Operational plan not found'
+                    'message' => 'Operational plan not found or unauthorized'
                 ], 404);
             }
 
@@ -305,7 +298,6 @@ class OperationalPlanController extends Controller
                     'plan' => $plan
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error generating workflow diagram: ' . $e->getMessage());
             return response()->json([
@@ -333,12 +325,14 @@ class OperationalPlanController extends Controller
         }
 
         try {
-            $plan = OperationalPlan::find($id);
+            $plan = OperationalPlan::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$plan) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Operational plan not found'
+                    'message' => 'Operational plan not found or unauthorized'
                 ], 404);
             }
 
@@ -360,7 +354,6 @@ class OperationalPlanController extends Controller
                     'plan' => $plan
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error uploading workflow image: ' . $e->getMessage());
             return response()->json([
@@ -376,16 +369,7 @@ class OperationalPlanController extends Controller
     public function getStatistics(Request $request)
     {
         try {
-            $userId = $request->user_id;
-
-            if (!$userId) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User ID is required'
-                ], 422);
-            }
-
-            $stats = OperationalPlan::where('user_id', $userId)
+            $stats = OperationalPlan::where('user_id', Auth::id())
                 ->selectRaw('
                     COUNT(*) as total,
                     SUM(CASE WHEN status = "draft" THEN 1 ELSE 0 END) as draft_count,
@@ -399,7 +383,6 @@ class OperationalPlanController extends Controller
                 'status' => 'success',
                 'data' => $stats
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching operational plan statistics: ' . $e->getMessage());
             return response()->json([
@@ -425,7 +408,7 @@ class OperationalPlanController extends Controller
         $validated = [];
 
         if (isset($diagram['steps']) && is_array($diagram['steps'])) {
-            $validated['steps'] = array_map(function($step) {
+            $validated['steps'] = array_map(function ($step) {
                 return [
                     'id' => $step['id'] ?? 'step_' . uniqid(),
                     'number' => $step['number'] ?? 1,

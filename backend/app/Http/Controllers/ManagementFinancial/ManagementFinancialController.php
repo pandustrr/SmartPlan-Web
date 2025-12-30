@@ -10,6 +10,7 @@ use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\ManagementFinancial\FinancialSummary;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ManagementFinancialController extends Controller
 {
@@ -23,17 +24,8 @@ class ManagementFinancialController extends Controller
     public function indexCategories(Request $request)
     {
         try {
-            $query = FinancialCategory::query();
-
-            // Filter by business_background_id if provided
-            if ($request->has('business_background_id')) {
-                $query->where('business_background_id', $request->business_background_id);
-            }
-
-            // Filter by user_id if provided
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
+            $query = FinancialCategory::query()
+                ->where('user_id', Auth::id());
 
             $categories = $query->get();
 
@@ -56,12 +48,14 @@ class ManagementFinancialController extends Controller
     public function showCategory($id)
     {
         try {
-            $category = FinancialCategory::find($id);
+            $category = FinancialCategory::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$category) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Kategori tidak ditemukan'
+                    'message' => 'Kategori tidak ditemukan atau unauthorized'
                 ], 404);
             }
 
@@ -116,7 +110,7 @@ class ManagementFinancialController extends Controller
         }
 
         // Check unique constraint: name must be unique within user_id + business_background_id
-        $exists = FinancialCategory::where('user_id', $request->user_id)
+        $exists = FinancialCategory::where('user_id', Auth::id())
             ->where('business_background_id', $request->business_background_id)
             ->where('name', $request->name)
             ->exists();
@@ -132,7 +126,7 @@ class ManagementFinancialController extends Controller
             DB::beginTransaction();
 
             $category = FinancialCategory::create([
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
                 'name' => $request->name,
                 'type' => $request->type,
@@ -173,12 +167,11 @@ class ManagementFinancialController extends Controller
             ], 404);
         }
 
-        // Check ownership
-        if ($request->user_id != $category->user_id) {
+        if (!$category || $category->user_id != Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: Anda tidak memiliki akses untuk mengubah data ini.'
-            ], 403);
+                'message' => 'Unauthorized or Not Found: Anda tidak memiliki akses untuk mengubah data ini.'
+            ], 404);
         }
 
         // Check business ownership
@@ -271,12 +264,11 @@ class ManagementFinancialController extends Controller
             ], 404);
         }
 
-        // Check ownership
-        if ($request->user_id != $category->user_id) {
+        if (!$category || $category->user_id != Auth::id()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: Anda tidak memiliki akses untuk menghapus data ini.'
-            ], 403);
+                'message' => 'Unauthorized or Not Found: Anda tidak memiliki akses untuk menghapus data ini.'
+            ], 404);
         }
 
         try {
@@ -314,7 +306,7 @@ class ManagementFinancialController extends Controller
     public function getCategoriesSummary(Request $request)
     {
         try {
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
 
             $summary = FinancialCategory::where('user_id', $user_id)
                 ->selectRaw('
@@ -360,7 +352,7 @@ class ManagementFinancialController extends Controller
     public function getDashboardStats(Request $request)
     {
         try {
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
 
             if (!$user_id) {
                 return response()->json([

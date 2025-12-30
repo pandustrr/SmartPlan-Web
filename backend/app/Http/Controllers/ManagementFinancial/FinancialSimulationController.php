@@ -26,7 +26,7 @@ class FinancialSimulationController extends Controller
     {
         try {
             // Get user ID from authenticated user or request parameter
-            $user_id = Auth::user()->id ?? $request->user_id;
+            $user_id = Auth::id();
 
             if (!$user_id) {
                 return response()->json([
@@ -100,12 +100,15 @@ class FinancialSimulationController extends Controller
     public function show($id)
     {
         try {
-            $simulation = FinancialSimulation::with(['category', 'user'])->find($id);
+            $simulation = FinancialSimulation::with(['category', 'user'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$simulation) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Data simulasi tidak ditemukan'
+                    'message' => 'Data simulasi tidak ditemukan atau unauthorized'
                 ], 404);
             }
 
@@ -210,7 +213,7 @@ class FinancialSimulationController extends Controller
             $year = $request->year ?? Carbon::parse($request->simulation_date)->year;
 
             $simulationData = [
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
                 'financial_category_id' => $request->financial_category_id,
                 'simulation_code' => FinancialSimulation::generateSimulationCode(),
@@ -265,7 +268,7 @@ class FinancialSimulationController extends Controller
         }
 
         // Check ownership
-        if ($request->user_id != $simulation->user_id) {
+        if (Auth::id() != $simulation->user_id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized: Anda tidak memiliki akses untuk mengubah data ini.'
@@ -398,7 +401,7 @@ class FinancialSimulationController extends Controller
         }
 
         // Check ownership
-        if ($request->user_id != $simulation->user_id) {
+        if (Auth::id() != $simulation->user_id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized: Anda tidak memiliki akses untuk menghapus data ini.'
@@ -432,7 +435,7 @@ class FinancialSimulationController extends Controller
     public function getCashFlowSummary(Request $request)
     {
         try {
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
 
             if (!$user_id) {
                 return response()->json([
@@ -560,7 +563,7 @@ class FinancialSimulationController extends Controller
     public function getMonthlyComparison(Request $request)
     {
         try {
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
 
             if (!$user_id) {
                 return response()->json([
@@ -613,7 +616,7 @@ class FinancialSimulationController extends Controller
     public function getAvailableYears(Request $request)
     {
         try {
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
 
             if (!$user_id) {
                 return response()->json([

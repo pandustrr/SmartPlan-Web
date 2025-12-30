@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Sun, Moon, ArrowLeft, LogIn, Phone } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { clearAppData } from "../utils/authStorage";
 
 const Login = ({ isDarkMode, toggleDarkMode }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +15,12 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Clear any residual app data on mount to prevent data leakage from previous accounts
+  useEffect(() => {
+    // We preserve affiliate info because it might be needed for registration
+    clearAppData(true);
+  }, []);
 
   // Helper function to check if input looks like a phone number
   const isPhoneInput = (value) => {
@@ -33,7 +40,7 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
       if (result.needsVerification) {
         // Redirect to OTP verification dengan phone
         navigate("/verify-otp", {
-          state: { 
+          state: {
             phone: result.phone,
             message: 'Silakan verifikasi nomor WhatsApp Anda untuk melanjutkan login.'
           },
@@ -48,13 +55,13 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Format nomor telepon saat input (jika input phone)
     let processedValue = value;
     if (name === 'login' && isPhoneInput(value)) {
       processedValue = value.replace(/[^\d+]/g, '');
     }
-    
+
     setFormData({
       ...formData,
       [name]: processedValue,
@@ -68,8 +75,8 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
   };
 
   const getPlaceholder = () => {
-    return isPhoneInput(formData.login) 
-      ? "081234567890" 
+    return isPhoneInput(formData.login)
+      ? "081234567890"
       : "username atau nomor WhatsApp";
   };
 
@@ -169,9 +176,8 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                   required
                   value={formData.login}
                   onChange={handleChange}
-                  className={`w-full py-3 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
-                    isPhoneInput(formData.login) ? 'pl-10 pr-3' : 'px-3'
-                  }`}
+                  className={`w-full py-3 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${isPhoneInput(formData.login) ? 'pl-10 pr-3' : 'px-3'
+                    }`}
                   placeholder={getPlaceholder()}
                 />
               </div>

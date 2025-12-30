@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Sun, Moon, ArrowLeft, CheckCircle, UserPlus, Phone } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { clearAppData } from "../utils/authStorage";
 
 const Register = ({ isDarkMode, toggleDarkMode }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +20,12 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
 
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  // Clear any residual app data on mount to prevent data leakage from previous accounts
+  useEffect(() => {
+    // We preserve affiliate info because it might be needed for this registration
+    clearAppData(true);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -185,9 +192,8 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
-                    errors.name ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${errors.name ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
+                    }`}
                   placeholder="Masukkan nama lengkap"
                 />
               </div>
@@ -210,9 +216,8 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                   required
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`w-full pl-10 pr-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
-                    errors.phone ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`w-full pl-10 pr-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${errors.phone ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
+                    }`}
                   placeholder="081234567890"
                 />
               </div>
@@ -233,9 +238,8 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
-                    errors.username ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${errors.username ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
+                    }`}
                   placeholder="Pilih username"
                 />
               </div>
@@ -255,9 +259,8 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${
-                    errors.password ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${errors.password ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
+                    }`}
                   placeholder="Minimal 8 karakter"
                 />
                 <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center" onClick={() => setShowPassword(!showPassword)}>
@@ -287,9 +290,8 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                   required
                   value={formData.password_confirmation}
                   onChange={handleChange}
-                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${
-                    errors.password_confirmation ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
-                  }`}
+                  className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${errors.password_confirmation ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-gray-600"
+                    }`}
                   placeholder="Ulangi password"
                 />
                 <button type="button" className="absolute inset-y-0 right-0 pr-3 flex items-center" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>

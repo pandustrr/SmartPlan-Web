@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ManagementFinancial\FinancialProjection;
 use App\Models\ManagementFinancial\FinancialSimulation;
+use Illuminate\Support\Facades\Auth;
 
 class FinancialProjectionController extends Controller
 {
@@ -19,7 +20,6 @@ class FinancialProjectionController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'user_id' => 'required|exists:users,id',
                 'business_background_id' => 'required|exists:business_backgrounds,id',
                 'scenario_type' => 'nullable|in:optimistic,realistic,pessimistic',
                 'base_year' => 'nullable|integer|min:2020|max:2030'
@@ -34,7 +34,7 @@ class FinancialProjectionController extends Controller
             }
 
             $query = FinancialProjection::with(['user', 'businessBackground'])
-                ->where('user_id', $request->user_id)
+                ->where('user_id', Auth::id())
                 ->where('business_background_id', $request->business_background_id);
 
             if ($request->scenario_type) {
@@ -81,7 +81,6 @@ class FinancialProjectionController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'user_id' => 'required|exists:users,id',
                 'business_background_id' => 'required|exists:business_backgrounds,id',
                 'base_year' => 'nullable|integer|min:2020|max:2030'
             ]);
@@ -97,7 +96,7 @@ class FinancialProjectionController extends Controller
             $baseYear = $request->base_year ?? date('Y');
 
             // Get ALL completed simulations to calculate current cash balance
-            $allSimulations = FinancialSimulation::where('user_id', $request->user_id)
+            $allSimulations = FinancialSimulation::where('user_id', Auth::id())
                 ->where('business_background_id', $request->business_background_id)
                 ->where('status', 'completed')
                 ->get();
@@ -107,7 +106,9 @@ class FinancialProjectionController extends Controller
             $accumulatedExpense = $allSimulations->where('type', 'expense')->sum('amount');
 
             // Get initial investment from business background
-            $businessBackground = \App\Models\BusinessBackground::find($request->business_background_id);
+            $businessBackground = \App\Models\BusinessBackground::where('id', $request->business_background_id)
+                ->where('user_id', Auth::id())
+                ->first();
             $initialInvestment = $businessBackground ? $businessBackground->initial_capital : 0;
 
             // Current cash balance = Initial Investment + Total Income - Total Expense
@@ -115,7 +116,7 @@ class FinancialProjectionController extends Controller
 
             // Get simulations for base year only (for baseline calculation)
             $simulations = FinancialSimulation::with('category')
-                ->where('user_id', $request->user_id)
+                ->where('user_id', Auth::id())
                 ->where('business_background_id', $request->business_background_id)
                 ->where('year', $baseYear)
                 ->where('status', 'completed')
@@ -200,7 +201,6 @@ class FinancialProjectionController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'user_id' => 'required|exists:users,id',
                 'business_background_id' => 'required|exists:business_backgrounds,id',
                 'projection_name' => 'required|string|max:255',
                 'base_year' => 'required|integer|min:2020|max:2030',
@@ -275,7 +275,7 @@ class FinancialProjectionController extends Controller
 
                 // Create projection record
                 $projection = FinancialProjection::create([
-                    'user_id' => $request->user_id,
+                    'user_id' => Auth::id(),
                     'business_background_id' => $request->business_background_id,
                     'projection_name' => $request->projection_name . ' - ' . ucfirst($scenarioType),
                     'base_year' => $request->base_year,
@@ -322,12 +322,15 @@ class FinancialProjectionController extends Controller
     public function show($id)
     {
         try {
-            $projection = FinancialProjection::with(['user', 'businessBackground'])->find($id);
+            $projection = FinancialProjection::with(['user', 'businessBackground'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$projection) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Proyeksi tidak ditemukan'
+                    'message' => 'Proyeksi tidak ditemukan atau unauthorized'
                 ], 404);
             }
 
@@ -358,21 +361,15 @@ class FinancialProjectionController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $projection = FinancialProjection::find($id);
+            $projection = FinancialProjection::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$projection) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Proyeksi tidak ditemukan'
+                    'message' => 'Proyeksi tidak ditemukan atau unauthorized'
                 ], 404);
-            }
-
-            // Check ownership
-            if ($request->user_id != $projection->user_id) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Unauthorized: Anda tidak memiliki akses'
-                ], 403);
             }
 
             $projection->delete();

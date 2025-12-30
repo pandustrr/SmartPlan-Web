@@ -44,13 +44,7 @@ class AffiliateCommissionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $history->items(),
-            'pagination' => [
-                'current_page' => $history->currentPage(),
-                'last_page' => $history->lastPage(),
-                'per_page' => $history->perPage(),
-                'total' => $history->total(),
-            ],
+            'data' => $history,
         ]);
     }
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use App\Models\BusinessBackground;
 use App\Models\MarketAnalysis;
 use App\Models\ProductService;
@@ -57,7 +58,7 @@ class CombinedPdfController extends Controller
                 ], 422);
             }
 
-            $userId = $request->user_id;
+            $userId = Auth::id();
             $businessBackgroundId = $request->business_background_id;
             $periodType = $request->period_type;
             $periodValue = $request->period_value;
@@ -1881,14 +1882,14 @@ class CombinedPdfController extends Controller
         $profitMargin = $totalIncome > 0 ? ($netProfit / $totalIncome) * 100 : 0;
 
         $analysis = "Grafik menunjukkan perbandingan antara total pendapatan Rp " . number_format($totalIncome, 0, ',', '.') .
-                   " dan pengeluaran Rp " . number_format($totalExpense, 0, ',', '.');
+            " dan pengeluaran Rp " . number_format($totalExpense, 0, ',', '.');
 
         if ($netProfit > 0) {
             $analysis .= " Bisnis mencapai keuntungan bersih sebesar Rp " . number_format($netProfit, 0, ',', '.') .
-                        " dengan margin keuntungan " . number_format($profitMargin, 1, ',', '.') . "%.";
+                " dengan margin keuntungan " . number_format($profitMargin, 1, ',', '.') . "%.";
         } elseif ($netProfit < 0) {
             $analysis .= " Bisnis mengalami kerugian sebesar Rp " . number_format(abs($netProfit), 0, ',', '.') .
-                        ". Perhatian diperlukan untuk mengurangi pengeluaran atau meningkatkan pendapatan.";
+                ". Perhatian diperlukan untuk mengurangi pengeluaran atau meningkatkan pendapatan.";
         } else {
             $analysis .= " Pendapatan dan pengeluaran seimbang tanpa keuntungan atau kerugian.";
         }
@@ -1923,7 +1924,7 @@ class CombinedPdfController extends Controller
         }
 
         $analysis = "Kategori " . strtoupper($categoryName) . " merupakan sumber pendapatan utama dengan kontribusi Rp " .
-                   number_format($totalAmount, 0, ',', '.') . " (" . number_format($percentageOfTotal, 1, ',', '.') . "%).";
+            number_format($totalAmount, 0, ',', '.') . " (" . number_format($percentageOfTotal, 1, ',', '.') . "%).";
 
         if (count($topIncome) > 1) {
             $analysis .= " Terdapat " . count($topIncome) . " kategori pendapatan, menunjukkan diversifikasi pendapatan yang baik.";
@@ -1961,7 +1962,7 @@ class CombinedPdfController extends Controller
         }
 
         $analysis = "Kategori " . strtoupper($categoryName) . " adalah pengeluaran terbesar dengan nilai Rp " .
-                   number_format($totalAmount, 0, ',', '.') . " (" . number_format($percentageOfTotal, 1, ',', '.') . "%).";
+            number_format($totalAmount, 0, ',', '.') . " (" . number_format($percentageOfTotal, 1, ',', '.') . "%).";
 
         $analysis .= " Terdapat " . count($topExpense) . " kategori pengeluaran.";
 
@@ -1993,20 +1994,20 @@ class CombinedPdfController extends Controller
         $minIncomeMonth = $months->sortBy('total_income')->first();
 
         $analysis = "Tren bulanan menunjukkan rata-rata pendapatan Rp " . number_format($avgIncome, 0, ',', '.') .
-                   " dan rata-rata pengeluaran Rp " . number_format($avgExpense, 0, ',', '.') . ".";
+            " dan rata-rata pengeluaran Rp " . number_format($avgExpense, 0, ',', '.') . ".";
 
         if ($maxIncomeMonth) {
             $maxMonth = $maxIncomeMonth['month'] ?? 'Tidak diketahui';
             $maxAmount = $maxIncomeMonth['total_income'] ?? 0;
             $analysis .= " Pendapatan tertinggi terjadi pada " . $maxMonth . " sebesar Rp " .
-                        number_format($maxAmount, 0, ',', '.') . ".";
+                number_format($maxAmount, 0, ',', '.') . ".";
         }
 
         if ($minIncomeMonth) {
             $minMonth = $minIncomeMonth['month'] ?? 'Tidak diketahui';
             $minAmount = $minIncomeMonth['total_income'] ?? 0;
             $analysis .= " Sementara pendapatan terendah pada " . $minMonth . " sebesar Rp " .
-                        number_format($minAmount, 0, ',', '.') . ".";
+                number_format($minAmount, 0, ',', '.') . ".";
         }
 
         $analysis .= " Pola ini membantu identifikasi musim ramai dan sepi untuk perencanaan cash flow yang lebih baik.";

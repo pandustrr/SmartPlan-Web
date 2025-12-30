@@ -14,6 +14,7 @@ use App\Models\ManagementFinancial\FinancialSummary;
 use App\Models\ManagementFinancial\FinancialProjection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class PdfFinancialReportController extends Controller
 {
@@ -32,7 +33,6 @@ class PdfFinancialReportController extends Controller
 
             // Validasi input
             $validator = Validator::make($request->all(), [
-                'user_id' => 'required|exists:users,id',
                 'business_background_id' => 'required|exists:business_backgrounds,id',
                 'period_type' => 'required|in:year,month',
                 'period_value' => 'required', // Format: 2025 atau 2025-01
@@ -47,7 +47,7 @@ class PdfFinancialReportController extends Controller
                 ], 422);
             }
 
-            $userId = $request->user_id;
+            $userId = Auth::id();
             $businessBackgroundId = $request->business_background_id;
             $periodType = $request->period_type;
             $periodValue = $request->period_value;
@@ -637,7 +637,7 @@ class PdfFinancialReportController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'user_id' => 'required|exists:users,id'
+                // 'user_id' removed as we use Auth::id()
             ]);
 
             if ($validator->fails()) {

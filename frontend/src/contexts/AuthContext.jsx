@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { authAPI } from "../services/authApi";
+import { clearAppData } from "../utils/authStorage";
 
 const AuthContext = createContext();
 
@@ -97,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   const verifyOtp = async (data) => {
     try {
       const response = await authAPI.verifyOtp(data);
-      
+
       if (response.data.data?.access_token) {
         const { user, access_token } = response.data.data;
         localStorage.setItem("token", access_token);
@@ -132,8 +133,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      clearAppData();
       setUser(null);
     }
   };
@@ -153,10 +153,10 @@ export const AuthProvider = ({ children }) => {
   const verifyResetOtp = async (data) => {
     try {
       const response = await authAPI.verifyResetOtp(data);
-      return { 
-        success: true, 
+      return {
+        success: true,
         data: response.data,
-        resetToken: response.data.data?.reset_token 
+        resetToken: response.data.data?.reset_token
       };
     } catch (error) {
       return {

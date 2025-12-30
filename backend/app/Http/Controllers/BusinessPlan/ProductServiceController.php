@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\ProductService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ProductServiceController extends Controller
 {
@@ -59,7 +60,7 @@ class ProductServiceController extends Controller
             }
 
             $productData = [
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
                 'type' => $request->type,
                 'name' => $request->name,
@@ -95,7 +96,6 @@ class ProductServiceController extends Controller
                 'message' => 'Product/service created successfully',
                 'data' => $formattedProduct
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Error creating product/service: ' . $e->getMessage());
             return response()->json([
@@ -119,7 +119,7 @@ class ProductServiceController extends Controller
             }
 
             // Check ownership
-            if ($request->user_id != $product->user_id) {
+            if (Auth::id() != $product->user_id) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Unauthorized: You cannot update this data'
@@ -182,7 +182,7 @@ class ProductServiceController extends Controller
             } else {
                 // Regenerate BMC alignment jika data penting berubah
                 $importantFieldsChanged = $request->has('name') || $request->has('description') ||
-                                        $request->has('advantages') || $request->has('development_strategy');
+                    $request->has('advantages') || $request->has('development_strategy');
 
                 if ($importantFieldsChanged) {
                     $product->generateBmcAlignment();
@@ -225,7 +225,6 @@ class ProductServiceController extends Controller
                 'message' => 'Product/service updated successfully',
                 'data' => $formattedProduct
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error updating product/service: ' . $e->getMessage());
             return response()->json([
@@ -241,12 +240,10 @@ class ProductServiceController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = ProductService::with(['businessBackground', 'user']);
+            $query = ProductService::with(['businessBackground', 'user'])
+                ->where('user_id', Auth::id());
 
-            // Filter berdasarkan user_id
-            if ($request->user_id) {
-                $query->where('user_id', $request->user_id);
-            }
+            // User filter removed as it is now enforced via Auth::id()
 
             // Filter berdasarkan business_background_id
             if ($request->business_background_id) {
@@ -289,7 +286,6 @@ class ProductServiceController extends Controller
                     'services_count' => $data->where('type', 'service')->count(),
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching products/services: ' . $e->getMessage());
             return response()->json([
@@ -303,7 +299,10 @@ class ProductServiceController extends Controller
     public function show($id)
     {
         try {
-            $product = ProductService::with(['businessBackground', 'user'])->find($id);
+            $product = ProductService::with(['businessBackground', 'user'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$product) {
                 return response()->json([
@@ -319,7 +318,6 @@ class ProductServiceController extends Controller
                 'status' => 'success',
                 'data' => $formattedProduct
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching product/service: ' . $e->getMessage());
             return response()->json([
@@ -343,7 +341,7 @@ class ProductServiceController extends Controller
             }
 
             // Check ownership
-            if ($request->user_id != $product->user_id) {
+            if (Auth::id() != $product->user_id) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Unauthorized: You cannot delete this data'
@@ -361,7 +359,6 @@ class ProductServiceController extends Controller
                 'status' => 'success',
                 'message' => 'Product/service deleted successfully'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error deleting product/service: ' . $e->getMessage());
             return response()->json([
@@ -378,7 +375,9 @@ class ProductServiceController extends Controller
     public function generateBmcAlignment($id)
     {
         try {
-            $product = ProductService::find($id);
+            $product = ProductService::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$product) {
                 return response()->json([
@@ -398,7 +397,6 @@ class ProductServiceController extends Controller
                     'product' => $this->formatProductResponse($product)
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error generating BMC alignment: ' . $e->getMessage());
             return response()->json([
@@ -424,7 +422,7 @@ class ProductServiceController extends Controller
                 ], 422);
             }
 
-            $stats = ProductService::where('user_id', $userId)
+            $stats = ProductService::where('user_id', Auth::id())
                 ->selectRaw('
                     COUNT(*) as total,
                     SUM(CASE WHEN type = "product" THEN 1 ELSE 0 END) as products_count,
@@ -440,7 +438,6 @@ class ProductServiceController extends Controller
                 'status' => 'success',
                 'data' => $stats
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching product/service statistics: ' . $e->getMessage());
             return response()->json([

@@ -11,6 +11,7 @@ use App\Services\SalarySimulationService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class TeamStructureController extends Controller
 {
@@ -18,12 +19,9 @@ class TeamStructureController extends Controller
     {
         try {
             $query = TeamStructure::with(['businessBackground', 'user', 'operationalPlan'])
+                ->where('user_id', Auth::id())
                 ->orderBy('sort_order', 'asc')
                 ->orderBy('created_at', 'desc');
-
-            if ($request->user_id) {
-                $query->where('user_id', $request->user_id);
-            }
 
             if ($request->business_background_id) {
                 $query->where('business_background_id', $request->business_background_id);
@@ -56,12 +54,15 @@ class TeamStructureController extends Controller
     public function show($id)
     {
         try {
-            $team = TeamStructure::with(['businessBackground', 'user', 'operationalPlan'])->find($id);
+            $team = TeamStructure::with(['businessBackground', 'user', 'operationalPlan'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$team) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Team structure not found'
+                    'message' => 'Team structure not found or unauthorized'
                 ], 404);
             }
 
@@ -118,7 +119,7 @@ class TeamStructureController extends Controller
             }
 
             $team = TeamStructure::create([
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
                 'operational_plan_id' => $request->operational_plan_id,
                 'team_category' => $request->team_category,
@@ -153,21 +154,15 @@ class TeamStructureController extends Controller
 
     public function update(Request $request, $id)
     {
-        $team = TeamStructure::find($id);
+        $team = TeamStructure::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$team) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Team structure not found'
+                'message' => 'Team structure not found or unauthorized'
             ], 404);
-        }
-
-        // Check ownership
-        if ($request->user_id != $team->user_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: You cannot update this data'
-            ], 403);
         }
 
         $validator = Validator::make($request->all(), [
@@ -251,21 +246,15 @@ class TeamStructureController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $team = TeamStructure::find($id);
+        $team = TeamStructure::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$team) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Team structure not found'
+                'message' => 'Team structure not found or unauthorized'
             ], 404);
-        }
-
-        // Check ownership
-        if ($request->user_id != $team->user_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: You cannot delete this data'
-            ], 403);
         }
 
         try {
@@ -292,12 +281,14 @@ class TeamStructureController extends Controller
     // 🔥 NEW: Method untuk upload photo saja (Opsional)
     public function uploadPhoto(Request $request, $id)
     {
-        $team = TeamStructure::find($id);
+        $team = TeamStructure::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$team) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Team structure not found'
+                'message' => 'Team structure not found or unauthorized'
             ], 404);
         }
 
@@ -506,12 +497,14 @@ class TeamStructureController extends Controller
         }
 
         try {
-            $businessBackground = BusinessBackground::find($request->business_background_id);
+            $businessBackground = BusinessBackground::where('id', $request->business_background_id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$businessBackground) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Business background not found'
+                    'message' => 'Business background not found or unauthorized'
                 ], 404);
             }
 
@@ -551,12 +544,14 @@ class TeamStructureController extends Controller
     public function deleteOrgChart($businessBackgroundId)
     {
         try {
-            $businessBackground = BusinessBackground::find($businessBackgroundId);
+            $businessBackground = BusinessBackground::where('id', $businessBackgroundId)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$businessBackground) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Business background not found'
+                    'message' => 'Business background not found or unauthorized'
                 ], 404);
             }
 

@@ -10,6 +10,7 @@ use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\BusinessBackground;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class FinancialSummaryController extends Controller
@@ -39,7 +40,7 @@ class FinancialSummaryController extends Controller
                 ], 422);
             }
 
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
             $business_id = $request->business_background_id;
             $year = $request->year ?? date('Y');
             $month = $request->month ?? null;
@@ -98,15 +99,16 @@ class FinancialSummaryController extends Controller
     public function show($id)
     {
         try {
-            Log::info('FinancialSummaryController: Fetching financial summary', ['id' => $id]);
-
-            $summary = FinancialSummary::with(['businessBackground', 'user'])->find($id);
+            $summary = FinancialSummary::with(['businessBackground', 'user'])
+                ->where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
 
             if (!$summary) {
-                Log::warning('FinancialSummaryController: Summary not found', ['id' => $id]);
+                Log::warning('FinancialSummaryController: Summary not found or unauthorized', ['id' => $id]);
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Ringkasan keuangan tidak ditemukan'
+                    'message' => 'Ringkasan keuangan tidak ditemukan atau unauthorized'
                 ], 404);
             }
 
@@ -191,7 +193,7 @@ class FinancialSummaryController extends Controller
             }
 
             $summaryData = [
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'business_background_id' => $request->business_background_id,
                 'month' => $request->month,
                 'year' => $request->year,
@@ -257,14 +259,14 @@ class FinancialSummaryController extends Controller
         }
 
         // Check ownership
-        if ($request->user_id != $summary->user_id) {
-            Log::warning('FinancialSummaryController: Unauthorized update attempt', [
-                'request_user_id' => $request->user_id,
-                'summary_user_id' => $summary->user_id
+        if (!$summary || $summary->user_id != Auth::id()) {
+            Log::warning('FinancialSummaryController: Unauthorized update attempt or not found', [
+                'request_user_id' => Auth::id(),
+                'summary_user_id' => $summary ? $summary->user_id : null
             ]);
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: Anda tidak memiliki akses untuk mengubah data ini.'
+                'message' => 'Unauthorized or Not Found: Anda tidak memiliki akses untuk mengubah data ini.'
             ], 403);
         }
 
@@ -351,14 +353,14 @@ class FinancialSummaryController extends Controller
         }
 
         // Check ownership
-        if ($request->user_id != $summary->user_id) {
-            Log::warning('FinancialSummaryController: Unauthorized deletion attempt', [
-                'request_user_id' => $request->user_id,
-                'summary_user_id' => $summary->user_id
+        if (!$summary || $summary->user_id != Auth::id()) {
+            Log::warning('FinancialSummaryController: Unauthorized deletion attempt or not found', [
+                'request_user_id' => Auth::id(),
+                'summary_user_id' => $summary ? $summary->user_id : null
             ]);
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: Anda tidak memiliki akses untuk menghapus data ini.'
+                'message' => 'Unauthorized or Not Found: Anda tidak memiliki akses untuk menghapus data ini.'
             ], 403);
         }
 
@@ -410,7 +412,7 @@ class FinancialSummaryController extends Controller
                 ], 422);
             }
 
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
             $business_id = $request->business_id;
             $year = $request->year ?? date('Y');
 
@@ -432,7 +434,7 @@ class FinancialSummaryController extends Controller
             $totalNetProfit = $totalGrossProfit; // Simplified, can add deductions
 
             // Calculate monthly averages
-            $monthsWithData = $simulations->groupBy(function($item) {
+            $monthsWithData = $simulations->groupBy(function ($item) {
                 return \Carbon\Carbon::parse($item->simulation_date)->format('Y-m');
             })->count();
 
@@ -445,7 +447,7 @@ class FinancialSummaryController extends Controller
             $monthlyGrossProfits = [];
 
             for ($month = 1; $month <= 12; $month++) {
-                $monthSimulations = $simulations->filter(function($sim) use ($month) {
+                $monthSimulations = $simulations->filter(function ($sim) use ($month) {
                     return \Carbon\Carbon::parse($sim->simulation_date)->month == $month;
                 });
 
@@ -476,7 +478,7 @@ class FinancialSummaryController extends Controller
 
             $previousYearSims = $previousYearQuery->get();
             $previousYearNet = $previousYearSims->where('type', 'income')->sum('amount') -
-                              $previousYearSims->where('type', 'expense')->sum('amount');
+                $previousYearSims->where('type', 'expense')->sum('amount');
 
             // Calculate current year cumulative cash
             $cashPosition = $previousYearNet + $totalNetProfit;
@@ -542,7 +544,7 @@ class FinancialSummaryController extends Controller
                 ], 422);
             }
 
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
             $business_id = $request->business_id;
             $year = $request->year ?? date('Y');
 
@@ -558,16 +560,25 @@ class FinancialSummaryController extends Controller
             $simulations = $query->get();
 
             $months = [
-                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
             ];
 
             $completeData = [];
 
             for ($month = 1; $month <= 12; $month++) {
                 // Filter simulations for this month
-                $monthSimulations = $simulations->filter(function($sim) use ($month) {
+                $monthSimulations = $simulations->filter(function ($sim) use ($month) {
                     return \Carbon\Carbon::parse($sim->simulation_date)->month == $month;
                 });
 
@@ -631,7 +642,7 @@ class FinancialSummaryController extends Controller
                 ], 422);
             }
 
-            $user_id = $request->user_id;
+            $user_id = Auth::id();
             $business_id = $request->business_background_id;
             $year = $request->year;
             $specificMonth = $request->month;

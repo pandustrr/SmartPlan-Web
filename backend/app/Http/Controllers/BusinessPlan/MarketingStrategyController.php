@@ -6,13 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\MarketingStrategy;
+use Illuminate\Support\Facades\Auth;
 
 class MarketingStrategyController extends Controller
 {
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
             'business_background_id' => 'nullable|exists:business_backgrounds,id',
             'promotion_strategy' => 'required|string',
             'media_used' => 'nullable|string',
@@ -29,7 +29,9 @@ class MarketingStrategyController extends Controller
             ], 422);
         }
 
-        $marketing = MarketingStrategy::create($request->all());
+        $data = $request->all();
+        $data['user_id'] = Auth::id();
+        $marketing = MarketingStrategy::create($data);
 
         return response()->json([
             'status' => 'success',
@@ -40,12 +42,8 @@ class MarketingStrategyController extends Controller
     public function index(Request $request)
     {
         // Ambil query builder awal, sudah include relasi businessBackground
-        $query = MarketingStrategy::with('businessBackground');
-
-        // Filter berdasarkan user_id (jika dikirim)
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
+        $query = MarketingStrategy::with('businessBackground')
+            ->where('user_id', Auth::id());
 
         // Filter berdasarkan business_background_id (opsional)
         if ($request->has('business_background_id')) {
@@ -66,12 +64,15 @@ class MarketingStrategyController extends Controller
     {
         // $marketing = MarketingStrategy::find($id);
         // $userId = $marketing->user_id;
-        $marketing = MarketingStrategy::with('businessBackground')->find($id);
+        $marketing = MarketingStrategy::with('businessBackground')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$marketing) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Marketing strategy not found'
+                'message' => 'Marketing strategy not found or unauthorized'
             ], 404);
         }
 
@@ -83,20 +84,15 @@ class MarketingStrategyController extends Controller
 
     public function update(Request $request, $id)
     {
-        $marketing = MarketingStrategy::find($id);
+        $marketing = MarketingStrategy::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$marketing) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Marketing strategy not found'
+                'message' => 'Marketing strategy not found or unauthorized'
             ], 404);
-        }
-
-        if ($request->user_id != $marketing->user_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: You cannot update this data'
-            ], 403);
         }
 
         $validated = $request->validate([
@@ -119,20 +115,15 @@ class MarketingStrategyController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $marketing = MarketingStrategy::find($id);
+        $marketing = MarketingStrategy::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$marketing) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Marketing strategy not found'
+                'message' => 'Marketing strategy not found or unauthorized'
             ], 404);
-        }
-
-        if ($request->user_id != $marketing->user_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: You cannot delete this data'
-            ], 403);
         }
 
         $marketing->delete();

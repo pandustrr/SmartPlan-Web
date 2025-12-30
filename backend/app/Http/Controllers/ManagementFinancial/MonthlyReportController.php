@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ManagementFinancial\FinancialSummary;
 use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\ManagementFinancial\FinancialCategory;
+use Illuminate\Support\Facades\Auth;
 
 class MonthlyReportController extends Controller
 {
@@ -20,11 +21,10 @@ class MonthlyReportController extends Controller
         $validated = $request->validate([
             'year' => 'required|integer|min:1900|max:3000',
             'business_background_id' => 'nullable|integer',
-            'user_id' => 'nullable|integer',
         ]);
         $year = (int) $validated['year'];
         $businessId = $validated['business_background_id'] ?? null;
-        $userId = $validated['user_id'] ?? null;
+        $userId = Auth::id();
 
         // Siapkan array 12 bulan
         $months = range(1, 12);

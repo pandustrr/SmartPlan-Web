@@ -1,5 +1,5 @@
 import React from 'react'
-import { Plus, FileText, BarChart3, TrendingUp, Download, Share2, BookOpen, Zap } from 'lucide-react'
+import { Plus, FileText, BarChart3, TrendingUp } from 'lucide-react'
 
 const QuickActions = ({ setActiveSection, setActiveSubSection }) => {
     const quickLinks = [
@@ -37,36 +37,6 @@ const QuickActions = ({ setActiveSection, setActiveSubSection }) => {
         }
     ]
 
-    const features = [
-        {
-            icon: BookOpen,
-            label: 'Dokumentasi',
-            description: 'Panduan lengkap penggunaan',
-            section: 'dashboard', // or a dedicated docs section if exits
-            subSection: ''
-        },
-        {
-            icon: Download,
-            label: 'Export Laporan',
-            description: 'Download laporan PDF',
-            section: 'export-pdf-lengkap',
-            subSection: ''
-        },
-        {
-            icon: Share2,
-            label: 'Bagikan',
-            description: 'Bagikan rencana dengan tim',
-            section: 'dashboard',
-            subSection: ''
-        },
-        {
-            icon: Zap,
-            label: 'Tips & Trik',
-            description: 'Maksimalkan penggunaan',
-            section: 'dashboard',
-            subSection: ''
-        }
-    ]
 
     const handleAction = (section, subSection, e) => {
         if (e) {
@@ -111,27 +81,6 @@ const QuickActions = ({ setActiveSection, setActiveSubSection }) => {
                 </div>
             </div>
 
-            {/* Features */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Fitur Lainnya</h2>
-                <div className="grid grid-cols-2 gap-2">
-                    {features.map((feature, index) => {
-                        const Icon = feature.icon
-                        return (
-                            <button
-                                type="button"
-                                key={index}
-                                onClick={(e) => handleAction(feature.section, feature.subSection, e)}
-                                className="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center"
-                            >
-                                <Icon size={24} className="text-gray-600 dark:text-gray-400 mb-2" />
-                                <p className="text-xs font-medium text-gray-900 dark:text-white">{feature.label}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{feature.description}</p>
-                            </button>
-                        )
-                    })}
-                </div>
-            </div>
 
             {/* Status Summary */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">

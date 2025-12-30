@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAppData } from "../utils/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -39,8 +40,7 @@ api.interceptors.response.use(
         errorMessage.includes("authentication failed");
 
       if (isExplicitTokenError) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        clearAppData();
         window.location.href = (import.meta.env.BASE_URL || "/") + "login";
       }
       // Untuk 401 lainnya, biarkan di-handle oleh component

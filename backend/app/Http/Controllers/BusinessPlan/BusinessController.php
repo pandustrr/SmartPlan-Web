@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\BusinessBackground;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class BusinessController extends Controller
 {
@@ -90,7 +91,7 @@ class BusinessController extends Controller
     // BusinessBackground
     public function index()
     {
-        $businesses = BusinessBackground::all();
+        $businesses = BusinessBackground::where('user_id', Auth::id())->get();
 
         return response()->json([
             'status' => 'success',
@@ -100,12 +101,14 @@ class BusinessController extends Controller
 
     public function show($id)
     {
-        $business = BusinessBackground::find($id);
+        $business = BusinessBackground::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$business) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Business not found'
+                'message' => 'Business not found or unauthorized'
             ], 404);
         }
 
@@ -174,7 +177,7 @@ class BusinessController extends Controller
             }
 
             $business = BusinessBackground::create([
-                'user_id' => $request->user_id,
+                'user_id' => Auth::id(),
                 'logo' => $logoPath,
                 'background_image' => $backgroundPath,
                 'name' => $request->name,
@@ -218,8 +221,7 @@ class BusinessController extends Controller
             ], 404);
         }
 
-        // Cek apakah user_id cocok dengan pemilik data
-        if ($request->user_id != $business->user_id) {
+        if (Auth::id() != $business->user_id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized: You cannot update this data'
@@ -322,12 +324,14 @@ class BusinessController extends Controller
 
     public function destroy($id)
     {
-        $business = BusinessBackground::find($id);
+        $business = BusinessBackground::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if (!$business) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Business not found'
+                'message' => 'Business not found or unauthorized'
             ], 404);
         }
 

@@ -8,19 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 class SingaPayPayoutService
 {
-    protected $baseUrl;
-    protected $apiKey;
-    protected $clientId;
-    protected $clientSecret;
+    protected $apiService;
     protected $isMock;
 
-    public function __construct()
+    public function __construct(SingapayApiService $apiService)
     {
-        $this->baseUrl = config('singapay.base_url', 'https://sandbox-payment-b2b.singapay.id');
-        $this->apiKey = config('singapay.api_key');
-        $this->clientId = config('singapay.client_id');
-        $this->clientSecret = config('singapay.client_secret');
-        $this->isMock = config('singapay.mode') === 'mock' || app()->environment('local');
+        $this->apiService = $apiService;
+        $this->isMock = $apiService->isMockMode();
     }
 
     /**
@@ -32,15 +26,87 @@ class SingaPayPayoutService
             return $this->mockPayout($withdrawal);
         }
 
-        // Real API Implementation (Future)
-        // For now, we only implement mock because user specifically requested mock first
-        // and we need to be careful with real money APIs.
+        try {
+            $swiftCode = $this->getBankSwiftCode($withdrawal->bank_name, $withdrawal->bank_code);
 
-        Log::warning('[SingaPay Payout] Real payout requested but not fully implemented. Falling back to mock.', [
-            'withdrawal_id' => $withdrawal->id
-        ]);
+            if (!$swiftCode) {
+                throw new \Exception("Unsupported bank or SWIFT code missing for: " . $withdrawal->bank_name);
+            }
 
-        return $this->mockPayout($withdrawal);
+            $payload = [
+                'reference_number' => 'WD-' . $withdrawal->id . '-' . time(),
+                'amount' => (float) $withdrawal->amount,
+                'bank_swift_code' => $swiftCode,
+                'bank_account_number' => $withdrawal->account_number,
+                'notes' => $withdrawal->notes ?? 'Withdrawal GrapadiStrategix Affiliate',
+            ];
+
+            Log::info('[SingaPay Payout] Sending real payout request', [
+                'withdrawal_id' => $withdrawal->id,
+                'payload' => $payload
+            ]);
+
+            $response = $this->apiService->createDisbursement($payload);
+
+            if ($response['success']) {
+                $withdrawal->update([
+                    'singapay_reference' => $response['data']['transaction_id'] ?? $response['data']['reference_number'] ?? null,
+                    'status' => AffiliateWithdrawal::STATUS_PROCESSED,
+                    'singapay_response' => $response['data'],
+                    'scheduled_date' => now(),
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => 'Permintaan withdraw berhasil diproses oleh SingaPay.',
+                    'data' => $withdrawal->refresh()
+                ];
+            }
+
+            throw new \Exception($response['message'] ?? 'SingaPay Payout API failed');
+        } catch (\Exception $e) {
+            Log::error('[SingaPay Payout] Real payout failed', [
+                'withdrawal_id' => $withdrawal->id,
+                'error' => $e->getMessage()
+            ]);
+
+            $withdrawal->update([
+                'status' => AffiliateWithdrawal::STATUS_FAILED,
+                'notes' => ($withdrawal->notes ? $withdrawal->notes . ' | ' : '') . 'Error SingaPay: ' . $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Map bank name/code to SWIFT code
+     */
+    protected function getBankSwiftCode(string $bankName, ?string $bankCode = null): ?string
+    {
+        // If bankCode already looks like a SWIFT code (8 or 11 chars), use it
+        if ($bankCode && (strlen($bankCode) === 8 || strlen($bankCode) === 11)) {
+            return strtoupper($bankCode);
+        }
+
+        $bankMap = [
+            'BCA' => 'CENAIDJA',
+            'MANDIRI' => 'BMRIIDJA',
+            'BNI' => 'BNINIDJA',
+            'BRI' => 'BRINIDJA',
+            'CIMB' => 'BNLIIDJA',
+            'PERMATA' => 'BBAKIDJA',
+            'DANAMON' => 'BDNIIDJA',
+            'MAYBANK' => 'IBBKIDJA',
+            'PANIN' => 'PNINIDJA',
+            'BSI' => 'BSINIDJA',
+            'BTN' => 'BBTNIDJA',
+            'OCBC' => 'NISPIDJA',
+            'MUAMALAT' => 'BMUIIDJA',
+        ];
+
+        $key = strtoupper($bankName);
+        return $bankMap[$key] ?? $bankMap[$bankCode] ?? null;
     }
 
     /**

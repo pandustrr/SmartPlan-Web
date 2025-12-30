@@ -196,6 +196,13 @@ class SingapayApiService
                 'Content-Type' => 'application/json',
             ];
 
+            // Add Disbursement Headers if needed
+            if (str_contains($endpoint, '/disbursements/') && str_contains($endpoint, '/transfer')) {
+                $timestamp = now()->toIso8601String();
+                $headers['X-Timestamp'] = $timestamp;
+                $headers['X-Signature'] = $this->generateDisbursementSignature($method, $endpoint, $data, $token, $timestamp);
+            }
+
             $this->logInfo('Sending request', [
                 'method' => $method,
                 'endpoint' => $endpoint,
@@ -301,6 +308,76 @@ class SingapayApiService
         ], $data);
 
         return $this->sendRequest($endpoint, $payload, 'POST');
+    }
+
+    /**
+     * Create Disbursement (Payout/Withdrawal)
+     */
+    public function createDisbursement(array $data): array
+    {
+        $accountId = $this->merchantAccountId;
+        $endpoint = "/api/v1.0/disbursements/{$accountId}/transfer";
+
+        return $this->sendRequest($endpoint, $data, 'POST');
+    }
+
+    /**
+     * Check Disbursement Fee
+     */
+    public function checkDisbursementFee(float $amount, string $bankSwiftCode): array
+    {
+        $accountId = $this->merchantAccountId;
+        $endpoint = "/api/v1.0/disbursement/{$accountId}/check-fee";
+
+        return $this->sendRequest($endpoint, [
+            'amount' => $amount,
+            'bank_swift_code' => $bankSwiftCode
+        ], 'POST');
+    }
+
+    /**
+     * Check Beneficiary (Account Verification)
+     */
+    public function checkBeneficiary(string $accountNumber, string $bankSwiftCode): array
+    {
+        $endpoint = "/api/v1.0/disbursement/check-beneficiary";
+
+        return $this->sendRequest($endpoint, [
+            'bank_account_number' => $accountNumber,
+            'bank_swift_code' => $bankSwiftCode
+        ], 'POST');
+    }
+
+    /**
+     * Get Disbursement Status
+     */
+    public function getDisbursementStatus(string $transactionId): array
+    {
+        $accountId = $this->merchantAccountId;
+        $endpoint = "/api/v1.0/disbursement/{$accountId}/{$transactionId}";
+
+        return $this->sendRequest($endpoint, [], 'GET');
+    }
+
+    /**
+     * Generate Asymmetric Signature for Disbursement (Payout)
+     * Data = HTTPMethod + ":" + EndpointUrl + ":" + AccessToken + ":" + 
+     *        Lowercase(HexEncode(SHA-256(minify(RequestBody)))) + ":" + TimeStamp
+     */
+    protected function generateDisbursementSignature(string $method, string $endpoint, array $data, string $token, string $timestamp): string
+    {
+        $minifyBody = !empty($data) ? json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : "";
+        $bodyHash = strtolower(hash('sha256', $minifyBody));
+
+        $payload = strtoupper($method) . ":" . $endpoint . ":" . $token . ":" . $bodyHash . ":" . $timestamp;
+
+        $this->logInfo('Generating disbursement signature', [
+            'method' => $method,
+            'endpoint' => $endpoint,
+            'payload' => $payload
+        ]);
+
+        return base64_encode(hash_hmac('sha512', $payload, $this->clientSecret, true));
     }
 
     /**
