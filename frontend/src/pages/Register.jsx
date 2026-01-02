@@ -313,12 +313,8 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
               />
               <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                 Saya menyetujui{" "}
-                <a href="#" className="text-green-600 dark:text-green-400 hover:text-green-500 transition-colors">
+                <a href="/terms" className="text-green-600 dark:text-green-400 hover:text-green-500 transition-colors">
                   Syarat & Ketentuan
-                </a>{" "}
-                dan{" "}
-                <a href="#" className="text-green-600 dark:text-green-400 hover:text-green-500 transition-colors">
-                  Kebijakan Privasi
                 </a>
               </label>
             </div>

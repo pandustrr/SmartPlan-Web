@@ -53,11 +53,11 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
     {
       id: 3,
       name: "Pro Yearly",
-      price: "1.800.000",
+      price: "1.680.000",
       originalPrice: "2.400.000",
       period: "per tahun",
-      savings: "Hemat Rp 600.000",
-      savingsPercent: "25%",
+      savings: "Hemat Rp 720.000",
+      savingsPercent: "30%",
       description: "Best value! Hemat hingga 25% untuk komitmen tahunan",
       features: [
         { text: "Semua Fitur Lengkap", available: true },
@@ -150,8 +150,8 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
 
       {/* Pricing Cards */}
       <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
             {plans.map((plan) => {
               const Icon = plan.icon;
               return (
@@ -166,20 +166,20 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
                     </div>
                   )}
 
-                  <div className="p-8">
+                  <div className="p-7">
                     {/* Icon */}
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-6`}>
-                      <Icon className="text-white" size={32} strokeWidth={2.5} />
+                    <div className={`w-15 h-15 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-5`}>
+                      <Icon className="text-white" size={30} strokeWidth={2.5} />
                     </div>
 
                     {/* Plan Name */}
-                    <h3 className="mb-2 text-2xl font-black text-gray-900 dark:text-white">{plan.name}</h3>
+                    <h3 className="mb-2 text-lg font-black text-gray-900 dark:text-white">{plan.name}</h3>
 
                     {/* Description */}
-                    <p className="h-10 mb-6 text-sm text-gray-600 dark:text-gray-400">{plan.description}</p>
+                    <p className="h-9 mb-5 text-xs text-gray-600 dark:text-gray-400">{plan.description}</p>
 
                     {/* Price */}
-                    <div className="mb-6">
+                    <div className="mb-5">
                       {plan.originalPrice && (
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg text-gray-400 line-through">Rp {plan.originalPrice}</span>
@@ -189,8 +189,8 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
                         </div>
                       )}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-gray-900 dark:text-white">Rp {plan.price}</span>
-                        <span className="text-gray-600 dark:text-gray-400">/ {plan.period}</span>
+                        <span className="text-3xl font-black text-gray-900 dark:text-white">Rp {plan.price}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">/ {plan.period}</span>
                       </div>
                       {plan.savings && <p className="mt-2 text-sm font-bold custom-green">{plan.savings}</p>}
                     </div>
@@ -198,7 +198,7 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
                     {/* CTA Button */}
                     <Link
                       to={plan.ctaLink}
-                      className={`block w-full py-3 text-center font-bold rounded-xl transition-all duration-300 hover:scale-105 mb-8 ${
+                      className={`block w-full py-2.5 text-xs text-center font-bold rounded-xl transition-all duration-300 hover:scale-105 mb-6 ${
                         plan.popular || plan.bestValue ? "text-white shadow-lg" : "text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
                       }`}
                       style={plan.popular || plan.bestValue ? { backgroundColor: isDarkMode ? "#10B517" : "#167814" } : {}}
@@ -207,16 +207,16 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
                     </Link>
 
                     {/* Features List */}
-                    <div className="space-y-4">
-                      <p className="mb-4 text-sm font-bold text-gray-900 dark:text-white">Yang Anda Dapatkan:</p>
+                    <div className="space-y-3.5">
+                      <p className="mb-3 text-xs font-bold text-gray-900 dark:text-white">Yang Anda Dapatkan:</p>
                       {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-3">
+                        <div key={index} className="flex items-start gap-2.5">
                           {feature.available ? (
-                            <Check className={`flex-shrink-0 mt-0.5 ${feature.highlight ? "custom-green" : "text-green-500"}`} size={20} strokeWidth={2.5} />
+                            <Check className={`flex-shrink-0 mt-0.5 ${feature.highlight ? "custom-green" : "text-green-500"}`} size={17} strokeWidth={2.5} />
                           ) : (
-                            <X className="flex-shrink-0 mt-0.5 text-gray-300 dark:text-gray-600" size={20} strokeWidth={2.5} />
+                            <X className="flex-shrink-0 mt-0.5 text-gray-300 dark:text-gray-600" size={17} strokeWidth={2.5} />
                           )}
-                          <span className={`text-sm ${feature.available ? (feature.highlight ? "font-bold custom-green" : "text-gray-700 dark:text-gray-300") : "text-gray-400 dark:text-gray-500"}`}>{feature.text}</span>
+                          <span className={`text-xs ${feature.available ? (feature.highlight ? "font-bold custom-green" : "text-gray-700 dark:text-gray-300") : "text-gray-400 dark:text-gray-500"}`}>{feature.text}</span>
                         </div>
                       ))}
                     </div>
@@ -229,37 +229,37 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* FAQ Section */}
-      <section className="px-4 py-16 bg-white dark:bg-gray-900">
+      <section className="px-4 py-12 bg-white dark:bg-gray-900">
         <div className="container max-w-4xl mx-auto">
-          <h2 className="mb-8 text-3xl font-black text-center text-gray-900 dark:text-white">Pertanyaan Umum</h2>
+          <h2 className="mb-8 text-2xl font-black text-center text-gray-900 dark:text-white">Pertanyaan Umum</h2>
 
           <div className="space-y-6">
-            <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">Apa perbedaan antara paket Free dan Pro?</h3>
-              <p className="text-gray-600 dark:text-gray-400">
+            <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h3 className="mb-2 text-sm font-bold text-gray-900 dark:text-white">Apa perbedaan antara paket Free dan Pro?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Semua paket mendapat akses penuh ke semua fitur (Analisis Bisnis, Manajemen Keuangan, Forecast AI 5 Tahun, Export PDF, dll). Perbedaan utama hanya pada <strong className="custom-green">PDF yang di-export</strong>. Paket Free
                 memiliki watermark, sementara paket Pro menghasilkan PDF profesional tanpa watermark.
               </p>
             </div>
 
-            <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">Apakah saya harus berlangganan tahunan?</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tidak. Anda bisa memilih paket bulanan (Rp 200.000/bulan) yang lebih fleksibel. Namun paket tahunan (Rp 1.800.000/tahun) memberikan <strong className="custom-green">penghematan hingga Rp 600.000</strong> (25% lebih murah)
+            <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h3 className="mb-2 text-sm font-bold text-gray-900 dark:text-white">Apakah saya harus berlangganan tahunan?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Tidak. Anda bisa memilih paket bulanan (Rp 200.000/bulan) yang lebih fleksibel. Namun paket tahunan (Rp 1.680.000/tahun) memberikan <strong className="custom-green">penghematan hingga Rp 560.000</strong> (25% lebih murah)
                 dan cocok untuk komitmen jangka panjang.
               </p>
             </div>
 
-            <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">Bagaimana cara upgrade dari Free ke Pro?</h3>
-              <p className="text-gray-600 dark:text-gray-400">
+            <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h3 className="mb-2 text-sm font-bold text-gray-900 dark:text-white">Bagaimana cara upgrade dari Free ke Pro?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Sangat mudah! Cukup klik tombol "Pro" di dashboard pada fitur Export PDF Lengkap kapan saja. Semua data yang sudah Anda input akan tetap tersimpan dan langsung bisa di-export tanpa watermark setelah upgrade.
               </p>
             </div>
 
-            <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">Apakah ada biaya tersembunyi?</h3>
-              <p className="text-gray-600 dark:text-gray-400">Tidak ada! Harga yang tertera adalah harga final. Tidak ada biaya setup, tidak ada biaya tambahan per project atau per export. Bayar sekali, pakai semua fitur sepuasnya.</p>
+            <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h3 className="mb-2 text-sm font-bold text-gray-900 dark:text-white">Apakah ada biaya tersembunyi?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Tidak ada! Harga yang tertera adalah harga final. Tidak ada biaya setup, tidak ada biaya tambahan per project atau per export. Bayar sekali, pakai semua fitur sepuasnya.</p>
             </div>
           </div>
         </div>
