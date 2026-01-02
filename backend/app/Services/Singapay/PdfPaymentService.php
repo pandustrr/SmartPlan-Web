@@ -459,12 +459,21 @@ class PdfPaymentService
             };
 
             $expiryMinutes = 60;
+
+            // Generate return URL untuk redirect setelah pembayaran sukses
+            // Support subdirectory deployment (e.g., /grapadistrategix/)
+            $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:5173'));
+            // Remove trailing slash to avoid double slash
+            $frontendUrl = rtrim($frontendUrl, '/');
+            $returnUrl = $frontendUrl . '/payment/success?transaction_code=' . $purchase->transaction_code;
+
             $paymentLinkData = [
                 'reff_no' => $purchase->transaction_code,
                 'title' => "Pembayaran PDF Pro - {$purchase->package_type}",
                 'total_amount' => $purchase->amount_paid,
                 'expired_at' => now()->addMinutes($expiryMinutes)->timestamp * 1000,
                 'whitelisted_payment_method' => $whitelist,
+                'return_url' => $returnUrl, // URL redirect setelah payment sukses
                 'items' => [
                     [
                         'name' => "Paket PDF Pro ({$purchase->package_type})",

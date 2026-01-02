@@ -12,6 +12,7 @@ import FAQ from "./pages/FAQ";
 import Terms from "./pages/Terms";
 import FeaturesPage from "./pages/FeaturesPage";
 import PricingPage from "./pages/PricingPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 import AffiliateLinkRedirect from "./components/Affiliate/AffiliateLinkRedirect";
 
@@ -115,7 +116,10 @@ function AppContent() {
           <Route path="/faq" element={<FAQ isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
           <Route path="/terms" element={<Terms isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
 
-          {/* 🔗 Affiliate Link Redirect (NEW - for tracking & redirect) */}
+          {/* � Payment Success/Callback Route */}
+          <Route path="/payment/success" element={<PaymentSuccess isDarkMode={isDarkMode} />} />
+
+          {/* �🔗 Affiliate Link Redirect (NEW - for tracking & redirect) */}
           <Route path="/affiliate/:slug" element={<AffiliateLinkRedirect />} />
 
           <Route
