@@ -129,7 +129,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Hero Section - Corporate Professional */}
-      <section className="relative px-4 pt-20 pb-12 overflow-hidden">
+      <section className="relative px-4 pt-12 pb-8 md:pt-20 md:pb-12 overflow-hidden">
         {/* Background Image (Optional - if office-bg.jpg exists) */}
         <div className="absolute inset-0 opacity-[0.08] dark:opacity-[0.12]">
           <img src="/assets/images/office-bg.jpg" alt="" className="object-cover w-full h-full" onError={(e) => (e.target.style.display = "none")} />
@@ -150,14 +150,14 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                 PLATFORM MANAJEMEN BISNIS #1
               </div>
 
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-3 leading-[1.1] tracking-tight">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-3 leading-[1.1] tracking-tight">
                 Kelola Bisnis
                 <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                   Lebih Cerdas
                 </span>
               </h1>
 
-              <p className="mb-6 text-sm font-light leading-relaxed text-gray-600 md:text-base dark:text-gray-400">
+              <p className="mb-6 text-xs md:text-base font-light leading-relaxed text-gray-600 dark:text-gray-400">
                 Platform all-in-one untuk perencanaan strategis, analisis keuangan, dan prediksi AI.
                 <span className="block mt-0.5 font-semibold text-gray-900 dark:text-white">Semua dalam satu solusi terintegrasi.</span>
               </p>
@@ -165,7 +165,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               <div className="flex flex-col gap-2 mb-6 sm:flex-row">
                 <Link
                   to="/register"
-                  className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white transition-all duration-300 transform shadow-xl group rounded-xl hover:scale-105 hover:shadow-2xl"
+                  className="inline-flex items-center justify-center px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold text-white transition-all duration-300 transform shadow-xl group rounded-xl hover:scale-105 hover:shadow-2xl"
                   style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}
                 >
                   Mulai Gratis Sekarang
@@ -178,7 +178,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                       featuresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
-                  className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold transition-all duration-300 border-2 rounded-xl hover:scale-105"
+                  className="inline-flex items-center justify-center px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold transition-all duration-300 border-2 rounded-xl hover:scale-105"
                   style={{
                     borderColor: isDarkMode ? "#10B517" : "#167814",
                     color: isDarkMode ? "#10B517" : "#167814",
@@ -190,7 +190,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
 
               {/* Trust Indicators */}
-              <div className="flex flex-wrap items-center gap-8 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-wrap items-center gap-4 md:gap-8 text-xs md:text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <CheckCircle size={18} className="custom-green" />
                   <span className="font-semibold">Akses Tanpa Batas</span>
@@ -215,19 +215,19 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* Benefits Section - Bold Layout */}
-      <section id="about" className="px-4 py-12 bg-white dark:bg-gray-800">
+      <section id="about" className="px-4 py-8 md:py-12 bg-white dark:bg-gray-800">
         <div className="container max-w-6xl mx-auto">
-          <div className="mb-10 text-center">
-            <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
+          <div className="mb-8 md:mb-10 text-center">
+            <h2 className="mb-4 text-xl md:text-3xl font-black tracking-tight text-gray-900 dark:text-white">
               Mengapa
               <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Grapadi Strategix?
               </span>
             </h2>
-            <p className="max-w-3xl mx-auto text-sm leading-relaxed text-gray-600 dark:text-gray-400">Fitur dan kemampuan unggulan yang membuat kami berbeda</p>
+            <p className="max-w-3xl mx-auto text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">Fitur dan kemampuan unggulan yang membuat kami berbeda</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-5">
             {[
               {
                 icon: Zap,
@@ -259,13 +259,13 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               return (
                 <div
                   key={index}
-                  className="p-6 text-left transition-all duration-300 bg-white border-2 border-gray-200 group rounded-2xl dark:bg-gray-700 hover-lift dark:border-gray-600"
+                  className="p-4 md:p-6 text-left transition-all duration-300 bg-white border-2 border-gray-200 group rounded-2xl dark:bg-gray-700 hover-lift dark:border-gray-600"
                 >
-                  <div className="flex items-center justify-center w-12 h-12 mb-4 transition-all duration-300 rounded-xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "rgba(16, 181, 23, 0.15)" : "rgba(22, 120, 20, 0.1)" }}>
-                    <Icon className="custom-green" size={24} strokeWidth={2.5} />
+                  <div className="flex items-center justify-center w-10 md:w-12 h-10 md:h-12 mb-3 md:mb-4 transition-all duration-300 rounded-xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "rgba(16, 181, 23, 0.15)" : "rgba(22, 120, 20, 0.1)" }}>
+                    <Icon className="custom-green" size={20} strokeWidth={2.5} />
                   </div>
-                  <h3 className="mb-3 text-base font-black text-gray-900 dark:text-white">{item.title}</h3>
-                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">{item.description}</p>
+                  <h3 className="mb-2 md:mb-3 text-sm md:text-base font-black text-gray-900 dark:text-white">{item.title}</h3>
+                  <p className="text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">{item.description}</p>
                 </div>
               );
             })}
@@ -274,24 +274,24 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* Features Section - Modern Grid */}
-      <section id="features" className="px-4 py-12 bg-gray-50 dark:bg-gray-900">
+      <section id="features" className="px-4 py-8 md:py-12 bg-gray-50 dark:bg-gray-900">
         <div className="container max-w-6xl mx-auto">
-          <div className="mb-10 text-center">
+          <div className="mb-8 md:mb-10 text-center">
             <div className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Fitur Unggulan</div>
-            <h2 className="mb-2 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
+            <h2 className="mb-2 text-xl md:text-3xl font-black tracking-tight text-gray-900 dark:text-white">
               Platform Lengkap untuk
               <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Kesuksesan Bisnis Anda
               </span>
             </h2>
-            <p className="max-w-3xl mx-auto text-sm leading-relaxed text-gray-600 dark:text-gray-400">Dari perencanaan hingga eksekusi - semua tools yang Anda butuhkan dalam satu dashboard terintegrasi</p>
+            <p className="max-w-3xl mx-auto text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">Dari perencanaan hingga eksekusi - semua tools yang Anda butuhkan dalam satu dashboard terintegrasi</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:gap-3 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div key={index} className="relative p-8 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-2xl hover-lift dark:border-gray-700 hover:border-opacity-0">
+                <div key={index} className="relative p-4 md:p-6 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-2xl hover-lift dark:border-gray-700 hover:border-opacity-0">
                   {/* Hover gradient overlay */}
                   <div
                     className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
@@ -300,13 +300,13 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
                   <div className="relative z-10">
                     <div
-                      className="flex items-center justify-center w-16 h-16 mb-6 transition-all duration-300 rounded-2xl group-hover:scale-110"
+                      className="flex items-center justify-center w-12 md:w-14 h-12 md:h-14 mb-3 md:mb-4 transition-all duration-300 rounded-2xl group-hover:scale-110"
                       style={{ backgroundColor: isDarkMode ? "rgba(16, 181, 23, 0.15)" : "rgba(22, 120, 20, 0.1)" }}
                     >
-                      <Icon className="custom-green" size={32} strokeWidth={2.5} />
+                      <Icon className="custom-green" size={28} strokeWidth={2.5} />
                     </div>
-                    <h3 className="mb-4 text-xl font-black text-gray-900 transition-colors duration-300 dark:text-white group-hover:custom-green">{feature.title}</h3>
-                    <p className="leading-relaxed text-gray-600 dark:text-gray-400">{feature.description}</p>
+                    <h3 className="mb-3 md:mb-4 text-sm md:text-base font-black text-gray-900 transition-colors duration-300 dark:text-white group-hover:custom-green">{feature.title}</h3>
+                    <p className="text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">{feature.description}</p>
                   </div>
                 </div>
               );

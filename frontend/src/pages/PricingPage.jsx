@@ -149,7 +149,7 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* Pricing Cards */}
-      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 py-8 md:py-12 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
             {plans.map((plan) => {
@@ -229,7 +229,7 @@ function PricingPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* FAQ Section */}
-      <section className="px-4 py-12 bg-white dark:bg-gray-900">
+      <section className="px-4 py-8 md:py-12 bg-white dark:bg-gray-900">
         <div className="container max-w-4xl mx-auto">
           <h2 className="mb-8 text-2xl font-black text-center text-gray-900 dark:text-white">Pertanyaan Umum</h2>
 

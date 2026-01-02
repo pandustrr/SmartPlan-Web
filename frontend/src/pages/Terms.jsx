@@ -123,7 +123,7 @@ function Terms({ isDarkMode, toggleDarkMode }) {
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Hero Section */}
-      <section className="relative px-4 pt-24 pb-12 overflow-hidden">
+      <section className="relative px-4 pt-12 md:pt-24 pb-8 md:pb-12 overflow-hidden">
         <div className="absolute inset-0 opacity-5 dark:opacity-10">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, #167814 0%, transparent 70%)" }}></div>
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, #10B517 0%, transparent 70%)" }}></div>
@@ -131,35 +131,35 @@ function Terms({ isDarkMode, toggleDarkMode }) {
 
         <div className="container relative z-10 mx-auto max-w-6xl">
           <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 mb-6 text-sm font-bold border-2 rounded-full bg-white dark:bg-gray-800" style={{ borderColor: isDarkMode ? "#10B517" : "#167814", color: isDarkMode ? "#10B517" : "#167814" }}>
+            <div className="inline-flex items-center px-4 py-2 mb-6 text-xs md:text-sm font-bold border-2 rounded-full bg-white dark:bg-gray-800" style={{ borderColor: isDarkMode ? "#10B517" : "#167814", color: isDarkMode ? "#10B517" : "#167814" }}>
               <FileCheck className="w-4 h-4 mr-2" />
               SYARAT & KETENTUAN
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
               Syarat dan Ketentuan Layanan
               <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Grapadi Strategix
               </span>
             </h1>
 
-            <p className="max-w-3xl mx-auto text-lg text-gray-600 dark:text-gray-400 mb-2">Terakhir Diperbarui: 1 Januari 2026</p>
+            <p className="max-w-3xl mx-auto text-xs md:text-lg text-gray-600 dark:text-gray-400 mb-2">Terakhir Diperbarui: 1 Januari 2026</p>
           </div>
         </div>
       </section>
 
       {/* Terms Content - Accordion Style */}
-      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 py-8 md:py-12 bg-gray-50 dark:bg-gray-800">
         <div className="container max-w-5xl mx-auto">
           {/* Introduction Card */}
-          <div className="p-6 mb-8 bg-white rounded-2xl shadow-sm dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700">
-            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-100">
+          <div className="p-4 md:p-6 mb-6 md:mb-8 bg-white rounded-2xl shadow-sm dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700">
+            <p className="text-xs md:text-sm leading-relaxed text-gray-700 dark:text-gray-100">
               Selamat datang di Grapadi Strategix. Dengan mengakses dan menggunakan platform kami, Anda (selanjutnya disebut "Pengguna") dianggap telah membaca, memahami, dan menyetujui untuk terikat dengan Syarat dan Ketentuan ini.
             </p>
           </div>
 
           {/* Accordion Terms */}
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {termsData.map((term, index) => {
               const isExpanded = expandedIndex === index;
               const Icon = term.icon;
@@ -176,12 +176,12 @@ function Terms({ isDarkMode, toggleDarkMode }) {
                 >
                   <button
                     onClick={() => toggleAccordion(index)}
-                    className="flex items-center justify-between w-full px-6 py-5 text-left transition-colors duration-200"
+                    className="flex items-center justify-between w-full px-4 md:px-6 py-3 md:py-5 text-left transition-colors duration-200"
                     style={{
                       backgroundColor: isExpanded ? (isDarkMode ? `${accentColor}10` : `${accentColor}08`) : "transparent",
                     }}
                   >
-                    <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-center gap-3 md:gap-4 flex-1">
                       <div
                         className="p-2 rounded-lg transition-all duration-300"
                         style={{
@@ -191,7 +191,7 @@ function Terms({ isDarkMode, toggleDarkMode }) {
                       >
                         <Icon size={20} style={{ color: accentColor }} strokeWidth={2.5} />
                       </div>
-                      <h3 className="text-sm md:text-base font-bold text-gray-900 dark:text-white transition-colors duration-200" style={{ color: isExpanded ? accentColor : "" }}>
+                      <h3 className="text-xs md:text-base font-bold text-gray-900 dark:text-white transition-colors duration-200" style={{ color: isExpanded ? accentColor : "" }}>
                         {term.title}
                       </h3>
                     </div>
@@ -207,20 +207,20 @@ function Terms({ isDarkMode, toggleDarkMode }) {
 
                   {isExpanded && (
                     <div
-                      className="px-6 py-5 border-t-2"
+                      className="px-4 md:px-6 py-3 md:py-5 border-t-2"
                       style={{
                         borderColor: `${accentColor}30`,
                         backgroundColor: isDarkMode ? `${accentColor}08` : `${accentColor}05`,
                       }}
                     >
                       {term.content ? (
-                        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-100">{term.content}</p>
+                        <p className="text-xs md:text-sm leading-relaxed text-gray-700 dark:text-gray-100">{term.content}</p>
                       ) : (
                         <div className="space-y-4">
                           {term.subsections.map((sub, subIndex) => (
                             <div key={subIndex}>
-                              <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">{sub.subtitle}</h4>
-                              <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-100">{sub.text}</p>
+                              <h4 className="text-xs md:text-sm font-bold text-gray-900 dark:text-white mb-2">{sub.subtitle}</h4>
+                              <p className="text-xs md:text-sm leading-relaxed text-gray-700 dark:text-gray-100">{sub.text}</p>
                             </div>
                           ))}
                         </div>

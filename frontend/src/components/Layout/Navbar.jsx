@@ -19,29 +19,29 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
 
   return (
     <nav className="fixed top-0 left-0 z-50 w-full border-b border-gray-200 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md dark:border-gray-700">
-      <div className="container flex items-center justify-between px-4 md:px-6 py-2 mx-auto max-w-7xl">
+      <div className="container flex items-center justify-between px-3 md:px-6 py-2 mx-auto max-w-7xl">
         {/* ========== LOGO ========== */}
         <Link to="/" className="flex items-center space-x-2">
           <img
             src={isDarkMode ? "./assets/logo/logo-dark.png" : "./assets/logo/logo-light.png"}
             alt="Grapadi Strategix"
-            className="object-contain w-auto h-10 md:h-12"
+            className="object-contain w-auto h-8 md:h-12"
             onError={(e) => {
               // Fallback to text if image not found
               e.target.style.display = "none";
               e.target.nextSibling.style.display = "block";
             }}
           />
-          <span className="hidden text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white" style={{ display: "none" }}>
+          <span className="hidden text-base md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white" style={{ display: "none" }}>
             <span style={{ color: "#167814" }}>Grapadi</span> Strategix
           </span>
         </Link>
 
         {/* ========== DESKTOP MENU ========== */}
-        <div className="items-center hidden space-x-6 md:flex lg:space-x-8">
+        <div className="items-center hidden space-x-4 md:flex lg:space-x-8">
           <Link
             to="/"
-            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            className={`text-xs md:text-base font-medium transition-colors ${location.pathname === "/" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
             style={{ color: location.pathname === "/" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
             onMouseEnter={(e) => {
               if (location.pathname !== "/") e.currentTarget.style.color = "#167814";
@@ -54,7 +54,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           </Link>
           <Link
             to="/features"
-            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/features" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            className={`text-xs md:text-base font-medium transition-colors ${location.pathname === "/features" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
             style={{ color: location.pathname === "/features" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
             onMouseEnter={(e) => {
               if (location.pathname !== "/features") e.currentTarget.style.color = "#167814";
@@ -67,7 +67,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           </Link>
           <Link
             to="/pricing"
-            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/pricing" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            className={`text-xs md:text-base font-medium transition-colors ${location.pathname === "/pricing" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
             style={{ color: location.pathname === "/pricing" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
             onMouseEnter={(e) => {
               if (location.pathname !== "/pricing") e.currentTarget.style.color = "#167814";
@@ -80,7 +80,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           </Link>
           <Link
             to="/faq"
-            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/faq" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            className={`text-xs md:text-base font-medium transition-colors ${location.pathname === "/faq" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
             style={{ color: location.pathname === "/faq" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
             onMouseEnter={(e) => {
               if (location.pathname !== "/faq") e.currentTarget.style.color = "#167814";
@@ -93,7 +93,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           </Link>
           <Link
             to="/terms"
-            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/terms" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            className={`text-xs md:text-base font-medium transition-colors ${location.pathname === "/terms" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
             style={{ color: location.pathname === "/terms" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
             onMouseEnter={(e) => {
               if (location.pathname !== "/terms") e.currentTarget.style.color = "#167814";
@@ -119,14 +119,14 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
         </div>
 
         {/* ========== DARK MODE + CTA BUTTONS (DESKTOP) ========== */}
-        <div className="items-center hidden space-x-3 md:space-x-4 md:flex">
-          <button onClick={toggleDarkMode} className="p-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Toggle dark mode">
-            {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
+        <div className="items-center hidden space-x-2 md:space-x-3 md:flex">
+          <button onClick={toggleDarkMode} className="p-1.5 md:p-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Toggle dark mode">
+            {isDarkMode ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} className="text-gray-600" />}
           </button>
 
           <Link
             to="/login"
-            className="hidden lg:block text-sm font-medium text-gray-700 transition-colors dark:text-gray-300"
+            className="hidden lg:block text-xs md:text-sm font-medium text-gray-700 transition-colors dark:text-gray-300"
             onMouseEnter={(e) => (e.currentTarget.style.color = "#084404")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "")}
           >
@@ -134,7 +134,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
           </Link>
           <Link
             to="/register"
-            className="text-white px-4 md:px-5 py-1.5 md:py-2 rounded-lg transition-all text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
+            className="text-white px-3 md:px-5 py-1 md:py-2 rounded-lg transition-all text-xs md:text-sm font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
             style={{ backgroundColor: "#167814" }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0a5505")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#167814")}
@@ -145,7 +145,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
 
         {/* ========== HAMBURGER BUTTON (MOBILE) ========== */}
         <button className="z-50 text-gray-800 md:hidden focus:outline-none dark:text-gray-100 p-1" onClick={toggleMenu}>
-          {isOpen ? <X size={20} className="dark:text-white" /> : <Menu size={20} />}
+          {isOpen ? <X size={18} className="dark:text-white" /> : <Menu size={18} />}
         </button>
 
         {/* ========== MOBILE MENU (FULLSCREEN) ========== */}
@@ -154,7 +154,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
             isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
           }`}
         >
-          <ul className="w-full space-y-3 md:space-y-4 text-base font-medium text-center dark:text-white px-4">
+          <ul className="w-full space-y-2 md:space-y-4 text-sm md:text-base font-medium text-center dark:text-white px-4">
             <li>
               <Link
                 to="/"
@@ -205,23 +205,23 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
                 Terms
               </Link>
             </li>
-            <li className="w-full px-4 md:px-8">
-              <Link to="/register" className="block w-full py-1.5 md:py-2 text-center text-green-600 transition border-2 border-green-600 rounded-md hover:bg-green-50 dark:hover:bg-gray-800 text-sm" onClick={() => setIsOpen(false)}>
+            <li className="w-full px-2 md:px-8 mt-2">
+              <Link to="/register" className="block w-full py-1 md:py-2 text-center text-green-600 transition border-2 border-green-600 rounded-md hover:bg-green-50 dark:hover:bg-gray-800 text-xs md:text-sm" onClick={() => setIsOpen(false)}>
                 Sign Up
               </Link>
             </li>
-            <li className="w-full px-4 md:px-8 -mt-1 md:-mt-2">
-              <Link to="/login" className="block w-full py-1.5 md:py-2 text-center text-white transition bg-green-600 rounded-md hover:bg-green-700 text-sm" onClick={() => setIsOpen(false)}>
+            <li className="w-full px-2 md:px-8">
+              <Link to="/login" className="block w-full py-1 md:py-2 text-center text-white transition bg-green-600 rounded-md hover:bg-green-700 text-xs md:text-sm" onClick={() => setIsOpen(false)}>
                 Sign In
               </Link>
             </li>
-            <li className="mt-3 md:mt-4">
+            <li className="mt-2 md:mt-4">
               <button
                 onClick={toggleDarkMode}
-                className="p-1.5 md:p-2 text-gray-600 transition-colors bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
+                className="p-1 md:p-2 text-gray-600 transition-colors bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
                 aria-label="Toggle dark mode"
               >
-                {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
+                {isDarkMode ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} className="text-gray-600" />}
               </button>
             </li>
           </ul>

@@ -95,14 +95,14 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
               BANTUAN & DUKUNGAN
             </div>
 
-            <h1 className="mb-6 text-3xl font-black leading-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
+            <h1 className="mb-6 text-2xl md:text-4xl lg:text-5xl font-black leading-tight text-gray-900 dark:text-white">
               Pertanyaan yang Sering Diajukan
               <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 (FAQ)
               </span>
             </h1>
 
-            <p className="max-w-3xl mx-auto mb-8 text-lg text-gray-600 dark:text-gray-400">
+            <p className="max-w-3xl mx-auto mb-8 text-sm md:text-lg text-gray-600 dark:text-gray-400">
               Temukan jawaban untuk pertanyaan umum tentang Grapadi Strategix, fitur-fitur kami, dan bagaimana platform kami dapat membantu kesuksesan bisnis Anda.
             </p>
           </div>
@@ -110,7 +110,7 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* FAQ Sections */}
-      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 py-8 md:py-12 bg-gray-50 dark:bg-gray-800">
         <div className="container max-w-5xl mx-auto">
           {faqData.map((section, sectionIndex) => {
             const IconComponent = categoryIcons[section.category];
@@ -147,7 +147,7 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
                     <IconComponent size={24} strokeWidth={2} className="relative z-10 transition-all duration-500 transform group/header-hover:rotate-12" style={{ color: iconColor }} />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-gray-900 transition-colors duration-300 md:text-xl dark:text-white" style={{ color: iconColor }}>
+                    <h2 className="text-base md:text-lg md:text-xl font-semibold text-gray-900 transition-colors duration-300 dark:text-white" style={{ color: iconColor }}>
                       {section.category}
                     </h2>
                     <div className="w-12 h-1 mt-2 transition-all duration-300 rounded-full group/header-hover:w-16" style={{ backgroundColor: iconColor }}></div>
@@ -180,12 +180,12 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
                       >
                         <button
                           onClick={() => toggleAccordion(globalIndex)}
-                          className="flex items-center justify-between w-full px-6 py-5 text-left transition-colors duration-200 hover:bg-opacity-50"
+                          className="flex items-center justify-between w-full px-4 md:px-6 py-4 md:py-5 text-left transition-colors duration-200 hover:bg-opacity-50"
                           style={{
                             backgroundColor: isExpanded ? (isDarkMode ? `${accentColor}10` : `${accentColor}08`) : "transparent",
                           }}
                         >
-                          <h3 className="flex-1 text-sm font-semibold text-gray-900 transition-colors duration-200 md:text-base dark:text-white" style={{ color: isExpanded ? accentColor : "" }}>
+                          <h3 className="flex-1 text-xs md:text-base font-semibold text-gray-900 transition-colors duration-200 dark:text-white" style={{ color: isExpanded ? accentColor : "" }}>
                             {item.q}
                           </h3>
                           <ChevronDown
@@ -200,13 +200,13 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
 
                         {isExpanded && (
                           <div
-                            className="px-6 py-5 transition-all duration-300 border-t-2"
+                            className="px-4 md:px-6 py-4 md:py-5 transition-all duration-300 border-t-2"
                             style={{
                               borderColor: `${accentColor}30`,
                               backgroundColor: isDarkMode ? `${accentColor}08` : `${accentColor}05`,
                             }}
                           >
-                            <p className="text-xs font-light leading-relaxed text-gray-700 md:text-sm dark:text-gray-300">{item.a}</p>
+                            <p className="text-xs md:text-sm font-light leading-relaxed text-gray-700 dark:text-gray-300">{item.a}</p>
                           </div>
                         )}
                       </div>

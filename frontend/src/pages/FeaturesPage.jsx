@@ -411,7 +411,7 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Hero Section */}
-      <section className="relative px-4 pt-24 pb-12 overflow-hidden">
+      <section className="relative px-4 pt-12 md:pt-24 pb-8 md:pb-12 overflow-hidden">
         <div className="absolute inset-0 opacity-5 dark:opacity-10">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, #167814 0%, transparent 70%)" }}></div>
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, #10B517 0%, transparent 70%)" }}></div>
@@ -419,19 +419,19 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
 
         <div className="container relative z-10 max-w-6xl mx-auto">
           <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 mb-6 text-sm font-bold bg-white border-2 rounded-full custom-green-border custom-green dark:bg-gray-800">
+            <div className="inline-flex items-center px-4 py-2 mb-6 text-xs md:text-sm font-bold bg-white border-2 rounded-full custom-green-border custom-green dark:bg-gray-800">
               <Sparkles className="w-4 h-4 mr-2" />
               FITUR LENGKAP PLATFORM
             </div>
 
-            <h1 className="mb-6 text-3xl font-black leading-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
+            <h1 className="mb-6 text-2xl md:text-4xl lg:text-5xl font-black leading-tight text-gray-900 dark:text-white">
               Semua Yang Anda Butuhkan
               <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Untuk Kesuksesan Bisnis
               </span>
             </h1>
 
-            <p className="max-w-3xl mx-auto mb-8 text-lg text-gray-600 dark:text-gray-400">
+            <p className="max-w-3xl mx-auto mb-8 text-xs md:text-lg text-gray-600 dark:text-gray-400">
               Platform all-in-one dengan 6 fitur powerful yang dirancang untuk mempercepat pertumbuhan bisnis Anda.
               <span className="block mt-2 font-semibold text-gray-900 dark:text-white">Klik setiap card untuk detail lengkap dan simulasi benefit!</span>
             </p>
@@ -440,34 +440,34 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* Features Grid */}
-      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 py-8 md:py-12 bg-gray-50 dark:bg-gray-800">
         <div className="container max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 md:gap-4 lg:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <button
                   key={feature.id}
                   onClick={() => openModal(feature)}
-                  className={`feature-card relative p-8 text-left bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer group`}
+                  className={`feature-card relative p-6 md:p-8 text-left bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer group`}
                 >
                   {/* Gradient Background on Hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
                   <div className="relative z-10">
                     {/* Icon */}
-                    <div className={`${feature.bgColor} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className={`${feature.textColor}`} size={32} strokeWidth={2.5} />
+                    <div className={`${feature.bgColor} w-14 md:w-16 h-14 md:h-16 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`${feature.textColor}`} size={28} strokeWidth={2.5} />
                     </div>
 
                     {/* Title */}
-                    <h3 className="mb-3 text-xl font-black text-gray-900 transition-colors dark:text-white group-hover:custom-green">{feature.title}</h3>
+                    <h3 className="mb-3 text-lg md:text-xl font-black text-gray-900 transition-colors dark:text-white group-hover:custom-green">{feature.title}</h3>
 
                     {/* Short Description */}
-                    <p className="mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{feature.shortDesc}</p>
+                    <p className="mb-4 text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">{feature.shortDesc}</p>
 
                     {/* CTA */}
-                    <div className="flex items-center text-sm font-bold transition-all custom-green group-hover:gap-2">
+                    <div className="flex items-center text-xs md:text-sm font-bold transition-all custom-green group-hover:gap-2">
                       Lihat Detail
                       <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" strokeWidth={3} />
                     </div>
