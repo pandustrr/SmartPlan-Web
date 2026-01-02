@@ -4,24 +4,44 @@ import { FaLinkedin, FaInstagram, FaYoutube, FaTiktok, FaWhatsapp } from "react-
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white py-12 md:py-16 px-4 md:px-6 relative overflow-hidden transition-colors duration-300">
+    <footer className="bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white py-8 md:py-12 px-4 md:px-6 relative overflow-hidden transition-colors duration-300">
       {/* Decorative Background */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-green-900/5 dark:bg-green-900/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-green-900/5 dark:bg-green-900/10 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto max-w-6xl relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4">
-              <span style={{ color: "#167814" }}>Grapadi</span> Strategix
-            </h3>
-            <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              PT. Grapadi Sejahtera Mandiri
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mb-6 italic">
-              Commited to Accurate and Quality
-            </p>
+            <div className="flex items-center gap-5 mb-4">
+              <div className="flex-shrink-0">
+                {/* Logo for Light Mode */}
+                <img
+                  src="./assets/logo/logo-light.png"
+                  alt="Logo Grapadi"
+                  className="w-auto h-16 md:h-20 dark:hidden"
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+                {/* Logo for Dark Mode */}
+                <img
+                  src="./assets/logo/logo-dark.png"
+                  alt="Logo Grapadi"
+                  className="hidden w-auto h-16 md:h-20 dark:block"
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold md:text-3xl">
+                  <span style={{ color: "#167814" }}>Grapadi</span> Strategix
+                </h3>
+                <p className="text-xs font-semibold text-gray-700 md:text-sm dark:text-gray-300">
+                  itiaLus Grapadi International
+                </p>
+                <p className="text-xs italic text-gray-500 dark:text-gray-500">
+                  Commited to Accurate and Quality
+                </p>
+              </div>
+            </div>
 
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6 max-w-md text-xs md:text-sm">
               Platform manajemen bisnis all-in-one yang dirancang untuk membantu bisnis Anda tumbuh lebih cepat dengan analisis AI, perencanaan strategis, dan manajemen keuangan yang powerful.
@@ -48,37 +68,32 @@ const Footer = () => {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-base md:text-lg">Produk</h4>
-            <ul className="space-y-2 md:space-y-3 text-gray-600 dark:text-gray-400 text-xs md:text-sm">
+            <h4 className="mb-4 text-base font-semibold md:text-lg">Menu Utama</h4>
+            <ul className="space-y-2 text-xs text-gray-600 md:space-y-3 dark:text-gray-400 md:text-sm">
               <li>
-                <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors hover:translate-x-1 inline-block">
+                <Link to="/" className="inline-block transition-colors hover:text-gray-900 dark:hover:text-white hover:translate-x-1">
+                  Beranda
+                </Link>
+              </li>
+              <li>
+                <Link to="/features" className="inline-block transition-colors hover:text-gray-900 dark:hover:text-white hover:translate-x-1">
                   Fitur Utama
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors hover:translate-x-1 inline-block">
-                  Perencanaan Bisnis
-                </a>
+                <Link to="/pricing" className="inline-block transition-colors hover:text-gray-900 dark:hover:text-white hover:translate-x-1">
+                  Harga Langganan
+                </Link>
               </li>
               <li>
-                <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors hover:translate-x-1 inline-block">
-                  Manajemen Keuangan
-                </a>
+                <Link to="/faq" className="inline-block transition-colors hover:text-gray-900 dark:hover:text-white hover:translate-x-1">
+                  Pertanyaan Umum (FAQ)
+                </Link>
               </li>
               <li>
-                <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors hover:translate-x-1 inline-block">
-                  Forecast & Prediksi AI
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors hover:translate-x-1 inline-block">
-                  Laporan Otomatis & PDF
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors hover:translate-x-1 inline-block">
-                  Program Afiliasi
-                </a>
+                <Link to="/terms" className="inline-block transition-colors hover:text-gray-900 dark:hover:text-white hover:translate-x-1">
+                  Syarat & Ketentuan
+                </Link>
               </li>
             </ul>
           </div>
@@ -89,7 +104,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
             {/* Copyright */}
             <div className="text-gray-600 dark:text-gray-400 text-xs md:text-sm text-center md:text-left">
-              <p>&copy; 2025 PT. Grapadi Sejahtera Mandiri. All rights reserved.</p>
+              <p>&copy; 2025 itiaLus Grapadi International. All rights reserved.</p>
               <p className="mt-1">
                 Built with <span style={{ color: "#167814" }}>❤</span> by Grapadi Strategix Team
               </p>

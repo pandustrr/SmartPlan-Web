@@ -165,11 +165,11 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               <div className="flex flex-col gap-2 mb-6 sm:flex-row">
                 <Link
                   to="/register"
-                  className="inline-flex items-center justify-center px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold text-white transition-all duration-300 transform shadow-xl group rounded-xl hover:scale-105 hover:shadow-2xl"
+                  className="inline-flex items-center justify-center px-5 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-base font-bold text-white transition-all duration-300 transform shadow-xl group rounded-xl hover:scale-105 hover:shadow-2xl"
                   style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}
                 >
                   Mulai Gratis Sekarang
-                  <ArrowRight className="ml-3 transition-transform group-hover:translate-x-1" size={20} />
+                  <ArrowRight className="ml-2 sm:ml-3 transition-transform group-hover:translate-x-1" size={18} />
                 </Link>
                 <button
                   onClick={() => {
@@ -178,7 +178,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                       featuresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
-                  className="inline-flex items-center justify-center px-6 py-3 sm:px-10 sm:py-5 text-sm sm:text-lg font-bold transition-all duration-300 border-2 rounded-xl hover:scale-105"
+                  className="inline-flex items-center justify-center px-5 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-base font-bold transition-all duration-300 border-2 rounded-xl hover:scale-105"
                   style={{
                     borderColor: isDarkMode ? "#10B517" : "#167814",
                     color: isDarkMode ? "#10B517" : "#167814",
@@ -218,7 +218,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       <section id="about" className="px-4 py-8 md:py-12 bg-white dark:bg-gray-800">
         <div className="container max-w-6xl mx-auto">
           <div className="mb-8 md:mb-10 text-center">
-            <h2 className="mb-4 text-xl md:text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+            <h2 className="mb-4 text-2xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white">
               Mengapa
               <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Grapadi Strategix?
@@ -278,7 +278,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
         <div className="container max-w-6xl mx-auto">
           <div className="mb-8 md:mb-10 text-center">
             <div className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Fitur Unggulan</div>
-            <h2 className="mb-2 text-xl md:text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+            <h2 className="mb-2 text-2xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white">
               Platform Lengkap untuk
               <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Kesuksesan Bisnis Anda
@@ -330,7 +330,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {/* Value 1 - AI Analytics */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 dark:border-gray-700 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
@@ -348,7 +348,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
 
             {/* Value 2 - All-in-One */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 dark:border-gray-700 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
@@ -364,7 +364,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
 
             {/* Value 3 - Security */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 dark:border-gray-700 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
@@ -380,7 +380,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
 
             {/* Value 4 - Support */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 dark:border-gray-700 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>

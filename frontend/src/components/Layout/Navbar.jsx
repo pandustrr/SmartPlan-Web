@@ -19,13 +19,13 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
 
   return (
     <nav className="fixed top-0 left-0 z-50 w-full border-b border-gray-200 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md dark:border-gray-700">
-      <div className="container flex items-center justify-between px-3 md:px-6 py-2 mx-auto max-w-7xl">
+      <div className="container flex items-center justify-between px-3 md:px-6 py-0 mx-auto max-w-7xl">
         {/* ========== LOGO ========== */}
         <Link to="/" className="flex items-center space-x-2">
           <img
             src={isDarkMode ? "./assets/logo/logo-dark.png" : "./assets/logo/logo-light.png"}
             alt="Grapadi Strategix"
-            className="object-contain w-auto h-8 md:h-12"
+            className="object-contain w-auto h-12 md:h-16"
             onError={(e) => {
               // Fallback to text if image not found
               e.target.style.display = "none";
@@ -150,9 +150,8 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
 
         {/* ========== MOBILE MENU (FULLSCREEN) ========== */}
         <div
-          className={`fixed inset-0 z-40 flex flex-col items-center justify-center dark:bg-gray-800 bg-white h-screen transition-all duration-500 ease-in-out transform ${
-            isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
-          }`}
+          className={`fixed inset-0 z-40 flex flex-col items-center justify-center dark:bg-gray-800 bg-white h-screen transition-all duration-500 ease-in-out transform ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+            }`}
         >
           <ul className="w-full space-y-2 md:space-y-4 text-sm md:text-base font-medium text-center dark:text-white px-4">
             <li>
