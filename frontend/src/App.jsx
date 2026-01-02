@@ -10,6 +10,8 @@ import ResetPassword from "./pages/ResetPassword";
 import OtpVerification from "./pages/OtpVerification";
 import FAQ from "./pages/FAQ";
 import Terms from "./pages/Terms";
+import FeaturesPage from "./pages/FeaturesPage";
+import PricingPage from "./pages/PricingPage";
 
 import AffiliateLinkRedirect from "./components/Affiliate/AffiliateLinkRedirect";
 
@@ -108,6 +110,8 @@ function AppContent() {
         <Routes>
           {/* 🌍 Public Routes */}
           <Route path="/" element={<LandingPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+          <Route path="/features" element={<FeaturesPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+          <Route path="/pricing" element={<PricingPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
           <Route path="/faq" element={<FAQ isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
           <Route path="/terms" element={<Terms isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
 
@@ -170,10 +174,7 @@ function AppContent() {
             }
           />
 
-          <Route
-            path="*"
-            element={<NavigateToCorrectRoot />}
-          />
+          <Route path="*" element={<NavigateToCorrectRoot />} />
         </Routes>
       </Router>
     </div>

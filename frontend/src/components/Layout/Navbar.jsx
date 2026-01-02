@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Moon, Sun } from "lucide-react";
 
 function Navbar({ isDarkMode, toggleDarkMode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -40,29 +41,66 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
         <div className="items-center hidden space-x-6 md:flex lg:space-x-8">
           <Link
             to="/"
-            className="text-sm md:text-base font-medium text-gray-700 transition-colors dark:text-gray-300"
-            style={{ ":hover": { color: "#084404" } }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#167814")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            style={{ color: location.pathname === "/" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/") e.currentTarget.style.color = "#167814";
+            }}
+            onMouseLeave={(e) => {
+              if (location.pathname !== "/") e.currentTarget.style.color = "";
+            }}
           >
             Home
           </Link>
-          <a href="#features" className="text-sm md:text-base font-medium text-gray-700 transition-colors dark:text-gray-300" onMouseEnter={(e) => (e.currentTarget.style.color = "#167814")} onMouseLeave={(e) => (e.currentTarget.style.color = "")}>
+          <Link
+            to="/features"
+            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/features" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            style={{ color: location.pathname === "/features" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/features") e.currentTarget.style.color = "#167814";
+            }}
+            onMouseLeave={(e) => {
+              if (location.pathname !== "/features") e.currentTarget.style.color = "";
+            }}
+          >
             Features
-          </a>
+          </Link>
+          <Link
+            to="/pricing"
+            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/pricing" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            style={{ color: location.pathname === "/pricing" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/pricing") e.currentTarget.style.color = "#167814";
+            }}
+            onMouseLeave={(e) => {
+              if (location.pathname !== "/pricing") e.currentTarget.style.color = "";
+            }}
+          >
+            Pricing
+          </Link>
           <Link
             to="/faq"
-            className="text-sm md:text-base font-medium text-gray-700 transition-colors dark:text-gray-300"
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#167814")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/faq" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            style={{ color: location.pathname === "/faq" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/faq") e.currentTarget.style.color = "#167814";
+            }}
+            onMouseLeave={(e) => {
+              if (location.pathname !== "/faq") e.currentTarget.style.color = "";
+            }}
           >
             FAQ
           </Link>
           <Link
             to="/terms"
-            className="text-sm md:text-base font-medium text-gray-700 transition-colors dark:text-gray-300"
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#167814")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+            className={`text-sm md:text-base font-medium transition-colors ${location.pathname === "/terms" ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+            style={{ color: location.pathname === "/terms" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== "/terms") e.currentTarget.style.color = "#167814";
+            }}
+            onMouseLeave={(e) => {
+              if (location.pathname !== "/terms") e.currentTarget.style.color = "";
+            }}
           >
             Terms
           </Link>
@@ -86,7 +124,12 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
             {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
           </button>
 
-          <Link to="/login" className="hidden lg:block text-sm font-medium text-gray-700 transition-colors dark:text-gray-300" onMouseEnter={(e) => (e.currentTarget.style.color = "#084404")} onMouseLeave={(e) => (e.currentTarget.style.color = "")}>
+          <Link
+            to="/login"
+            className="hidden lg:block text-sm font-medium text-gray-700 transition-colors dark:text-gray-300"
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#084404")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+          >
             Sign In
           </Link>
           <Link
@@ -113,17 +156,52 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
         >
           <ul className="w-full space-y-3 md:space-y-4 text-base font-medium text-center dark:text-white px-4">
             <li>
-              <Link to="/" className="transition-colors hover:text-green-600" onClick={() => setIsOpen(false)}>
+              <Link
+                to="/"
+                className={`transition-colors ${location.pathname === "/" ? "font-bold" : "hover:text-green-600"}`}
+                style={{ color: location.pathname === "/" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+                onClick={() => setIsOpen(false)}
+              >
                 Home
               </Link>
             </li>
             <li>
-              <Link to="/faq" className="transition-colors hover:text-green-600" onClick={() => setIsOpen(false)}>
+              <Link
+                to="/features"
+                className={`transition-colors ${location.pathname === "/features" ? "font-bold" : "hover:text-green-600"}`}
+                style={{ color: location.pathname === "/features" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+                onClick={() => setIsOpen(false)}
+              >
+                Features
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/pricing"
+                className={`transition-colors ${location.pathname === "/pricing" ? "font-bold" : "hover:text-green-600"}`}
+                style={{ color: location.pathname === "/pricing" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+                onClick={() => setIsOpen(false)}
+              >
+                Pricing
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/faq"
+                className={`transition-colors ${location.pathname === "/faq" ? "font-bold" : "hover:text-green-600"}`}
+                style={{ color: location.pathname === "/faq" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+                onClick={() => setIsOpen(false)}
+              >
                 FAQ
               </Link>
             </li>
             <li>
-              <Link to="/terms" className="transition-colors hover:text-green-600" onClick={() => setIsOpen(false)}>
+              <Link
+                to="/terms"
+                className={`transition-colors ${location.pathname === "/terms" ? "font-bold" : "hover:text-green-600"}`}
+                style={{ color: location.pathname === "/terms" ? (isDarkMode ? "#10B517" : "#167814") : "" }}
+                onClick={() => setIsOpen(false)}
+              >
                 Terms
               </Link>
             </li>
@@ -138,7 +216,11 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
               </Link>
             </li>
             <li className="mt-3 md:mt-4">
-              <button onClick={toggleDarkMode} className="p-1.5 md:p-2 text-gray-600 transition-colors bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400" aria-label="Toggle dark mode">
+              <button
+                onClick={toggleDarkMode}
+                className="p-1.5 md:p-2 text-gray-600 transition-colors bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
+                aria-label="Toggle dark mode"
+              >
                 {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
               </button>
             </li>

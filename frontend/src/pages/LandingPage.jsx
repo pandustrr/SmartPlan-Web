@@ -141,7 +141,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, #10B517 0%, transparent 70%)" }}></div>
         </div>
 
-        <div className="container relative z-10 mx-auto max-w-6xl">
+        <div className="container relative z-10 max-w-6xl mx-auto">
           <div className="grid items-center grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Left Column - Content */}
             <div className="text-left animate-fade-in">
@@ -216,7 +216,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
       {/* Benefits Section - Bold Layout */}
       <section id="about" className="px-4 py-12 bg-white dark:bg-gray-800">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container max-w-6xl mx-auto">
           <div className="mb-10 text-center">
             <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
               Mengapa
@@ -259,7 +259,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               return (
                 <div
                   key={index}
-                  className="p-6 text-left border-2 border-gray-200 group rounded-2xl bg-white dark:bg-gray-700 hover-lift dark:border-gray-600 transition-all duration-300"
+                  className="p-6 text-left transition-all duration-300 bg-white border-2 border-gray-200 group rounded-2xl dark:bg-gray-700 hover-lift dark:border-gray-600"
                 >
                   <div className="flex items-center justify-center w-12 h-12 mb-4 transition-all duration-300 rounded-xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "rgba(16, 181, 23, 0.15)" : "rgba(22, 120, 20, 0.1)" }}>
                     <Icon className="custom-green" size={24} strokeWidth={2.5} />
@@ -275,7 +275,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
       {/* Features Section - Modern Grid */}
       <section id="features" className="px-4 py-12 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container max-w-6xl mx-auto">
           <div className="mb-10 text-center">
             <div className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Fitur Unggulan</div>
             <h2 className="mb-2 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
@@ -317,7 +317,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
       {/* Why Choose Section - Value Propositions */}
       <section className="px-4 py-12 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container max-w-6xl mx-auto">
           <div className="mb-10 text-center">
             <div className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Keunggulan Kompetitif</div>
             <h2 className="mb-2 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
@@ -330,10 +330,10 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {/* Value 1 - AI Analytics */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
                   <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">AI-Powered Analytics</h3>
@@ -348,10 +348,10 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
 
             {/* Value 2 - All-in-One */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
                   <Target className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">All-in-One Platform</h3>
@@ -364,10 +364,10 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
 
             {/* Value 3 - Security */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
                   <Shield className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">Enterprise Security</h3>
@@ -380,10 +380,10 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             </div>
 
             {/* Value 4 - Support */}
-            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 rounded-lg group dark:bg-gray-800 hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 rounded-lg shadow-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
                   <Users className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
                 <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">Expert Support 24/7</h3>
@@ -466,7 +466,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             <div className="flex flex-col justify-center gap-2 mb-6 sm:flex-row">
               <Link
                 to="/register"
-                className="inline-flex items-center justify-center px-8 py-3 text-sm font-black transition-all duration-300 transform bg-white shadow-2xl group rounded-md hover:bg-gray-50 hover:scale-105"
+                className="inline-flex items-center justify-center px-8 py-3 text-sm font-black transition-all duration-300 transform bg-white rounded-md shadow-2xl group hover:bg-gray-50 hover:scale-105"
                 style={{ color: "#167814" }}
               >
                 <CheckCircle className="mr-1.5 transition-transform group-hover:rotate-12" size={18} strokeWidth={3} />
@@ -475,7 +475,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               </Link>
               <Link
                 to="/login"
-                className="px-8 py-3 text-sm font-black text-white transition-all duration-300 transform border-2 border-white group rounded-md backdrop-blur-sm bg-white/10 hover:bg-white hover:scale-105"
+                className="px-8 py-3 text-sm font-black text-white transition-all duration-300 transform border-2 border-white rounded-md group backdrop-blur-sm bg-white/10 hover:bg-white hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "white";
                   e.currentTarget.style.color = "#167814";

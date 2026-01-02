@@ -82,28 +82,27 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Hero Section */}
-      <section className="relative px-4 pt-20 pb-20 overflow-hidden" style={{ background: isDarkMode ? "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" : "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" }}>
-        {/* Background Banner Image */}
-        <div className="absolute inset-0 opacity-30">
-          <img src="./assets/images/office-bg-2.jpg" alt="" className="object-cover w-full h-full mix-blend-overlay" onError={(e) => (e.target.style.display = "none")} />
-        </div>
-        
-        {/* Decorative Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)" }}></div>
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)" }}></div>
+      <section className="relative px-4 pt-24 pb-12 overflow-hidden">
+        <div className="absolute inset-0 opacity-5 dark:opacity-10">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, #167814 0%, transparent 70%)" }}></div>
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, #10B517 0%, transparent 70%)" }}></div>
         </div>
 
-        <div className="container relative z-10 mx-auto max-w-4xl">
+        <div className="container relative z-10 max-w-6xl mx-auto">
           <div className="text-center">
-            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-3 leading-[1.1] tracking-tight">
+            <div className="inline-flex items-center px-4 py-2 mb-6 text-sm font-bold bg-white border-2 rounded-full dark:bg-gray-800" style={{ borderColor: isDarkMode ? "#10B517" : "#167814", color: isDarkMode ? "#10B517" : "#167814" }}>
+              <CheckCircle className="w-4 h-4 mr-2" />
+              BANTUAN & DUKUNGAN
+            </div>
+
+            <h1 className="mb-6 text-3xl font-black leading-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
               Pertanyaan yang Sering Diajukan
-              <span className="block mt-0.5 text-white">
+              <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 (FAQ)
               </span>
             </h1>
 
-            <p className="mb-6 text-sm md:text-base font-light leading-relaxed text-white/90 max-w-2xl mx-auto">
+            <p className="max-w-3xl mx-auto mb-8 text-lg text-gray-600 dark:text-gray-400">
               Temukan jawaban untuk pertanyaan umum tentang Grapadi Strategix, fitur-fitur kami, dan bagaimana platform kami dapat membantu kesuksesan bisnis Anda.
             </p>
           </div>
@@ -111,8 +110,8 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* FAQ Sections */}
-      <section className="px-4 py-12 bg-white dark:bg-gray-900">
-        <div className="container mx-auto max-w-5xl">
+      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
+        <div className="container max-w-5xl mx-auto">
           {faqData.map((section, sectionIndex) => {
             const IconComponent = categoryIcons[section.category];
             const categoryColors = {
@@ -121,154 +120,129 @@ function FAQ({ isDarkMode, toggleDarkMode }) {
               "Dukungan Ahli": { light: "#95E1D3", lightBg: "rgba(149, 225, 211, 0.1)", dark: "#95E1D3", darkBg: "rgba(149, 225, 211, 0.15)" },
               "Keamanan & Teknis": { light: "#6C63FF", lightBg: "rgba(108, 99, 255, 0.1)", dark: "#6C63FF", darkBg: "rgba(108, 99, 255, 0.15)" },
             };
-            
+
             const colors = categoryColors[section.category];
             const iconColor = isDarkMode ? colors.dark : colors.light;
             const bgColor = isDarkMode ? colors.darkBg : colors.lightBg;
-            
+
             return (
               <div key={sectionIndex} className="mb-16">
                 <div className="flex items-center gap-4 mb-8 group/header">
-                  <div 
-                    className="p-3 rounded-xl transition-all duration-500 transform group/header-hover:scale-110 relative overflow-hidden shadow-md hover:shadow-lg" 
-                    style={{ 
+                  <div
+                    className="relative p-3 overflow-hidden transition-all duration-500 transform shadow-md rounded-xl group/header-hover:scale-110 hover:shadow-lg"
+                    style={{
                       backgroundColor: bgColor,
                       border: `1px solid ${iconColor}40`,
-                      boxShadow: `0 4px 8px ${iconColor}20`
+                      boxShadow: `0 4px 8px ${iconColor}20`,
                     }}
                   >
                     {/* Animated background gradient */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group/header-hover:opacity-100 transition-opacity duration-500"
+                    <div
+                      className="absolute inset-0 transition-opacity duration-500 opacity-0 group/header-hover:opacity-100"
                       style={{
-                        background: `radial-gradient(circle at center, ${iconColor}10 0%, transparent 70%)`
+                        background: `radial-gradient(circle at center, ${iconColor}10 0%, transparent 70%)`,
                       }}
                     ></div>
-                    
-                    <IconComponent 
-                      size={24} 
-                      strokeWidth={2}
-                      className="transition-all duration-500 transform group/header-hover:rotate-12 relative z-10"
-                      style={{ color: iconColor }} 
-                    />
+
+                    <IconComponent size={24} strokeWidth={2} className="relative z-10 transition-all duration-500 transform group/header-hover:rotate-12" style={{ color: iconColor }} />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white transition-colors duration-300" style={{ color: iconColor }}>
+                    <h2 className="text-lg font-semibold text-gray-900 transition-colors duration-300 md:text-xl dark:text-white" style={{ color: iconColor }}>
                       {section.category}
                     </h2>
-                    <div 
-                      className="h-1 w-12 mt-2 rounded-full transition-all duration-300 group/header-hover:w-16" 
-                      style={{ backgroundColor: iconColor }}
-                    ></div>
+                    <div className="w-12 h-1 mt-2 transition-all duration-300 rounded-full group/header-hover:w-16" style={{ backgroundColor: iconColor }}></div>
                   </div>
                 </div>
 
-              <div className="space-y-3">
-                {section.questions.map((item, questionIndex) => {
-                  const globalIndex = sectionIndex * 10 + questionIndex;
-                  const isExpanded = expandedIndex === globalIndex;
-                  const categoryColors = {
-                    "Tentang Produk": { light: "#FF6B6B", dark: "#FF6B6B" },
-                    "Proses & Fitur": { light: "#4ECDC4", dark: "#4ECDC4" },
-                    "Dukungan Ahli": { light: "#95E1D3", dark: "#95E1D3" },
-                    "Keamanan & Teknis": { light: "#6C63FF", dark: "#6C63FF" },
-                  };
-                  
-                  const colors = categoryColors[section.category];
-                  const accentColor = isDarkMode ? colors.dark : colors.light;
+                <div className="space-y-3">
+                  {section.questions.map((item, questionIndex) => {
+                    const globalIndex = sectionIndex * 10 + questionIndex;
+                    const isExpanded = expandedIndex === globalIndex;
+                    const categoryColors = {
+                      "Tentang Produk": { light: "#FF6B6B", dark: "#FF6B6B" },
+                      "Proses & Fitur": { light: "#4ECDC4", dark: "#4ECDC4" },
+                      "Dukungan Ahli": { light: "#95E1D3", dark: "#95E1D3" },
+                      "Keamanan & Teknis": { light: "#6C63FF", dark: "#6C63FF" },
+                    };
 
-                  return (
-                    <div
-                      key={questionIndex}
-                      className="border-2 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg bg-white dark:bg-gray-800 group/item"
-                      style={{
-                        borderColor: isExpanded ? accentColor : (isDarkMode ? "rgb(55, 65, 81)" : "rgb(229, 231, 235)"),
-                        boxShadow: isExpanded
-                          ? `0 10px 25px ${accentColor}25`
-                          : "none",
-                        backgroundColor: isExpanded ? (isDarkMode ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.5)") : ""
-                      }}
-                    >
-                      <button
-                        onClick={() => toggleAccordion(globalIndex)}
-                        className="w-full px-6 py-5 text-left hover:bg-opacity-50 transition-colors duration-200 flex items-center justify-between"
+                    const colors = categoryColors[section.category];
+                    const accentColor = isDarkMode ? colors.dark : colors.light;
+
+                    return (
+                      <div
+                        key={questionIndex}
+                        className="overflow-hidden transition-all duration-300 bg-white border-2 rounded-xl hover:shadow-lg dark:bg-gray-800 group/item"
                         style={{
-                          backgroundColor: isExpanded ? (isDarkMode ? `${accentColor}10` : `${accentColor}08`) : "transparent",
+                          borderColor: isExpanded ? accentColor : isDarkMode ? "rgb(55, 65, 81)" : "rgb(229, 231, 235)",
+                          boxShadow: isExpanded ? `0 10px 25px ${accentColor}25` : "none",
+                          backgroundColor: isExpanded ? (isDarkMode ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.5)") : "",
                         }}
                       >
-                        <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-white transition-colors duration-200 flex-1" style={{ color: isExpanded ? accentColor : "" }}>
-                          {item.q}
-                        </h3>
-                        <ChevronDown
-                          size={20}
-                          className="flex-shrink-0 transition-all duration-300 ml-4"
+                        <button
+                          onClick={() => toggleAccordion(globalIndex)}
+                          className="flex items-center justify-between w-full px-6 py-5 text-left transition-colors duration-200 hover:bg-opacity-50"
                           style={{
-                            color: isExpanded ? accentColor : (isDarkMode ? "#9CA3AF" : "#6B7280"),
-                            transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                          }}
-                        />
-                      </button>
-
-                      {isExpanded && (
-                        <div 
-                          className="px-6 py-5 border-t-2 transition-all duration-300"
-                          style={{ 
-                            borderColor: `${accentColor}30`,
-                            backgroundColor: isDarkMode ? `${accentColor}08` : `${accentColor}05`
+                            backgroundColor: isExpanded ? (isDarkMode ? `${accentColor}10` : `${accentColor}08`) : "transparent",
                           }}
                         >
-                          <p className="text-xs md:text-sm leading-relaxed text-gray-700 dark:text-gray-300 font-light">
-                            {item.a}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                          <h3 className="flex-1 text-sm font-semibold text-gray-900 transition-colors duration-200 md:text-base dark:text-white" style={{ color: isExpanded ? accentColor : "" }}>
+                            {item.q}
+                          </h3>
+                          <ChevronDown
+                            size={20}
+                            className="flex-shrink-0 ml-4 transition-all duration-300"
+                            style={{
+                              color: isExpanded ? accentColor : isDarkMode ? "#9CA3AF" : "#6B7280",
+                              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                            }}
+                          />
+                        </button>
+
+                        {isExpanded && (
+                          <div
+                            className="px-6 py-5 transition-all duration-300 border-t-2"
+                            style={{
+                              borderColor: `${accentColor}30`,
+                              backgroundColor: isDarkMode ? `${accentColor}08` : `${accentColor}05`,
+                            }}
+                          >
+                            <p className="text-xs font-light leading-relaxed text-gray-700 md:text-sm dark:text-gray-300">{item.a}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section
-        className="relative px-4 py-16 overflow-hidden"
-        style={{ background: isDarkMode ? "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" : "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" }}
-      >
-        {/* Decorative Background Pattern */}
+      <section className="relative px-4 py-16 overflow-hidden" style={{ background: isDarkMode ? "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" : "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" }}>
+        {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute w-64 h-64 transform border-4 border-white top-20 left-20 rounded-3xl rotate-12"></div>
-          <div className="absolute border-4 border-white rounded-full bottom-20 right-20 w-80 h-80"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 border-4 border-white rounded-full"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 border-4 border-white rounded-full"></div>
           <div className="absolute transform rotate-45 -translate-x-1/2 -translate-y-1/2 border-4 border-white top-1/2 left-1/2 w-96 h-96 rounded-3xl"></div>
-        </div>
-
-        <div className="absolute inset-0 opacity-20">
-          <img src="/assets/images/office-bg-2.jpg" alt="" className="object-cover w-full h-full mix-blend-overlay" onError={(e) => (e.target.style.display = "none")} />
         </div>
 
         <div className="container relative z-10 max-w-4xl mx-auto">
           <div className="text-center">
-            <h2 className="mb-4 text-2xl font-black leading-tight tracking-tight text-white md:text-3xl lg:text-4xl">
-              Masih Ada Pertanyaan?
-            </h2>
+            <h2 className="mb-4 text-3xl font-black leading-tight text-white md:text-4xl">Masih Ada Pertanyaan?</h2>
 
-            <p className="max-w-2xl mx-auto mb-8 text-sm md:text-base font-light leading-relaxed text-white/95">
-              Tim support kami siap membantu Anda. Hubungi kami melalui WhatsApp untuk konsultasi gratis dan respon cepat dalam 30 menit.
-            </p>
+            <p className="max-w-2xl mx-auto mb-8 text-lg text-white/95">Tim support kami siap membantu Anda. Hubungi kami melalui WhatsApp untuk konsultasi gratis dan respon cepat dalam 30 menit.</p>
 
-            <div className="flex flex-col justify-center gap-2 sm:flex-row">
-              <a
-                href="https://wa.me/6285198887963"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-8 py-3 text-sm font-black transition-all duration-300 transform bg-white shadow-2xl group rounded-md hover:bg-gray-50 hover:scale-105"
-                style={{ color: "#167814" }}
-              >
-                Hubungi Kami
-              </a>
-            </div>
+            <a
+              href="https://wa.me/6285198887963"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold transition-all duration-300 transform bg-white shadow-xl rounded-xl hover:scale-105"
+              style={{ color: "#167814" }}
+            >
+              Hubungi Kami
+            </a>
           </div>
         </div>
       </section>
