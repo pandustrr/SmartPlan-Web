@@ -22,32 +22,32 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
     {
       icon: BarChart3,
       title: "Analisis Bisnis Mendalam",
-      description: "Dapatkan insight mendalam tentang performa bisnis Anda dengan analisis data yang powerful dan real-time. Pantau KPI dan metrik penting dalam satu dashboard.",
+      description: "Dapatkan wawasan strategis tentang potensi model bisnis Anda dengan analisis data yang powerful. Simulasikan performa rencana Anda sebelum eksekusi.",
     },
     {
       icon: DollarSign,
-      title: "Manajemen Keuangan",
-      description: "Kelola keuangan bisnis dengan mudah, pantau pendapatan dan pengeluaran secara real-time dengan dashboard yang intuitif dan laporan otomatis.",
+      title: "Proyeksi Keuangan",
+      description: "Susun rencana laba rugi dan arus kas (cash flow) secara otomatis. Hitung metrik kelayakan investasi seperti NPV, IRR, dan Payback Period secara instan.",
     },
     {
       icon: TrendingUp,
       title: "Forecast & Prediksi AI",
-      description: "Prediksi masa depan bisnis Anda dengan algoritma AI yang akurat untuk perencanaan yang lebih baik dan pengambilan keputusan yang tepat.",
+      description: "Prediksi pertumbuhan rencana bisnis Anda hingga 5 tahun ke depan dengan algoritma AI yang akurat untuk mendukung pengambilan keputusan strategis.",
     },
     {
       icon: LineChart,
       title: "Laporan Otomatis",
-      description: "Generate laporan bisnis otomatis dengan visualisasi data yang mudah dipahami. Export dalam berbagai format untuk presentasi dan analisis.",
+      description: "Hasilkan dokumen Business Plan (PDF) profesional yang mencakup visualisasi data keuangan lengkap, siap dipresentasikan kepada investor atau perbankan.",
     },
     {
       icon: Target,
       title: "Perencanaan Strategis",
-      description: "Buat dan kelola rencana bisnis dengan tools yang membantu Anda mencapai target dengan efisien. Tetapkan goals dan track progress secara real-time.",
+      description: "Kelola visi dan misi bisnis Anda melalui modul strategi terstruktur. Tetapkan target jangka panjang dan pantau progres penyusunan rencana Anda.",
     },
     {
       icon: Gift,
       title: "Program Afiliasi",
-      description: "Dapatkan passive income dengan mengajak teman bergabung. Komisi menarik, tracking real-time, dan dashboard afiliasi yang lengkap untuk memaksimalkan earnings.",
+      description: "Dapatkan penghasilan pasif dengan mengajak rekan bisnis bergabung. Pantau komisi Anda secara real-time melalui dashboard afiliasi yang transparan.",
     },
   ];
 
@@ -151,14 +151,14 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
               </div>
 
               <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-3 leading-[1.1] tracking-tight">
-                Kelola Bisnis
+                Susun Rencana Bisnis
                 <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                   Lebih Cerdas
                 </span>
               </h1>
 
               <p className="mb-6 text-xs md:text-base font-light leading-relaxed text-gray-600 dark:text-gray-400">
-                Platform all-in-one untuk perencanaan strategis, analisis keuangan, dan prediksi AI.
+                Platform all-in-one untuk penyusunan strategi, proyeksi keuangan otomatis (NPV, IRR, Payback Period), dan analisis SWOT berbasis AI.
                 <span className="block mt-0.5 font-semibold text-gray-900 dark:text-white">Semua dalam satu solusi terintegrasi.</span>
               </p>
 

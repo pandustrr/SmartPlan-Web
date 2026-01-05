@@ -21,20 +21,17 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
     <nav className="fixed top-0 left-0 z-50 w-full border-b border-gray-200 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md dark:border-gray-700">
       <div className="container flex items-center justify-between px-3 md:px-6 py-0 mx-auto max-w-7xl">
         {/* ========== LOGO ========== */}
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-3">
           <img
-            src={isDarkMode ? "./assets/logo/logo-dark.png" : "./assets/logo/logo-light.png"}
-            alt="Grapadi Strategix"
-            className="object-contain w-auto h-12 md:h-16"
-            onError={(e) => {
-              // Fallback to text if image not found
-              e.target.style.display = "none";
-              e.target.nextSibling.style.display = "block";
-            }}
+            src="./assets/logo/logo-navbar.png"
+            alt="Grapadi Strategix Icon"
+            className="object-contain w-auto h-10 md:h-12"
           />
-          <span className="hidden text-base md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white" style={{ display: "none" }}>
-            <span style={{ color: "#167814" }}>Grapadi</span> Strategix
-          </span>
+          <div className="flex flex-col gap-0" style={{ fontFamily: "'Open Sans', sans-serif" }}>
+            <span className="text-sm md:text-base font-bold leading-tight" style={{ color: "#114d0b" }}>
+              Grapadi Strategix
+            </span>
+          </div>
         </Link>
 
         {/* ========== DESKTOP MENU ========== */}
